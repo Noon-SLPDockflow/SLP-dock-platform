@@ -158,6 +158,7 @@
             cursor: pointer;
             transition: opacity 0.2s;
             text-transform: uppercase;
+            margin-bottom: 0.5rem;
         }
         button:hover { opacity: 0.9; }
         table {
@@ -192,7 +193,7 @@
 <body>
     <header>
         <h1>SLP <span>Security Platform</span></h1>
-        <div style="color: var(--text-muted); font-size: 0.9rem;">Status: <span style="color: var(--success-color)">● Live Connection</span></div>
+        <div style="color: var(--text-muted); font-size: 0.9rem;">Status: <span style="color: var(--success-color)">● Dashboard Active</span></div>
     </header>
     <div class="metrics-bar">
         <div class="metric-card">
@@ -214,17 +215,17 @@
             <div class="scanners-container">
                 <div class="scan-box">
                     <label for="iqamaScanner">🪪 SCAN DRIVER <span>IQAMA</span> (NAME ONLY)</label>
-                    <input type="file" id="iqamaScanner" accept="image/*" capture="environment" style="display: none;">
+                    <input type="file" id="iqamaScanner" accept="image/*" style="display: none;">
                     <div class="scan-status" id="iqamaStatus">Ready to scan driver card</div>
                 </div>
                 <div class="scan-box">
                     <label for="plateScanner">🚘 SCAN VEHICLE <span>PLATE NUMBER</span></label>
-                    <input type="file" id="plateScanner" accept="image/*" capture="environment" style="display: none;">
+                    <input type="file" id="plateScanner" accept="image/*" style="display: none;">
                     <div class="scan-status" id="plateStatus">Ready to scan back bumper plate</div>
                 </div>
                 <div class="scan-box">
                     <label for="officerScanner">🛡️ SCAN OFFICER <span>BADGE ID</span></label>
-                    <input type="file" id="officerScanner" accept="image/*" capture="environment" style="display: none;">
+                    <input type="file" id="officerScanner" accept="image/*" style="display: none;">
                     <div class="scan-status" id="officerStatus">Ready to scan staff badge</div>
                 </div>
             </div>
@@ -258,6 +259,7 @@
                     </select>
                 </div>
                 <button type="submit" id="submitBtn">Submit Log</button>
+                <button type="button" id="testBtn" style="background-color: #3b82f6; color: #fff;">Test Database Connection</button>
             </form>
         </div>
         <div class="card" style="overflow-x: auto;">
@@ -308,8 +310,171 @@
                 if (extractedName) {
                     document.getElementById('driverName').value = extractedName;
                 } else {
-                    status.innerHTML = "⚠️ Name line not isolated. Try a closer view.";
+                    status.innerHTML = "⚠️ Name line not found. Try a closer view.";
                     status.style.color = "var(--accent-color)";
                 }
             }).catch(err => {
-                    
+                status.innerHTML = "❌ Scanner Error: Check network connection.";
+                status.style.color = "#ef4444";
+            });
+        });
+
+        document.getElementById('plateScanner').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const status = document.getElementById('plateStatus');
+            status.innerHTML = "🌀 Isolating plate elements...";
+            status.style.color = "var(--accent-color)";
+            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+                status.innerHTML = "✅ Scan complete!";
+                status.style.color = "var(--success-color)";
+                const lines = text.split('\n');
+                let digits = "";
+                let letters = "";
+                lines.forEach(line => {
+                    let cleaned = line.replace(/[^A-Z0-9\s]/gi, '').toUpperCase().trim();
+                    if (/OPENSOUQ|ELANTRA|HYUNDAI|KSA|SAUDI/i.test(cleaned)) return;
+                    if (/^\d{3,4}$/.test(cleaned)) {
+                        digits = cleaned;
+                    } else if (/^[A-Z]{3}$/.test(cleaned)) {
+                        letters = cleaned;
+                    }
+                });
+                if (!digits || !letters) {
+                    const words = text.split(/\s+/);
+                    words.forEach(word => {
+                        let cleanWord = word.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                        if (/^\d{4}$/.test(cleanWord)) digits = cleanWord;
+                        if (/^[A-Z]{3}$/.test(cleanWord) && !/KSA/i.test(cleanWord)) letters = cleanWord;
+                    });
+                }
+                if (digits || letters) {
+                    document.getElementById('plateNumber').value = (digits + " " + letters).trim();
+                } else {
+                    status.innerHTML = "⚠️ Bumper markers blurred. Re-snap.";
+                    status.style.color = "var(--accent-color)";
+                }
+            }).catch(() => {
+                status.innerHTML = "❌ Error processing layout.";
+                status.style.color = "#ef4444";
+            });
+        });
+
+        document.getElementById('officerScanner').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const status = document.getElementById('officerStatus');
+            status.innerHTML = "🌀 Locating ID code...";
+            status.style.color = "var(--accent-color)";
+            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+                status.innerHTML = "✅ Scan complete!";
+                status.style.color = "var(--success-color)";
+                const badgeMatch = text.match(/LP\d+/i) || text.match(/[A-Z]{2}\d{4}\b/i);
+                if (badgeMatch) {
+                    document.getElementById('securityName').value = badgeMatch[0].replace('#', '').toUpperCase();
+                } else {
+                    const words = text.split(/\s+/);
+                    let fallback = "";
+                    for(let w of words) {
+                        let clean = w.replace(/[^A-Z0-9]/gi, '');
+                        if(clean.length >= 5 && /[0-9]/.test(clean)) {
+                            fallback = clean.toUpperCase();
+                            break;
+                        }
+                    }
+                    if(fallback) {
+                        document.getElementById('securityName').value = fallback;
+                    } else {
+                        status.innerHTML = "⚠️ Badging strings unread. Hold steady.";
+                        status.style.color = "var(--accent-color)";
+                    }
+                }
+            }).catch(() => {
+                status.innerHTML = "❌ System fault scanning card.";
+                status.style.color = "#ef4444";
+            });
+        });
+
+        async function fetchLogs() {
+            const tbody = document.getElementById('liveFeedBody');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+            try {
+                const response = await fetch(API_URL, { signal: controller.signal });
+                const data = await response.json();
+                clearTimeout(timeoutId);
+                tbody.innerHTML = ''; 
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No entries recorded today.</td></tr>';
+                    return;
+                }
+                document.getElementById('metric-total').innerText = data.length;
+                let inboundCount = data.filter(item => item.direction === 'Inbound').length;
+                document.getElementById('metric-inbound').innerText = inboundCount;
+                let uniqueDocks = [...new Set(data.map(item => item.dockNumber))].length;
+                document.getElementById('metric-docks').innerText = uniqueDocks;
+                data.reverse().forEach(row => {
+                    const tr = document.createElement('tr');
+                    const badgeClass = row.direction.toLowerCase() === 'inbound' ? 'in' : 'out';
+                    tr.innerHTML = '<td><strong>' + row.driverName + '</strong></td><td>' + row.plateNumber + '</td><td>' + row.dockNumber + '</td><td><span class="badge ' + badgeClass + '">' + row.direction + '</span></td><td style="color: var(--text-muted); font-size:0.85rem;">' + row.securityName + '</td>';
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #ef4444; font-weight: bold;">⚠️ Connection Offline / Corporate Blocked. (Scanners Unlocked)</td></tr>';
+            }
+        }
+
+        document.getElementById('testBtn').addEventListener('click', async () => {
+            alert("Testing connection to: " + API_URL + "\n\nChecking if your company network allows connections to Google Scripts...");
+            try {
+                const res = await fetch(API_URL);
+                alert("Success! Google Sheet answered back smoothly.");
+                fetchLogs();
+            } catch (e) {
+                alert("Connection Blocked!\n\nReason: Your company network firewall or browser is blocking connections to script.google.com.\n\nSolution: Try opening this website link on your personal smartphone (connected to mobile data, NOT corporate Wi-Fi) and it will work perfectly!");
+            }
+        });
+
+        document.getElementById('entryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Processing...";
+            submitBtn.disabled = true;
+            const payload = {
+                driverName: document.getElementById('driverName').value,
+                plateNumber: document.getElementById('plateNumber').value,
+                securityName: document.getElementById('securityName').value,
+                dockNumber: document.getElementById('dockNumber').value,
+                direction: document.getElementById('direction').value
+            };
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                document.getElementById('entryForm').reset();
+                document.getElementById('iqamaStatus').innerHTML = "Ready to scan driver card";
+                document.getElementById('iqamaStatus').style.color = "var(--text-muted)";
+                document.getElementById('plateStatus').innerHTML = "Ready to scan back bumper plate";
+                document.getElementById('plateStatus').style.color = "var(--text-muted)";
+                document.getElementById('officerStatus').innerHTML = "Ready to scan staff badge";
+                document.getElementById('officerStatus').style.color = "var(--text-muted)";
+                submitBtn.innerText = "Submit Log";
+                submitBtn.disabled = false;
+                setTimeout(fetchLogs, 1500);
+            } catch (error) {
+                alert("Error saving log. Check your setup.");
+                submitBtn.innerText = "Submit Log";
+                submitBtn.disabled = false;
+            }
+        });
+
+        fetchLogs();
+    </script>
+</body>
+</html>
+ 
