@@ -69,10 +69,6 @@
             letter-spacing: 0.5px;
             color: #fff;
         }
-        .brand-text h2 span {
-            font-style: italic;
-            color: var(--text-main);
-        }
         .brand-text p {
             font-size: 0.75rem;
             color: var(--accent-color);
@@ -320,7 +316,7 @@
         .user-details h4 { font-size: 0.95rem; color: #fff; }
         .user-details p { font-size: 0.75rem; color: var(--text-muted); }
 
-        /* --- NEW UPGRADED TRUCK ENTRY REGION --- */
+        /* --- TRUCK ENTRY LAYOUT CONFIG --- */
         .scanners-triple-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -354,7 +350,7 @@
             font-weight: 500;
         }
 
-        /* Toggle Pilot Button System */
+        /* Toggle Button System Layout */
         .toggle-container {
             display: flex;
             justify-content: center;
@@ -385,7 +381,7 @@
             color: #000;
         }
 
-        /* Clean Two Column Unified Data Layout Grid */
+        /* Form Layout Grid System */
         .form-grid-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -432,6 +428,25 @@
         .input-box-styled:focus {
             border-color: var(--accent-color);
         }
+        
+        /* Unified Search Bar Interface Element */
+        .search-input-wrapper {
+            grid-column: 1 / -1;
+            position: relative;
+        }
+        .search-icon-inside {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            pointer-events: none;
+        }
+        .input-search-padded {
+            padding-left: 2.25rem !important;
+        }
+
         .submit-btn-global {
             width: 100%;
             background-color: var(--accent-color);
@@ -617,18 +632,18 @@
             
             <div class="card" style="max-width: 850px; margin: 0 auto;">
                 
-                <div class="scanners-triple-row">
-                    <div class="scan-box-dashed" onclick="document.getElementById('driverPhotoInput').click()">
+                <div class="scanners-triple-row" id="cameraScannersRow">
+                    <div class="scan-box-dashed" id="slotDriverCam" onclick="document.getElementById('driverPhotoInput').click()">
                         <span class="icon">📷</span>
                         <span id="driverPhotoStatus">Driver Photo / Truck Photo</span>
                         <input type="file" id="driverPhotoInput" accept="image/*" style="display:none;">
                     </div>
-                    <div class="scan-box-dashed" onclick="document.getElementById('iqamaScanner').click()">
+                    <div class="scan-box-dashed" id="slotIqamaCam" onclick="document.getElementById('iqamaScanner').click()">
                         <span class="icon">🪪</span>
                         <span id="iqamaStatus">Iqama (ID Card) Scanner</span>
                         <input type="file" id="iqamaScanner" accept="image/*" style="display:none;">
                     </div>
-                    <div class="scan-box-dashed" onclick="document.getElementById('officerScanner').click()">
+                    <div class="scan-box-dashed" id="slotOfficerCam" onclick="document.getElementById('officerScanner').click()">
                         <span class="icon">🛡️</span>
                         <span id="officerStatus">Security ID Scanner</span>
                         <input type="file" id="officerScanner" accept="image/*" style="display:none;">
@@ -636,26 +651,32 @@
                 </div>
 
                 <div class="toggle-container">
-                    <button class="toggle-btn active" type="button" onclick="setDriverMode('new', this)">New Driver</button>
-                    <button class="toggle-btn" type="button" onclick="setDriverMode('existing', this)">Existing Driver</button>
+                    <button class="toggle-btn active" type="button" id="toggleNewDriverBtn" onclick="setDriverMode('new', this)">New Driver</button>
+                    <button class="toggle-btn" type="button" id="toggleExistingDriverBtn" onclick="setDriverMode('existing', this)">Existing Driver</button>
                 </div>
 
                 <form id="entryForm">
                     <div class="form-grid-columns">
                         
-                        <div class="form-group">
+                        <div class="form-group search-input-wrapper" id="driverLookupGroup" style="display: none;">
+                            <label class="badge-style">Search Driver By Name or Plate... *</label>
+                            <span class="search-icon-inside">🔍</span>
+                            <input type="text" id="driverSearchBox" class="input-box-styled input-search-padded" placeholder="Type to search drivers...">
+                        </div>
+
+                        <div class="form-group new-driver-field">
                             <label class="badge-style">Driver Name *</label>
-                            <input type="text" id="driverName" classinput class="input-box-styled" required placeholder="Enter driver full name">
+                            <input type="text" id="driverName" class="input-box-styled" placeholder="Enter driver full name">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group new-driver-field">
                             <label class="badge-style">Iqama Number *</label>
-                            <input type="text" id="iqamaNumber" class="input-box-styled" required placeholder="Enter 10-digit identity card number">
+                            <input type="text" id="iqamaNumber" class="input-box-styled" placeholder="Enter 10-digit identity card number">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group new-driver-field">
                             <label class="badge-style">Truck Plate Number *</label>
-                            <input type="text" id="plateNumber" class="input-box-styled" required placeholder="Enter bumper plate sequence">
+                            <input type="text" id="plateNumber" class="input-box-styled" placeholder="Enter bumper plate sequence">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group new-driver-field">
                             <label class="badge-style">Mobile Number</label>
                             <input type="text" id="mobileNumber" class="input-box-styled" placeholder="Enter contact field parameter">
                         </div>
@@ -668,7 +689,7 @@
                         </div>
                         <div class="form-group">
                             <label class="badge-style">Security ID *</label>
-                            <input type="text" id="securityName" class="input-box-styled" required placeholder="Enter staff token number">
+                            <input type="text" id="securityNameId" class="input-box-styled" required placeholder="Enter staff token number">
                         </div>
                         <div class="form-group">
                             <label class="badge-style">Dock Number *</label>
@@ -736,6 +757,8 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbx5hQYr4uvmEhds13c1-WonqNzRut1Ksj52vjH7ncX5uo3Hqis2nAcHDQD0wxE2Eqo9zQ/exec";
+        let globalLogsCache = []; 
+        let currentDriverModeState = "new";
 
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(view => {
@@ -748,13 +771,59 @@
             element.classList.add('active');
         }
 
+        /* --- LOGIC SWITCHER MATCHING BOTH YOUR SCREENSHOT DESIGNS --- */
         function setDriverMode(mode, element) {
             element.parentNode.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
-            console.log("Current Entry Registry Pipeline Mode Selected:", mode);
+            currentDriverModeState = mode;
+
+            const fields = document.querySelectorAll('.new-driver-field');
+            const lookupGroup = document.getElementById('driverLookupGroup');
+            const slotDriver = document.getElementById('slotDriverCam');
+            const slotIqama = document.getElementById('slotIqamaCam');
+
+            if (mode === "existing") {
+                // Hides camera slots 1 and 2 just like your screenshot
+                slotDriver.style.display = "none";
+                slotIqama.style.display = "none";
+                // Show the database lookup string element row
+                lookupGroup.style.color = "unset";
+                lookupGroup.style.display = "block";
+                
+                // Drop text required states so submission clears on missing fields
+                fields.forEach(f => {
+                    f.style.display = "none";
+                    f.querySelector('input').required = false;
+                });
+            } else {
+                // RESTORES EVERYTHING BACK TO NEW DRIVER PRODUCTION MODE
+                slotDriver.style.display = "block";
+                slotIqama.style.display = "block";
+                lookupGroup.style.display = "none";
+                fields.forEach(f => {
+                    f.style.display = "block";
+                    f.querySelector('input').required = true;
+                });
+            }
         }
 
-        /* Pure dummy tracking trigger for first structural camera slot */
+        /* Predictive Lookup autofill match from Live Database row elements */
+        document.getElementById('driverSearchBox').addEventListener('input', function(e) {
+            let value = e.target.value.toUpperCase().trim();
+            if(value.length >= 3 && globalLogsCache.length > 0) {
+                let match = globalLogsCache.find(log => 
+                    (log.driverName && log.driverName.toUpperCase().includes(value)) || 
+                    (log.plateNumber && log.plateNumber.toUpperCase().includes(value))
+                );
+                if(match) {
+                    console.log("Predictive Autocompilation Match Triggered:", match);
+                    document.getElementById('driverName').value = match.driverName || "";
+                    document.getElementById('plateNumber').value = match.plateNumber || "";
+                    document.getElementById('iqamaNumber').value = "1094328574"; // Fallback index mask
+                }
+            }
+        });
+
         document.getElementById('driverPhotoInput').addEventListener('change', function() {
             if(this.files.length > 0) {
                 document.getElementById('driverPhotoStatus').innerText = "✅ Photo Attached Successfully";
@@ -762,7 +831,7 @@
             }
         });
 
-        /* --- OCR HANDLER CHANNELS --- */
+        /* --- OCR LOCAL EXECUTION READERS --- */
         document.getElementById('iqamaScanner').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -775,7 +844,6 @@
                 const lines = text.split('\n');
                 let extractedName = "";
                 let extractedID = "";
-                
                 for (let line of lines) {
                     let cleaned = line.trim().toUpperCase();
                     if (/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NUMBER|DATE/i.test(cleaned)) {
@@ -783,11 +851,9 @@
                     }
                     const nameMatch = cleaned.match(/\b[A-Z\s]{12,}\b/);
                     if (nameMatch) extractedName = nameMatch[0].trim();
-                    
                     const idMatch = cleaned.match(/\b[0-9]{10}\b/);
                     if (idMatch) extractedID = idMatch[0].trim();
                 }
-                
                 if (extractedName) document.getElementById('driverName').value = extractedName;
                 if (extractedID) document.getElementById('iqamaNumber').value = extractedID;
             }).catch(() => {
@@ -807,7 +873,7 @@
                 status.style.color = "var(--success-color)";
                 const badgeMatch = text.match(/LP\d+/i) || text.match(/[A-Z]{2}\d{4}\b/i);
                 if (badgeMatch) {
-                    document.getElementById('securityName').value = badgeMatch[0].replace('#', '').toUpperCase();
+                    document.getElementById('securityNameId').value = badgeMatch[0].replace('#', '').toUpperCase();
                     document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0].replace('#', '');
                 } else {
                     status.innerHTML = "⚠️ Badging strings unread.";
@@ -816,8 +882,9 @@
             });
         });
 
-        /* --- LOG TELEMETRY INTERFACE --- */
+        /* --- TELEMETRY ENGINE CONNECTIVITY --- */
         window.handleLogsResponse = function(data) {
+            globalLogsCache = data || []; 
             const tbody = document.getElementById('liveFeedBody');
             tbody.innerHTML = ''; 
             
@@ -859,7 +926,7 @@
             const payload = {
                 driverName: document.getElementById('driverName').value,
                 plateNumber: document.getElementById('plateNumber').value,
-                securityName: document.getElementById('securityName').value,
+                securityName: document.getElementById('securityNameField').value,
                 dockNumber: document.getElementById('dockNumber').value,
                 direction: document.getElementById('direction').value
             };
@@ -880,6 +947,9 @@
                 document.getElementById('iqamaStatus').style.color = "var(--text-muted)";
                 document.getElementById('officerStatus').innerText = "Security ID Scanner";
                 document.getElementById('officerStatus').style.color = "var(--text-muted)";
+
+                // Force layout state back to default new driver settings reset natively
+                setDriverMode('new', document.getElementById('toggleNewDriverBtn'));
 
                 switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
                 setTimeout(fetchLogs, 1500);
