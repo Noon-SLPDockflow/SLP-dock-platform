@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SLP Security - Dock Management Platform</title>
+    <title>SLP Security - Multi-Scan Dock Platform</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
@@ -104,6 +104,46 @@
             margin-top: 5px;
         }
 
+        /* Interactive Scanner Grid Layout */
+        .scanners-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .scan-box {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .scan-box:hover {
+            border-color: var(--accent-color);
+            background: rgba(245, 158, 11, 0.02);
+        }
+
+        .scan-box label {
+            display: block;
+            cursor: pointer;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .scan-box label span {
+            color: var(--accent-color);
+        }
+
+        .scan-status {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
         .form-group {
             margin-bottom: 1.2rem;
         }
@@ -129,29 +169,6 @@
 
         .form-group input:focus, .form-group select:focus {
             border-color: var(--accent-color);
-        }
-
-        .scanner-section {
-            background: rgba(245, 158, 11, 0.05);
-            border: 1px dashed var(--accent-color);
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .scanner-section label {
-            display: block;
-            cursor: pointer;
-            color: var(--accent-color);
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        #scanStatus {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-top: 5px;
         }
 
         button {
@@ -230,24 +247,38 @@
         <div class="card">
             <h2>Truck Entry Form</h2>
 
-            <div class="scanner-section">
-                <label for="imageScanner">📸 CLICK TO SCAN ID / LICENSE PLATE</label>
-                <input type="file" id="imageScanner" accept="image/*" capture="environment" style="display: none;">
-                <div id="scanStatus">Ready to scan (No corporate tracking)</div>
+            <div class="scanners-container">
+                <div class="scan-box">
+                    <label for="iqamaScanner">🪪 SCAN DRIVER <span>IQAMA</span> (NAME ONLY)</label>
+                    <input type="file" id="iqamaScanner" accept="image/*" capture="environment" style="display: none;">
+                    <div class="scan-status" id="iqamaStatus">Ready to scan driver card</div>
+                </div>
+
+                <div class="scan-box">
+                    <label for="plateScanner">🚘 SCAN VEHICLE <span>PLATE NUMBER</span></label>
+                    <input type="file" id="plateScanner" accept="image/*" capture="environment" style="display: none;">
+                    <div class="scan-status" id="plateStatus">Ready to scan back bumper plate</div>
+                </div>
+
+                <div class="scan-box">
+                    <label for="officerScanner">🛡️ SCAN OFFICER <span>BADGE ID</span></label>
+                    <input type="file" id="officerScanner" accept="image/*" capture="environment" style="display: none;">
+                    <div class="scan-status" id="officerStatus">Ready to scan staff badge</div>
+                </div>
             </div>
 
             <form id="entryForm">
                 <div class="form-group">
                     <label>Driver Name</label>
-                    <input type="text" id="driverName" required placeholder="John Doe">
+                    <input type="text" id="driverName" required placeholder="Awaiting Iqama scan or manual entry">
                 </div>
                 <div class="form-group">
                     <label>Plate Number</label>
-                    <input type="text" id="plateNumber" required placeholder="ABC-1234">
+                    <input type="text" id="plateNumber" required placeholder="Awaiting plate scan or manual entry">
                 </div>
                 <div class="form-group">
-                    <label>Security Officer</label>
-                    <input type="text" id="securityName" required placeholder="Officer Smith">
+                    <label>Security Officer ID</label>
+                    <input type="text" id="securityName" required placeholder="Awaiting badge scan or manual entry">
                 </div>
                 <div class="form-group">
                     <label>Dock Assignment</label>
@@ -278,7 +309,7 @@
                         <th>Plate</th>
                         <th>Dock</th>
                         <th>Direction</th>
-                        <th>Officer</th>
+                        <th>Officer ID</th>
                     </tr>
                 </thead>
                 <tbody id="liveFeedBody">
@@ -292,47 +323,148 @@
     </div>
 
     <script>
-        // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
         const API_URL = "https://script.google.com/macros/s/AKfycbymkkQ83eluzeBTKo_NEf6Bhebu007_OJS5Xz073tQcqqr_aspE5hgTiYrBOBW11w6NUQ/exec";
 
-        // LOCAL SCANNING LOGIC (No API Keys Needed)
-        document.getElementById('imageScanner').addEventListener('change', function(e) {
+        // Helper function to unify execution logs for troubleshooting
+        function debugOcr(label, text) {
+            console.log(`=== [DEBUG OCR: ${label}] ===`);
+            console.log(text);
+            console.log("==================================");
+        }
+
+        // ========================================================
+        // ENGINE 1: DRIVER IQAMA SCANNER (EXTRACTS ENGLISH NAME ONLY)
+        // ========================================================
+        document.getElementById('iqamaScanner').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
-            const statusDiv = document.getElementById('scanStatus');
-            statusDiv.innerHTML = "🌀 Processing image locally...";
-            statusDiv.style.color = "var(--accent-color)";
+            const status = document.getElementById('iqamaStatus');
+            status.innerHTML = "🌀 Processing Iqama locally...";
+            status.style.color = "var(--accent-color)";
 
-            // Initialize local Tesseract library engine
-            Tesseract.recognize(
-                file,
-                'eng',
-                { logger: m => console.log(m) } // Logs progress in browser console
-            ).then(({ data: { text } }) => {
-                statusDiv.innerHTML = "✅ Scan complete!";
-                statusDiv.style.color = "var(--success-color)";
-                
-                console.log("Raw Scanned Text Found:", text);
+            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+                debugOcr("IQAMA", text);
+                status.innerHTML = "✅ Scan complete!";
+                status.style.color = "var(--success-color)";
 
-                // Basic scanning check logic:
-                // If it finds a block of capital numbers/letters, it tries to drop it in plate number
-                const words = text.split(/\s+/);
-                words.forEach(word => {
-                    // Simple pattern match for a potential license plate (alphanumeric, 3-8 chars)
-                    if (word.length >= 4 && word.length <= 7 && /^[A-Z0-9-]+$/i.test(word)) {
-                        document.getElementById('plateNumber').value = word.toUpperCase();
+                const lines = text.split('\n');
+                let extractedName = "";
+
+                for (let line of lines) {
+                    let cleaned = line.trim();
+                    
+                    // Skip systemic headings seen on Saudi Iqama templates
+                    if (/kingdom|saudi|arabia|ministry|interior|residence|permit|identity|number/i.test(cleaned)) {
+                        continue;
                     }
-                });
+                    
+                    // Iqama structural logic: Pull long string matching uppercase names
+                    const nameMatch = cleaned.match(/\b[A-Z]{4,}\s[A-Z]{4,}(?:\s[A-Z]{4,})?(?:\s[A-Z]{4,})?\b/);
+                    if (nameMatch) {
+                        extractedName = nameMatch[0];
+                        break; 
+                    }
+                }
 
+                if (extractedName) {
+                    document.getElementById('driverName').value = extractedName;
+                } else {
+                    status.innerHTML = "⚠️ Name line not isolated. Try a clearer view.";
+                    status.style.color = "var(--accent-color)";
+                }
             }).catch(err => {
-                console.error(err);
-                statusDiv.innerHTML = "❌ Scan failed. Try a clearer picture.";
-                statusDiv.style.color = "#ef4444";
+                status.innerHTML = "❌ Failed processing card.";
+                status.style.color = "#ef4444";
             });
         });
 
-        // Fetch Logs from Google Sheet on page load
+        // ========================================================
+        // ENGINE 2: LICENSE PLATE SCANNER (EXTRACTS ENGLISH TEXT BLOCKS)
+        // ========================================================
+        document.getElementById('plateScanner').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const status = document.getElementById('plateStatus');
+            status.innerHTML = "🌀 Isolating plate elements...";
+            status.style.color = "var(--accent-color)";
+
+            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+                debugOcr("PLATE", text);
+                status.innerHTML = "✅ Scan complete!";
+                status.style.color = "var(--success-color)";
+
+                // Saudi Plates feature alphanumeric strings (e.g. "9192 DRB")
+                // We extract alpha-numeric character sequences 3-4 chars in length
+                const blocks = text.match(/\b[A-Z0-9]{3,4}\b/gi) || [];
+                let filteredBlocks = blocks
+                    .map(b => b.toUpperCase())
+                    .filter(b => !/KSA|SAUDI|ELANTRA|HYUNDAI/i.test(b)); // Filter systemic car markers
+
+                if (filteredBlocks.length >= 2) {
+                    // Combine extracted numerical block and alphabetical code block
+                    document.getElementById('plateNumber').value = `${filteredBlocks[0]} ${filteredBlocks[1]}`;
+                } else if (filteredBlocks.length === 1) {
+                    document.getElementById('plateNumber').value = filteredBlocks[0];
+                } else {
+                    status.innerHTML = "⚠️ Bumper markers blurred. Re-snap.";
+                    status.style.color = "var(--accent-color)";
+                }
+            }).catch(() => {
+                status.innerHTML = "❌ Error processing layout.";
+                status.style.color = "#ef4444";
+            });
+        });
+
+        // ========================================================
+        // ENGINE 3: STAFF ID BADGE SCANNER (EXTRACTS THE ALPHA-NUMERIC USER ID)
+        // ========================================================
+        document.getElementById('officerScanner').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const status = document.getElementById('officerStatus');
+            status.innerHTML = "🌀 Locating ID code...";
+            status.style.color = "var(--accent-color)";
+
+            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
+                debugOcr("OFFICER BADGE", text);
+                status.innerHTML = "✅ Scan complete!";
+                status.style.color = "var(--success-color)";
+
+                // Looks for standard hash code configurations matching your sample template (e.g., "#LP0022")
+                const badgeMatch = text.match(/#?[A-Z]{2}\d{4}\b/i) || text.match(/LP\d+/i);
+                
+                if (badgeMatch) {
+                    document.getElementById('securityName').value = badgeMatch[0].toUpperCase();
+                } else {
+                    // Fallback configuration check: scan for generic continuous digits/characters lines if symbol missing
+                    const words = text.split(/\s+/);
+                    let fallback = "";
+                    for(let w of words) {
+                        let clean = w.replace(/[^A-Z0-9#]/gi, '');
+                        if(clean.length >= 5 && /[0-9]/.test(clean)) {
+                            fallback = clean.toUpperCase();
+                            break;
+                        }
+                    }
+                    if(fallback) {
+                        document.getElementById('securityName').value = fallback;
+                    } else {
+                        status.innerHTML = "⚠️ Badging strings unread. Hold steady.";
+                        status.style.color = "var(--accent-color)";
+                    }
+                }
+            }).catch(() => {
+                status.innerHTML = "❌ System fault scanning card.";
+                status.style.color = "#ef4444";
+            });
+        });
+
+        // ========================================================
+        // GLOBAL TELEMETRY CORRECTIONS & CORE COMMUNICATIONS
+        // ========================================================
         async function fetchLogs() {
             try {
                 const response = await fetch(API_URL);
@@ -372,7 +504,6 @@
             }
         }
 
-        // Post Form Data to Google Sheet
         document.getElementById('entryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = document.getElementById('submitBtn');
@@ -396,8 +527,15 @@
                 });
 
                 document.getElementById('entryForm').reset();
-                document.getElementById('scanStatus').innerHTML = "Ready to scan (No corporate tracking)";
-                document.getElementById('scanStatus').style.color = "var(--text-muted)";
+                
+                // Clear state widgets
+                document.getElementById('iqamaStatus').innerHTML = "Ready to scan driver card";
+                document.getElementById('iqamaStatus').style.color = "var(--text-muted)";
+                document.getElementById('plateStatus').innerHTML = "Ready to scan back bumper plate";
+                document.getElementById('plateStatus').style.color = "var(--text-muted)";
+                document.getElementById('officerStatus').innerHTML = "Ready to scan staff badge";
+                document.getElementById('officerStatus').style.color = "var(--text-muted)";
+                
                 submitBtn.innerText = "Submit Log";
                 submitBtn.disabled = false;
                 
