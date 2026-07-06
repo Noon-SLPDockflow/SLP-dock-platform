@@ -282,8 +282,8 @@
         </div>
     </div>
     <script>
-        /* PLACED YOUR NEW LIVE GOOGLE MACRO WEB APP URL HERE */
-        const API_URL = "https://script.google.com/macros/s/AKfycby2PQVtjZiw2rF-KwVeR10wfzHhOg6RpkLOtu3fLN_Q9u-ThTTi0LnV41tfSO3a_yiAnA/exec";
+        /* SYNCHRONIZED TARGET WEB APP ENDPOINT */
+        const API_URL = "https://script.google.com/macros/s/AKfycbx5hQYr4uvmEhds13c1-WonqNzRut1Ksj52vjH7ncX5uo3Hqis2nAcHDQD0wxE2Eqo9zQ/exec";
 
         document.getElementById('iqamaScanner').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -395,7 +395,7 @@
             });
         });
 
-        /* JSONP TELEMETRY LOADER ROUTE */
+        /* JSONP CALLBACK ROUTER */
         window.handleLogsResponse = function(data) {
             const tbody = document.getElementById('liveFeedBody');
             tbody.innerHTML = ''; 
