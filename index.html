@@ -313,7 +313,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- TABLE CONFIGS --- */
+        /* --- TABLE & BADGE CONFIGS --- */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -335,6 +335,24 @@
         }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background-color: rgba(255,255,255,0.02); }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge.in {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-color);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .badge.out {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
 
         .btn-mini {
             background: transparent;
@@ -559,6 +577,212 @@
             text-align: center;
             min-width: 45px;
         }
+
+        /* --- DRIVER REGISTRY CARDS & MODAL SYSTEM --- */
+        .drivers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        @media (max-width: 500px) {
+            .drivers-grid { grid-template-columns: 1fr; }
+        }
+        .driver-registry-card {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            position: relative;
+        }
+        .driver-card-top {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        .driver-avatar-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+        }
+        .driver-meta-info h3 {
+            font-size: 1.05rem;
+            color: #fff;
+            font-weight: 700;
+        }
+        .driver-status-badges-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 4px;
+        }
+        .badge-mini-green {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            font-size: 0.65rem;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        .badge-mini-gray {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .card-action-utilities {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .btn-utility-icon {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .btn-utility-icon:hover {
+            border-color: var(--accent-color);
+            color: #fff;
+        }
+        .driver-card-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 0.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .metric-field label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .metric-field .value-info {
+            font-size: 0.9rem;
+            color: #fff;
+            font-weight: 600;
+        }
+        .btn-card-action-wide {
+            width: 100%;
+            background: transparent;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: var(--accent-color);
+            padding: 0.6rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-card-action-wide:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        /* --- LIGHTBOX MODAL --- */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            padding: 1rem;
+        }
+        .modal-backdrop.modal-open { display: flex; }
+        .modal-card {
+            background: #0f1624;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 650px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-close {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+        .modal-close:hover { color: #fff; }
+        .modal-body { padding: 1.5rem; }
+        .modal-img-container {
+            width: 100%;
+            height: 240px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .modal-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .modal-fields-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        @media (max-width: 550px) {
+            .modal-fields-grid { grid-template-columns: 1fr; }
+        }
+        .modal-field-box {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+        .modal-field-box label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .modal-field-box .val {
+            font-size: 0.95rem;
+            color: #fff;
+            font-weight: bold;
+        }
+        .modal-field-box .val-plates { display: inline-flex; }
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-modal-cancel {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: #fff;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-modal-cancel:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
@@ -584,6 +808,9 @@
             </li>
             <li class="nav-item" onclick="switchView('history', this)">
                 <span>📜 History Log</span>
+            </li>
+            <li class="nav-item" onclick="switchView('database', this)">
+                <span>🪪 Drivers Database</span>
             </li>
             <li class="nav-item" onclick="switchView('settings', this)">
                 <span>⚙️ Settings</span>
@@ -623,9 +850,9 @@
                     <div class="label">Total Check-Ins</div>
                     <div class="metric-accent-line" style="background-color: #3b82f6;"></div>
                 </div>
-                <div class="metric-card-slate">
+                <div class="metric-card-slate" style="cursor: pointer;" onclick="switchView('database', document.querySelectorAll('.nav-links .nav-item')[4])">
                     <div class="card-icon">🪪</div>
-                    <div class="num">3</div>
+                    <div class="num" id="metric-database-count">3</div>
                     <div class="label">Drivers Database</div>
                     <div class="metric-accent-line"></div>
                 </div>
@@ -704,11 +931,11 @@
                     <div class="card-header-flex">
                         <h2>Users Active</h2>
                     </div>
-                    <div class="user-activity-row">
-                        <div class="user-avatar">FB</div>
+                    <div class="user-activity-row" style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div class="user-avatar" style="width: 40px; height: 40px; background: var(--accent-color); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">FB</div>
                         <div class="user-details">
-                            <h4>Farman Shahid Butt</h4>
-                            <p>fsbutt@noon.com</p>
+                            <h4 style="color: #fff; font-size: 0.95rem;">Farman Shahid Butt</h4>
+                            <p style="color: var(--text-muted); font-size: 0.8rem;">fsbutt@noon.com</p>
                         </div>
                     </div>
                     <div style="margin-top: 1.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -722,7 +949,7 @@
         </div>
 
         <div id="view-checkin" class="app-view">
-            <header>
+            <header style="margin-bottom: 1.5rem;">
                 <h1>Truck Entry Form</h1>
             </header>
             
@@ -906,8 +1133,27 @@
             </div>
         </div>
 
+        <div id="view-database" class="app-view">
+            <div class="view-header-row">
+                <div class="view-header-title">
+                    <h1>Drivers Registry</h1>
+                    <p>Centralized database of authorized personnel.</p>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 1.5rem; background-color: rgba(15, 22, 36, 0.4);">
+                <div class="header-search-box-container" style="width: 100%; max-width: 400px; margin-bottom: 2rem;">
+                    <span>🔍</span>
+                    <input type="text" id="databaseSearchQuery" class="header-search-input" placeholder="Search by name, ID number, or truck..." oninput="filterDatabaseCards()">
+                </div>
+
+                <div class="drivers-grid" id="driversGridContainer">
+                    </div>
+            </div>
+        </div>
+
         <div id="view-settings" class="app-view">
-            <header>
+            <header style="margin-bottom: 1.5rem;">
                 <h1>Control Panel Settings</h1>
             </header>
             <div class="card">
@@ -918,9 +1164,53 @@
 
     </div>
 
+    <div class="modal-backdrop" id="driverDetailsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="color:#fff;">Driver Details</h3>
+                <span class="modal-close" onclick="closeDriverModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-img-container">
+                    <img id="modalDriverImg" src="" alt="Driver Vehicle Reference">
+                </div>
+                <div class="modal-fields-grid">
+                    <div class="modal-field-box">
+                        <label>Full Legal Name</label>
+                        <div class="val" id="modalFieldTargetName">--</div>
+                    </div>
+                    <div class="modal-field-box">
+                        <label>Iqama/National ID</label>
+                        <div class="val" id="modalFieldTargetId">--</div>
+                    </div>
+                    <div class="modal-field-box">
+                        <label>Primary Vehicle Plate</label>
+                        <div class="val-plates" id="modalFieldTargetPlate">--</div>
+                    </div>
+                    <div class="modal-field-box">
+                        <label>Mobile Number</label>
+                        <div class="val" id="modalFieldTargetMobile">--</div>
+                    </div>
+                    <div class="modal-field-box">
+                        <label>Registered Date</label>
+                        <div class="val" id="modalFieldTargetDate">--</div>
+                    </div>
+                    <div class="modal-field-box">
+                        <label>ID Reference</label>
+                        <div class="val" style="font-family: monospace; color: var(--text-muted); font-size:0.85rem;" id="modalFieldTargetRef">--</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-modal-cancel" onclick="closeDriverModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbx5hQYr4uvmEhds13c1-WonqNzRut1Ksj52vjH7ncX5uo3Hqis2nAcHDQD0wxE2Eqo9zQ/exec";
         let globalLogsCache = []; 
+        let registeredDriversCache = [];
 
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(view => {
@@ -971,7 +1261,7 @@
                 if(match) {
                     document.getElementById('driverName').value = match.driverName || "";
                     document.getElementById('plateNumber').value = match.plateNumber || "";
-                    document.getElementById('iqamaNumber').value = "1094328574"; 
+                    document.getElementById('iqamaNumber').value = match.iqamaNumber || "1094328574"; 
                 }
             }
         });
@@ -1034,7 +1324,7 @@
             });
         });
 
-        /* --- LOGOUT CONTROLLER LIFECYCLE MECHANISM --- */
+        /* --- LOGOUT LIFECYCLE --- */
         async function executeRowSignout(driverName, plateNumber, securityName, dockNumber) {
             if(!confirm("Proceed with terminal sign-out logging for vehicle: " + plateNumber + "?")) return;
             
@@ -1076,13 +1366,13 @@
         function calculateYardDuration(inTimeStr, outTimeStr) {
             if(!inTimeStr) return "--";
             let t1 = new Date(inTimeStr);
-            let t2 = outTimeStr ? new Date(outTimeStr) : new Date(); // Current live time fallback if inside facility
+            let t2 = outTimeStr ? new Date(outTimeStr) : new Date(); 
             
             let diffMs = t2 - t1;
             if(diffMs < 0 || isNaN(diffMs)) return "0h 0m";
             
             let diffMins = Math.floor(diffMs / 60000);
-            let hours = Math.floor(diffMins / 600);
+            let hours = Math.floor(diffMins / 60); 
             let mins = diffMins % 60;
             return `${hours}h ${mins}m`;
         }
@@ -1095,7 +1385,7 @@
             return `<div class="plate-box-split"><div class="plate-segment">${plateStr}</div></div>`;
         }
 
-        /* --- DYNAMIC MULTI-TABLE DATA PIPELINE --- */
+        /* --- DYNAMIC DATA PIPELINE SYSTEM --- */
         window.handleLogsResponse = function(data) {
             globalLogsCache = data ? [...data] : [];
             
@@ -1112,21 +1402,39 @@
                 activeBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
                 historyBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding:3rem; font-style:italic;">No historical logs parsed inside database.</td></tr>';
                 document.getElementById('activeYardCounter').innerText = "0";
+                document.getElementById('metric-database-count').innerText = "0";
                 return;
             }
 
             document.getElementById('metric-total-checkins').innerText = data.length;
 
-            /* PAIRING ALGORITHM: Link Inbound rows with their Outbound pairs */
             let activeYardMap = {};
             let historyWorkflowRecords = [];
+            const driversMap = {};
 
-            // Sort chronically to process arrivals and departures sequentially
             let cleanArray = [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-            cleanArray.forEach(row => {
+            cleanArray.forEach((row, index) => {
+                // Populate dynamic mockup database maps synchronously from data streams
+                if (row.driverName) {
+                    const dKey = row.driverName.trim().toUpperCase();
+                    if (!driversMap[dKey]) {
+                        driversMap[dKey] = {
+                            id: "d-k4v" + (211000 + index),
+                            driverName: row.driverName,
+                            iqamaNumber: row.iqamaNumber || "23" + Math.floor(10000000 + Math.random() * 90000000),
+                            plateNumber: row.plateNumber || "3417 UAJ",
+                            mobileNumber: row.mobileNumber || "059658" + Math.floor(1000 + Math.random() * 9000),
+                            registeredDate: row.timestamp ? row.timestamp.split('T')[0] : "2026-05-10",
+                            type: index % 2 === 0 ? "SLP" : "INDIVIDUAL",
+                            imgSrc: index % 2 === 0 ? 
+                                "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=100&q=80" : 
+                                "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=100&q=80"
+                        };
+                    }
+                }
+
                 if(row.direction === "Inbound") {
-                    // Create entry reference object inside facility tracking map
                     activeYardMap[row.plateNumber] = {
                         driverName: row.driverName,
                         plateNumber: row.plateNumber,
@@ -1147,12 +1455,15 @@
                         securityName: row.securityName
                     });
 
-                    // Remove from active yard map since vehicle exited facility boundaries
                     if(matchingInbound) delete activeYardMap[row.plateNumber];
                 }
             });
 
-            // Convert remaining un-departed map tracks into Active Row states
+            // Sync driver directory arrays
+            registeredDriversCache = Object.values(driversMap);
+            document.getElementById('metric-database-count').innerText = registeredDriversCache.length;
+            renderDriversRegistryGrid(registeredDriversCache);
+
             let activeTrucksList = Object.values(activeYardMap);
             document.getElementById('metric-active-now').innerText = activeTrucksList.length;
             document.getElementById('activeYardCounter').innerText = activeTrucksList.length;
@@ -1167,7 +1478,7 @@
                 liveBody.appendChild(tr);
             });
 
-            // RENDER 2: Active Trucks View Terminal Grid
+            // RENDER 2: Active Trucks View
             if(activeTrucksList.length === 0) {
                 activeBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
             } else {
@@ -1186,7 +1497,7 @@
                         <td style="color:var(--accent-color); font-weight:bold;">${runtimeDuration}</td>
                         <td style="font-size:0.8rem; color:var(--text-muted);">🛡️ ${row.securityName || 'Guard'}</td>
                         <td style="text-align: right; padding-right:1rem;">
-                            <button class="btn-signout-action" onclick="executeRowSignout('${row.driverName}', '${row.plateNumber}', '${row.securityName || 'Guard'}', '${row.dockNumber}')">
+                            <button class="btn-signout-action" onclick="executeRowSignout('${row.driverName.replace(/'/g, "\\'")}', '${row.plateNumber}', '${(row.securityName || 'Guard').replace(/'/g, "\\'")}', '${row.dockNumber}')">
                                 SIGN OUT
                             </button>
                         </td>
@@ -1195,11 +1506,10 @@
                 });
             }
 
-            // RENDER 3: History Audit Records Dataset Matrix
+            // RENDER 3: History Audit Logs
             if(historyWorkflowRecords.length === 0) {
                 historyBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding:3rem; font-style:italic;">No historical logs parsed inside database.</td></tr>';
             } else {
-                // Reverse to display latest departures at the top of history ledger list
                 historyWorkflowRecords.reverse().forEach(row => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
@@ -1218,7 +1528,84 @@
             }
         };
 
-        /* Client-side text query filters matching your placeholder specifications */
+        /* --- DRIVER REGISTRY DIRECTORY RENDERING LAYOUT --- */
+        function renderDriversRegistryGrid(driversList) {
+            const container = document.getElementById('driversGridContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (driversList.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; text-align:center; padding:3rem; color:var(--text-muted);">No driver logs parsed in registry index matching parameters.</div>`;
+                return;
+            }
+            
+            driversList.forEach(driver => {
+                const card = document.createElement('div');
+                card.className = 'driver-registry-card';
+                card.innerHTML = `
+                    <div class="card-action-utilities">
+                        <button class="btn-utility-icon">✏️</button>
+                        <button class="btn-utility-icon">🗑️</button>
+                    </div>
+                    <div class="driver-card-top">
+                        <img class="driver-avatar-circle" src="${driver.imgSrc}" alt="Driver Reference">
+                        <div class="driver-meta-info">
+                            <h3>${driver.driverName}</h3>
+                            <div class="driver-status-badges-row">
+                                <span class="badge-mini-green">VERIFIED</span>
+                                <span class="badge-mini-gray">${driver.type}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="driver-card-metrics">
+                        <div class="metric-field">
+                            <label>Iqama ID</label>
+                            <div class="value-info">${driver.iqamaNumber}</div>
+                        </div>
+                        <div class="metric-field">
+                            <label>Registered</label>
+                            <div class="value-info">${driver.registeredDate}</div>
+                        </div>
+                        <div class="metric-field" style="grid-column: 1 / -1;">
+                            <label>Phone Number</label>
+                            <div class="value-info">${driver.mobileNumber}</div>
+                        </div>
+                    </div>
+                    <button class="btn-card-action-wide" onclick="openDriverModal('${driver.id}')">View Records</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        /* --- DIALOG MODAL CONTROLLERS --- */
+        function openDriverModal(driverId) {
+            const driver = registeredDriversCache.find(d => d.id === driverId);
+            if (!driver) return;
+            
+            // Layout frame references matching screenshot configuration styles perfectly
+            document.getElementById('modalDriverImg').src = "https://images.unsplash.com/photo-1553440569-bcc63803a83d?auto=format&fit=crop&q=80&w=800"; 
+            document.getElementById('modalFieldTargetName').innerText = driver.driverName;
+            document.getElementById('modalFieldTargetId').innerText = driver.iqamaNumber;
+            document.getElementById('modalFieldTargetMobile').innerText = driver.mobileNumber;
+            document.getElementById('modalFieldTargetDate').innerText = formatFullDateText(driver.registeredDate).split(',')[0];
+            document.getElementById('modalFieldTargetRef').innerText = driver.id;
+            
+            const plateWrapper = document.getElementById('modalFieldTargetPlate');
+            let parts = driver.plateNumber ? driver.plateNumber.split(' ') : ['--'];
+            if(parts.length >= 2) {
+                plateWrapper.innerHTML = `<div class="plate-box-split" style="flex-direction:row; gap:6px;"><div class="plate-segment" style="background:#111827; padding:4px 10px; font-size:0.9rem;">${parts[0]}</div><div class="plate-segment" style="background:#111827; padding:4px 10px; font-size:0.9rem;">${parts[1]}</div></div>`;
+            } else {
+                plateWrapper.innerHTML = `<div class="plate-box-split"><div class="plate-segment" style="background:#111827; padding:4px 10px; font-size:0.9rem;">${driver.plateNumber}</div></div>`;
+            }
+
+            document.getElementById('driverDetailsModal').classList.add('modal-open');
+        }
+
+        function closeDriverModal() {
+            document.getElementById('driverDetailsModal').classList.remove('modal-open');
+        }
+
+        /* --- TEXT BLOCK FILTERS --- */
         function filterActiveYardTable() {
             let query = document.getElementById('yardSearchQuery').value.toLowerCase();
             let rows = document.querySelectorAll('#activeYardTableBody tr');
@@ -1235,6 +1622,16 @@
                 if(row.cells.length < 2) return;
                 row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
             });
+        }
+
+        function filterDatabaseCards() {
+            let query = document.getElementById('databaseSearchQuery').value.toLowerCase().trim();
+            let filtered = registeredDriversCache.filter(d => 
+                d.driverName.toLowerCase().includes(query) || 
+                d.iqamaNumber.toLowerCase().includes(query) ||
+                d.plateNumber.toLowerCase().includes(query)
+            );
+            renderDriversRegistryGrid(filtered);
         }
 
         function fetchLogs() {
@@ -1288,6 +1685,7 @@
             }
         });
 
+        // Application Poll Engine initialization
         setInterval(fetchLogs, 15000);
         fetchLogs();
     </script>
