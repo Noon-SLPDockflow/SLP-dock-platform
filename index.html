@@ -25,7 +25,7 @@
         }
         body {
             background-color: var(--bg-color);
-            background-image: linear-gradient(rgba(11, 15, 25, 0.85), rgba(11, 15, 25, 0.85)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000');
+            background-image: linear-gradient(rgba(11, 15, 25, 0.9), rgba(11, 15, 25, 0.9)), url('https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000');
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -137,7 +137,7 @@
 
         /* --- MAIN VIEW CONTENT LAYER --- */
         .main-content {
-            margin-left: 260px; /* Offset width matching sidebar */
+            margin-left: 260px; 
             flex-grow: 1;
             padding: 2rem;
             width: calc(100% - 260px);
@@ -150,57 +150,178 @@
 
         /* --- VIEWS CONTROLLER --- */
         .app-view {
-            display: none; /* Controlled dynamically via JavaScript */
+            display: none; 
         }
         .app-view.active-view {
             display: block;
         }
 
-        /* --- INTERNAL DASHBOARD ELEMENTS --- */
-        header {
+        /* --- RE-STYLED METRICS ROW --- */
+        .metrics-bar-four {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
             margin-bottom: 2rem;
+        }
+        @media (max-width: 1200px) {
+            .metrics-bar-four { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .metrics-bar-four { grid-template-columns: 1fr; }
+        }
+        .metric-card-slate {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: left;
+            position: relative;
+            backdrop-filter: blur(8px);
+        }
+        .metric-card-slate .card-icon {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            margin-bottom: 0.75rem;
+            opacity: 0.8;
+        }
+        .metric-card-slate .num {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.1;
+        }
+        .metric-card-slate .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .metric-accent-line {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 2px;
+        }
+
+        /* --- THE DUAL-COLUMN MIDDLE GRID LAYOUT --- */
+        .dashboard-mid-split {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 1100px) {
+            .dashboard-mid-split { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+        }
+        .card-header-flex {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 0.75rem;
         }
-        header h1 {
-            font-size: 1.6rem;
+        .card h2 {
+            font-size: 1.1rem;
+            color: #fff;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        .metric-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-left: 4px solid var(--accent-color);
-            border-radius: 8px;
-            padding: 1.25rem;
-            text-align: center;
-            backdrop-filter: blur(8px);
-        }
-        .metric-card .num {
-            font-size: 2.2rem;
-            font-weight: bold;
-        }
-        .metric-card .label {
+        .card h2::before {
+            content: '●';
+            color: var(--success-color);
             font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-top: 5px;
         }
-        .dashboard-layout {
+
+        /* --- ACCESSIBILITY SUB-TABLES --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 1rem 0.85rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: rgba(255,255,255,0.02); }
+
+        .btn-mini {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .btn-mini:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        /* --- BOTTOM LAYER GRID LAYOUT --- */
+        .dashboard-bottom-split {
             display: grid;
-            grid-template-columns: 1fr 1.8fr;
+            grid-template-columns: 2fr 1fr;
             gap: 2rem;
         }
         @media (max-width: 1100px) {
-            .dashboard-layout { grid-template-columns: 1fr; }
+            .dashboard-bottom-split { grid-template-columns: 1fr; }
         }
+
+        /* --- USER IDENTITY STATUS BLOCK --- */
+        .user-activity-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        .user-details { flex-grow: 1; }
+        .user-details h4 { font-size: 0.95rem; color: #fff; }
+        .user-details p { font-size: 0.75rem; color: var(--text-muted); }
+        
         .scanners-container {
             display: grid;
             grid-template-columns: 1fr;
@@ -253,33 +374,18 @@
         .form-group input:focus, .form-group select:focus {
             border-color: var(--accent-color);
         }
-        table {
+        .submit-btn-global {
             width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        th {
-            color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.95rem;
-        }
-        tr:hover td { background-color: rgba(255,255,255,0.04); }
-        .badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 0.75rem;
+            font-size: 1rem;
             font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            text-transform: uppercase;
         }
-        .badge.in { background-color: rgba(16, 185, 129, 0.2); color: var(--success-color); }
-        .badge.out { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; }
     </style>
 </head>
 <body>
@@ -319,64 +425,138 @@
                 </div>
                 <div class="health-dot"></div>
             </div>
-            <div class="nav-item" style="color: #ef4444;" onclick="alert('Signed out successfully.')">
-                <span>🚪 Sign Out</span>
-            </div>
         </div>
     </div>
 
     <div class="main-content">
 
         <div id="view-dashboard" class="app-view active-view">
-            <header>
-                <h1>System Overview</h1>
-            </header>
             
-            <div class="metrics-bar">
-                <div class="metric-card">
-                    <div class="num" id="metric-total">0</div>
+            <div class="metrics-bar-four">
+                <div class="metric-card-slate">
+                    <div class="card-icon">⏱️</div>
+                    <div class="num" id="metric-active-now">0</div>
+                    <div class="label">Active Now</div>
+                    <div class="metric-accent-line"></div>
+                </div>
+                <div class="metric-card-slate">
+                    <div class="card-icon">✅</div>
+                    <div class="num" id="metric-completed-today">0</div>
+                    <div class="label">Completed Today</div>
+                    <div class="metric-accent-line" style="background-color: var(--success-color);"></div>
+                </div>
+                <div class="metric-card-slate">
+                    <div class="card-icon">🚛</div>
+                    <div class="num" id="metric-total-checkins">0</div>
                     <div class="label">Total Check-Ins</div>
+                    <div class="metric-accent-line" style="background-color: #3b82f6;"></div>
                 </div>
-                <div class="metric-card" style="border-left-color: #10b981;">
-                    <div class="num" id="metric-inbound">0</div>
-                    <div class="label">Active Inbound</div>
-                </div>
-                <div class="metric-card" style="border-left-color: #3b82f6;">
-                    <div class="num" id="metric-docks">0</div>
-                    <div class="label">Docks Utilized</div>
+                <div class="metric-card-slate">
+                    <div class="card-icon">🪪</div>
+                    <div class="num">3</div>
+                    <div class="label">Drivers Database</div>
+                    <div class="metric-accent-line"></div>
                 </div>
             </div>
 
-            <div class="card" style="overflow-x: auto;">
-                <h2>Live Activity Feed</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Driver</th>
-                            <th>Plate</th>
-                            <th>Dock</th>
-                            <th>Direction</th>
-                            <th>Officer ID</th>
-                        </tr>
-                    </thead>
-                    <tbody id="liveFeedBody">
-                        <tr>
-                            <td colspan="5" style="text-align: center; color: var(--text-muted);">Loading logs...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="dashboard-mid-split">
+                <div class="card" style="overflow-x: auto;">
+                    <div class="card-header-flex">
+                        <h2>Live Now</h2>
+                        <button class="btn-mini" onclick="switchView('history', document.querySelectorAll('.nav-item')[3])">History Log</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Driver</th>
+                                <th>Plate Number</th>
+                                <th>Dock Assignment</th>
+                                <th>Direction Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveFeedBody">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading security records...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                    <div class="card-header-flex">
+                        <h2>Pending Access Requests</h2>
+                    </div>
+                    <div style="text-align: center; color: var(--text-muted); padding: 2rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 2rem;">🔒</span>
+                        <div style="font-weight: 600; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; color: #fff;">All Clear</div>
+                        <p style="font-size: 0.75rem; max-width: 180px;">No pending vehicle overrides detected in terminal queues.</p>
+                    </div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
+                        🛡️ Secure Protocol v2.4 Active
+                    </div>
+                </div>
             </div>
+
+            <div class="dashboard-bottom-split">
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Recent Login Activity</h2>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User ID</th>
+                                <th>Email Routing</th>
+                                <th>Location Branch</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Farman Shahid Butt</strong></td>
+                                <td style="color: var(--text-muted);">fsbutt@noon.com</td>
+                                <td>🇸🇦 Saudi Arabia</td>
+                                <td style="font-size: 0.85rem;">1:36:59 PM<br><span style="color:var(--text-muted)">7/6/2026</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Farman Shahid Butt</strong></td>
+                                <td style="color: var(--text-muted);">fsbutt@noon.com</td>
+                                <td>🇸🇦 Saudi Arabia</td>
+                                <td style="font-size: 0.85rem;">9:15:22 AM<br><span style="color:var(--text-muted)">7/6/2026</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h2>Users Active</h2>
+                    </div>
+                    <div class="user-activity-row">
+                        <div class="user-avatar">FB</div>
+                        <div class="user-details">
+                            <h4>Farman Shahid Butt</h4>
+                            <p>fsbutt@noon.com</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1.5rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); padding: 0.75rem; border-radius: 8px; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>⏱️</span>
+                        <div>
+                            <span style="color: var(--text-muted)">System Uptime:</span> <strong>98.5%</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div id="view-checkin" class="app-view">
             <header>
                 <h1>Check-In Terminal</h1>
             </header>
-            
-            <div class="dashboard-layout">
+            <div style="max-width: 500px;">
                 <div class="card">
                     <h2>Terminal Verification Form</h2>
-                    
                     <div class="scanners-container">
                         <div class="scan-box">
                             <label for="iqamaScanner">🪪 SCAN DRIVER <span>IQAMA</span></label>
@@ -394,7 +574,6 @@
                             <div class="scan-status" id="officerStatus">Ready to scan staff badge</div>
                         </div>
                     </div>
-
                     <form id="entryForm">
                         <div class="form-group">
                             <label>Driver Name</label>
@@ -424,7 +603,7 @@
                                 <option value="Outbound">Outbound (Check-Out)</option>
                             </select>
                         </div>
-                        <button type="submit" id="submitBtn">Submit Log Entries</button>
+                        <button type="submit" class="submit-btn-global">Submit Log Entries</button>
                     </form>
                 </div>
             </div>
@@ -436,7 +615,7 @@
             </header>
             <div class="card">
                 <h2>Currently Inside Bay</h2>
-                <p style="color: var(--text-muted);">View mode displays metrics filtered directly to dynamic Inbound yard statuses.</p>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">View mode displays metrics filtered directly to dynamic Inbound yard statuses.</p>
             </div>
         </div>
 
@@ -446,7 +625,7 @@
             </header>
             <div class="card">
                 <h2>Historical Logs Spreadsheet</h2>
-                <p style="color: var(--text-muted);">Audit records are synced sequentially to your target Google Database.</p>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Audit records are synced sequentially to your target Google Database.</p>
             </div>
         </div>
 
@@ -456,7 +635,7 @@
             </header>
             <div class="card">
                 <h2>Hardware Configurations</h2>
-                <p style="color: var(--text-muted);">OCR engines matching local configurations: Tesseract.js Build v5.0.</p>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">OCR engines matching local configurations: Tesseract.js Build v5.0.</p>
             </div>
         </div>
 
@@ -465,16 +644,11 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbx5hQYr4uvmEhds13c1-WonqNzRut1Ksj52vjH7ncX5uo3Hqis2nAcHDQD0wxE2Eqo9zQ/exec";
 
-        /* --- SINGLE PAGE ROUTING FUNCTION --- */
         function switchView(viewId, element) {
-            // Hide all dynamic app views
             document.querySelectorAll('.app-view').forEach(view => {
                 view.classList.remove('active-view');
             });
-            // Show selected target view block
             document.getElementById('view-' + viewId).classList.add('active-view');
-
-            // Toggle selected navigation highlighting styles
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
@@ -568,24 +742,32 @@
             });
         });
 
-        /* --- REALTIME JSONP NETWORK CORE --- */
+        /* --- REALTIME ENGINE --- */
         window.handleLogsResponse = function(data) {
             const tbody = document.getElementById('liveFeedBody');
             tbody.innerHTML = ''; 
             
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No entries recorded today.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding:2rem;">No entries recorded today.</td></tr>';
                 return;
             }
-            document.getElementById('metric-total').innerText = data.length;
+            
+            // Set dynamic counters in the top slate cards
+            document.getElementById('metric-total-checkins').innerText = data.length;
+            
             let inboundCount = data.filter(item => item.direction === 'Inbound').length;
-            document.getElementById('metric-inbound').innerText = inboundCount;
+            document.getElementById('metric-active-now').innerText = inboundCount;
+            
+            let completedToday = data.filter(item => item.direction === 'Outbound').length;
+            document.getElementById('metric-completed-today').innerText = completedToday;
+            
             let uniqueDocks = [...new Set(data.map(item => item.dockNumber))].length;
             document.getElementById('metric-docks').innerText = uniqueDocks;
-            data.reverse().forEach(row => {
+
+            data.reverse().slice(0, 5).forEach(row => {
                 const tr = document.createElement('tr');
                 const badgeClass = row.direction.toLowerCase() === 'inbound' ? 'in' : 'out';
-                tr.innerHTML = '<td><strong>' + row.driverName + '</strong></td><td>' + row.plateNumber + '</td><td>' + row.dockNumber + '</td><td><span class="badge ' + badgeClass + '">' + row.direction + '</span></td><td style="color: var(--text-muted); font-size:0.85rem;">' + row.securityName + '</td>';
+                tr.innerHTML = '<td><strong>' + row.driverName + '</strong></td><td>' + row.plateNumber + '</td><td>' + row.dockNumber + '</td><td><span class="badge ' + badgeClass + '">' + row.direction + '</span></td>';
                 tbody.appendChild(tr);
             });
         };
@@ -602,7 +784,7 @@
 
         document.getElementById('entryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
+            const submitBtn = document.querySelector('.submit-btn-global');
             submitBtn.innerText = "Processing...";
             submitBtn.disabled = true;
             const payload = {
@@ -622,7 +804,7 @@
                 document.getElementById('entryForm').reset();
                 submitBtn.innerText = "Submit Log Entries";
                 submitBtn.disabled = false;
-                switchView('dashboard', document.querySelectorAll('.nav-item')[0]); // Redirect to overview
+                switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
                 setTimeout(fetchLogs, 1500);
             } catch (error) {
                 alert("Error saving log.");
@@ -635,6 +817,4 @@
         fetchLogs();
     </script>
 </body>
-</html> 
-
-
+</html>
