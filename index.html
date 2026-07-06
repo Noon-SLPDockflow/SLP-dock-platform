@@ -156,7 +156,7 @@
             display: block;
         }
 
-        /* --- RE-STYLED METRICS ROW --- */
+        /* --- METRICS ROW --- */
         .metrics-bar-four {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -207,7 +207,7 @@
             border-radius: 2px;
         }
 
-        /* --- THE DUAL-COLUMN MIDDLE GRID LAYOUT --- */
+        /* --- THE DUAL-COLUMN LAYOUT LAYERS --- */
         .dashboard-mid-split {
             display: grid;
             grid-template-columns: 1.8fr 1fr;
@@ -249,7 +249,7 @@
             font-size: 0.8rem;
         }
 
-        /* --- ACCESSIBILITY SUB-TABLES --- */
+        /* --- TABLES SYSTEM --- */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -288,7 +288,6 @@
             color: #000;
         }
 
-        /* --- BOTTOM LAYER GRID LAYOUT --- */
         .dashboard-bottom-split {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -298,7 +297,6 @@
             .dashboard-bottom-split { grid-template-columns: 1fr; }
         }
 
-        /* --- USER IDENTITY STATUS BLOCK --- */
         .user-activity-row {
             display: flex;
             align-items: center;
@@ -321,57 +319,117 @@
         .user-details { flex-grow: 1; }
         .user-details h4 { font-size: 0.95rem; color: #fff; }
         .user-details p { font-size: 0.75rem; color: var(--text-muted); }
-        
-        .scanners-container {
+
+        /* --- NEW UPGRADED TRUCK ENTRY REGION --- */
+        .scanners-triple-row {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
         }
-        .scan-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px dashed rgba(245, 158, 11, 0.4);
+        @media (max-width: 768px) {
+            .scanners-triple-row { grid-template-columns: 1fr; }
+        }
+        .scan-box-dashed {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
             border-radius: 8px;
-            padding: 0.85rem;
+            padding: 1.5rem 1rem;
             text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .scan-box-dashed:hover {
+            border-color: var(--accent-color);
+            background: rgba(245, 158, 11, 0.03);
+        }
+        .scan-box-dashed .icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .scan-box-dashed span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Toggle Pilot Button System */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            background: rgba(11, 15, 25, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.25rem;
+            margin-bottom: 2rem;
+            max-width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .toggle-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
             transition: all 0.2s;
         }
-        .scan-box:hover {
-            border-color: var(--accent-color);
-            background: rgba(245, 158, 11, 0.05);
+        .toggle-btn.active {
+            background: var(--accent-color);
+            color: #000;
         }
-        .scan-box label {
-            display: block;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
+
+        /* Clean Two Column Unified Data Layout Grid */
+        .form-grid-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem 2rem;
         }
-        .scan-box label span { color: var(--accent-color); }
-        .scan-status {
+        @media (max-width: 768px) {
+            .form-grid-columns { grid-template-columns: 1fr; }
+        }
+        
+        .form-section-divider {
+            grid-column: 1 / -1;
+            background: #1e3a8a;
+            color: #fff;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 4px;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+            max-width: fit-content;
+        }
+        .badge-style {
             font-size: 0.75rem;
             color: var(--text-muted);
-            margin-top: 4px;
-        }
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-        .form-group label {
+            text-transform: uppercase;
             display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
-        .form-group input, .form-group select {
+        .input-box-styled {
             width: 100%;
-            background-color: rgba(11, 15, 25, 0.6);
+            background-color: rgba(11, 15, 25, 0.7);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 0.75rem;
+            padding: 0.85rem;
             border-radius: 6px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
+            transition: border 0.2s;
         }
-        .form-group input:focus, .form-group select:focus {
+        .input-box-styled:focus {
             border-color: var(--accent-color);
         }
         .submit-btn-global {
@@ -379,13 +437,17 @@
             background-color: var(--accent-color);
             color: #000;
             border: none;
-            padding: 0.75rem;
+            padding: 1rem;
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 700;
             border-radius: 6px;
             cursor: pointer;
             text-transform: uppercase;
+            margin-top: 2rem;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
         }
+        .submit-btn-global:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -431,7 +493,6 @@
     <div class="main-content">
 
         <div id="view-dashboard" class="app-view active-view">
-            
             <div class="metrics-bar-four">
                 <div class="metric-card-slate">
                     <div class="card-icon">⏱️</div>
@@ -547,49 +608,71 @@
                     </div>
                 </div>
             </div>
-
         </div>
 
         <div id="view-checkin" class="app-view">
             <header>
-                <h1>Check-In Terminal</h1>
+                <h1>Truck Entry Form</h1>
             </header>
-            <div style="max-width: 500px;">
-                <div class="card">
-                    <h2>Terminal Verification Form</h2>
-                    <div class="scanners-container">
-                        <div class="scan-box">
-                            <label for="iqamaScanner">🪪 SCAN DRIVER <span>IQAMA</span></label>
-                            <input type="file" id="iqamaScanner" accept="image/*" style="display: none;">
-                            <div class="scan-status" id="iqamaStatus">Ready to scan driver card</div>
-                        </div>
-                        <div class="scan-box">
-                            <label for="plateScanner">🚘 SCAN VEHICLE <span>PLATE</span></label>
-                            <input type="file" id="plateScanner" accept="image/*" style="display: none;">
-                            <div class="scan-status" id="plateStatus">Ready to scan back bumper plate</div>
-                        </div>
-                        <div class="scan-box">
-                            <label for="officerScanner">🛡️ SCAN OFFICER <span>BADGE</span></label>
-                            <input type="file" id="officerScanner" accept="image/*" style="display: none;">
-                            <div class="scan-status" id="officerStatus">Ready to scan staff badge</div>
-                        </div>
+            
+            <div class="card" style="max-width: 850px; margin: 0 auto;">
+                
+                <div class="scanners-triple-row">
+                    <div class="scan-box-dashed" onclick="document.getElementById('driverPhotoInput').click()">
+                        <span class="icon">📷</span>
+                        <span id="driverPhotoStatus">Driver Photo / Truck Photo</span>
+                        <input type="file" id="driverPhotoInput" accept="image/*" style="display:none;">
                     </div>
-                    <form id="entryForm">
+                    <div class="scan-box-dashed" onclick="document.getElementById('iqamaScanner').click()">
+                        <span class="icon">🪪</span>
+                        <span id="iqamaStatus">Iqama (ID Card) Scanner</span>
+                        <input type="file" id="iqamaScanner" accept="image/*" style="display:none;">
+                    </div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('officerScanner').click()">
+                        <span class="icon">🛡️</span>
+                        <span id="officerStatus">Security ID Scanner</span>
+                        <input type="file" id="officerScanner" accept="image/*" style="display:none;">
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <button class="toggle-btn active" type="button" onclick="setDriverMode('new', this)">New Driver</button>
+                    <button class="toggle-btn" type="button" onclick="setDriverMode('existing', this)">Existing Driver</button>
+                </div>
+
+                <form id="entryForm">
+                    <div class="form-grid-columns">
+                        
                         <div class="form-group">
-                            <label>Driver Name</label>
-                            <input type="text" id="driverName" required placeholder="Awaiting scan entry">
+                            <label class="badge-style">Driver Name *</label>
+                            <input type="text" id="driverName" classinput class="input-box-styled" required placeholder="Enter driver full name">
                         </div>
                         <div class="form-group">
-                            <label>Plate Number</label>
-                            <input type="text" id="plateNumber" required placeholder="Awaiting scan entry">
+                            <label class="badge-style">Iqama Number *</label>
+                            <input type="text" id="iqamaNumber" class="input-box-styled" required placeholder="Enter 10-digit identity card number">
                         </div>
                         <div class="form-group">
-                            <label>Security Officer ID</label>
-                            <input type="text" id="securityName" required placeholder="Awaiting scan entry">
+                            <label class="badge-style">Truck Plate Number *</label>
+                            <input type="text" id="plateNumber" class="input-box-styled" required placeholder="Enter bumper plate sequence">
                         </div>
                         <div class="form-group">
-                            <label>Dock Assignment</label>
-                            <select id="dockNumber">
+                            <label class="badge-style">Mobile Number</label>
+                            <input type="text" id="mobileNumber" class="input-box-styled" placeholder="Enter contact field parameter">
+                        </div>
+
+                        <div class="form-section-divider">Security & Facility Details</div>
+
+                        <div class="form-group">
+                            <label class="badge-style">Security Name *</label>
+                            <input type="text" id="securityNameField" class="input-box-styled" required placeholder="Enter verification guard identity">
+                        </div>
+                        <div class="form-group">
+                            <label class="badge-style">Security ID *</label>
+                            <input type="text" id="securityName" class="input-box-styled" required placeholder="Enter staff token number">
+                        </div>
+                        <div class="form-group">
+                            <label class="badge-style">Dock Number *</label>
+                            <select id="dockNumber" class="input-box-styled">
                                 <option value="Dock 1">Dock 1</option>
                                 <option value="Dock 2">Dock 2</option>
                                 <option value="Dock 3">Dock 3</option>
@@ -597,15 +680,25 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Direction</label>
-                            <select id="direction">
-                                <option value="Inbound">Inbound (Check-In)</option>
-                                <option value="Outbound">Outbound (Check-Out)</option>
+                            <label class="badge-style">Direction *</label>
+                            <select id="direction" class="input-box-styled">
+                                <option value="Inbound">Inbound</option>
+                                <option value="Outbound">Outbound</option>
                             </select>
                         </div>
-                        <button type="submit" class="submit-btn-global">Submit Log Entries</button>
-                    </form>
-                </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="badge-style">Dispatching / Receiving *</label>
+                            <select id="dispatchSelect" class="input-box-styled">
+                                <option value="">Select...</option>
+                                <option value="Dispatching">Dispatching</option>
+                                <option value="Receiving">Receiving</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <button type="submit" class="submit-btn-global">Check In Truck</button>
+                </form>
+
             </div>
         </div>
 
@@ -655,70 +748,50 @@
             element.classList.add('active');
         }
 
+        function setDriverMode(mode, element) {
+            element.parentNode.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            console.log("Current Entry Registry Pipeline Mode Selected:", mode);
+        }
+
+        /* Pure dummy tracking trigger for first structural camera slot */
+        document.getElementById('driverPhotoInput').addEventListener('change', function() {
+            if(this.files.length > 0) {
+                document.getElementById('driverPhotoStatus').innerText = "✅ Photo Attached Successfully";
+                document.getElementById('driverPhotoStatus').style.color = "var(--success-color)";
+            }
+        });
+
         /* --- OCR HANDLER CHANNELS --- */
         document.getElementById('iqamaScanner').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
             const status = document.getElementById('iqamaStatus');
-            status.innerHTML = "🌀 Processing Iqama locally...";
+            status.innerHTML = "🌀 Processing Iqama card...";
             status.style.color = "var(--accent-color)";
             Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
                 status.innerHTML = "✅ Scan complete!";
                 status.style.color = "var(--success-color)";
                 const lines = text.split('\n');
                 let extractedName = "";
+                let extractedID = "";
+                
                 for (let line of lines) {
                     let cleaned = line.trim().toUpperCase();
                     if (/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NUMBER|DATE/i.test(cleaned)) {
                         continue;
                     }
                     const nameMatch = cleaned.match(/\b[A-Z\s]{12,}\b/);
-                    if (nameMatch) {
-                        extractedName = nameMatch[0].trim();
-                        break; 
-                    }
+                    if (nameMatch) extractedName = nameMatch[0].trim();
+                    
+                    const idMatch = cleaned.match(/\b[0-9]{10}\b/);
+                    if (idMatch) extractedID = idMatch[0].trim();
                 }
-                if (extractedName) {
-                    document.getElementById('driverName').value = extractedName;
-                } else {
-                    status.innerHTML = "⚠️ Name line not found. Try a closer view.";
-                    status.style.color = "var(--accent-color)";
-                }
+                
+                if (extractedName) document.getElementById('driverName').value = extractedName;
+                if (extractedID) document.getElementById('iqamaNumber').value = extractedID;
             }).catch(() => {
                 status.innerHTML = "❌ Scanner Processing Failure.";
-                status.style.color = "#ef4444";
-            });
-        });
-
-        document.getElementById('plateScanner').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const status = document.getElementById('plateStatus');
-            status.innerHTML = "🌀 Isolating plate elements...";
-            status.style.color = "var(--accent-color)";
-            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
-                status.innerHTML = "✅ Scan complete!";
-                status.style.color = "var(--success-color)";
-                const lines = text.split('\n');
-                let digits = "";
-                let letters = "";
-                lines.forEach(line => {
-                    let cleaned = line.replace(/[^A-Z0-9\s]/gi, '').toUpperCase().trim();
-                    if (/OPENSOUQ|ELANTRA|HYUNDAI|KSA|SAUDI/i.test(cleaned)) return;
-                    if (/^\d{3,4}$/.test(cleaned)) {
-                        digits = cleaned;
-                    } else if (/^[A-Z]{3}$/.test(cleaned)) {
-                        letters = cleaned;
-                    }
-                });
-                if (digits || letters) {
-                    document.getElementById('plateNumber').value = (digits + " " + letters).trim();
-                } else {
-                    status.innerHTML = "⚠️ Bumper markers blurred. Re-snap.";
-                    status.style.color = "var(--accent-color)";
-                }
-            }).catch(() => {
-                status.innerHTML = "❌ Error processing layout.";
                 status.style.color = "#ef4444";
             });
         });
@@ -735,6 +808,7 @@
                 const badgeMatch = text.match(/LP\d+/i) || text.match(/[A-Z]{2}\d{4}\b/i);
                 if (badgeMatch) {
                     document.getElementById('securityName').value = badgeMatch[0].replace('#', '').toUpperCase();
+                    document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0].replace('#', '');
                 } else {
                     status.innerHTML = "⚠️ Badging strings unread.";
                     status.style.color = "var(--accent-color)";
@@ -742,7 +816,7 @@
             });
         });
 
-        /* --- REALTIME ENGINE --- */
+        /* --- LOG TELEMETRY INTERFACE --- */
         window.handleLogsResponse = function(data) {
             const tbody = document.getElementById('liveFeedBody');
             tbody.innerHTML = ''; 
@@ -752,17 +826,11 @@
                 return;
             }
             
-            // Set dynamic counters in the top slate cards
             document.getElementById('metric-total-checkins').innerText = data.length;
-            
             let inboundCount = data.filter(item => item.direction === 'Inbound').length;
             document.getElementById('metric-active-now').innerText = inboundCount;
-            
             let completedToday = data.filter(item => item.direction === 'Outbound').length;
             document.getElementById('metric-completed-today').innerText = completedToday;
-            
-            let uniqueDocks = [...new Set(data.map(item => item.dockNumber))].length;
-            document.getElementById('metric-docks').innerText = uniqueDocks;
 
             data.reverse().slice(0, 5).forEach(row => {
                 const tr = document.createElement('tr');
@@ -785,8 +853,9 @@
         document.getElementById('entryForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const submitBtn = document.querySelector('.submit-btn-global');
-            submitBtn.innerText = "Processing...";
+            submitBtn.innerText = "Processing Check In...";
             submitBtn.disabled = true;
+            
             const payload = {
                 driverName: document.getElementById('driverName').value,
                 plateNumber: document.getElementById('plateNumber').value,
@@ -802,13 +871,21 @@
                     body: JSON.stringify(payload)
                 });
                 document.getElementById('entryForm').reset();
-                submitBtn.innerText = "Submit Log Entries";
+                submitBtn.innerText = "Check In Truck";
                 submitBtn.disabled = false;
+                
+                document.getElementById('driverPhotoStatus').innerText = "Driver Photo / Truck Photo";
+                document.getElementById('driverPhotoStatus').style.color = "var(--text-muted)";
+                document.getElementById('iqamaStatus').innerText = "Iqama (ID Card) Scanner";
+                document.getElementById('iqamaStatus').style.color = "var(--text-muted)";
+                document.getElementById('officerStatus').innerText = "Security ID Scanner";
+                document.getElementById('officerStatus').style.color = "var(--text-muted)";
+
                 switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
                 setTimeout(fetchLogs, 1500);
             } catch (error) {
                 alert("Error saving log.");
-                submitBtn.innerText = "Submit Log Entries";
+                submitBtn.innerText = "Check In Truck";
                 submitBtn.disabled = false;
             }
         });
