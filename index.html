@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SLP Security - Dock Management Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg-color: #0b0f19;
             --card-bg: #151c2c;
-            --accent-color: #f59e0b; /* Amber/Yellow glow */
+            --accent-color: #f59e0b; 
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
             --border-color: #1e293b;
@@ -73,7 +74,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Metrics Layout */
         .metrics-bar {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -104,7 +104,6 @@
             margin-top: 5px;
         }
 
-        /* Form Styling */
         .form-group {
             margin-bottom: 1.2rem;
         }
@@ -132,6 +131,29 @@
             border-color: var(--accent-color);
         }
 
+        .scanner-section {
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px dashed var(--accent-color);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .scanner-section label {
+            display: block;
+            cursor: pointer;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        #scanStatus {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
         button {
             width: 100%;
             background-color: var(--accent-color);
@@ -148,7 +170,6 @@
 
         button:hover { opacity: 0.9; }
 
-        /* Table Styling */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -208,6 +229,13 @@
         
         <div class="card">
             <h2>Truck Entry Form</h2>
+
+            <div class="scanner-section">
+                <label for="imageScanner">📸 CLICK TO SCAN ID / LICENSE PLATE</label>
+                <input type="file" id="imageScanner" accept="image/*" capture="environment" style="display: none;">
+                <div id="scanStatus">Ready to scan (No corporate tracking)</div>
+            </div>
+
             <form id="entryForm">
                 <div class="form-group">
                     <label>Driver Name</label>
@@ -265,7 +293,44 @@
 
     <script>
         // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
-        const API_URL = "https://script.google.com/macros/s/AKfycbymkKq83eluzEBtKo_NEf6Bhebu0O7_OJS5XzO73tQcqqr_aspE5hgTiYrBOBWllw6NUQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbymkkQ83eluzeBTKo_NEf6Bhebu007_OJS5Xz073tQcqqr_aspE5hgTiYrBOBW11w6NUQ/exec";
+
+        // LOCAL SCANNING LOGIC (No API Keys Needed)
+        document.getElementById('imageScanner').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const statusDiv = document.getElementById('scanStatus');
+            statusDiv.innerHTML = "🌀 Processing image locally...";
+            statusDiv.style.color = "var(--accent-color)";
+
+            // Initialize local Tesseract library engine
+            Tesseract.recognize(
+                file,
+                'eng',
+                { logger: m => console.log(m) } // Logs progress in browser console
+            ).then(({ data: { text } }) => {
+                statusDiv.innerHTML = "✅ Scan complete!";
+                statusDiv.style.color = "var(--success-color)";
+                
+                console.log("Raw Scanned Text Found:", text);
+
+                // Basic scanning check logic:
+                // If it finds a block of capital numbers/letters, it tries to drop it in plate number
+                const words = text.split(/\s+/);
+                words.forEach(word => {
+                    // Simple pattern match for a potential license plate (alphanumeric, 3-8 chars)
+                    if (word.length >= 4 && word.length <= 7 && /^[A-Z0-9-]+$/i.test(word)) {
+                        document.getElementById('plateNumber').value = word.toUpperCase();
+                    }
+                });
+
+            }).catch(err => {
+                console.error(err);
+                statusDiv.innerHTML = "❌ Scan failed. Try a clearer picture.";
+                statusDiv.style.color = "#ef4444";
+            });
+        });
 
         // Fetch Logs from Google Sheet on page load
         async function fetchLogs() {
@@ -274,14 +339,13 @@
                 const data = await response.json();
                 
                 const tbody = document.getElementById('liveFeedBody');
-                tbody.innerHTML = ''; // Clear loading state
+                tbody.innerHTML = ''; 
                 
                 if(data.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No entries recorded today.</td></tr>`;
                     return;
                 }
 
-                // Update Metrics counts
                 document.getElementById('metric-total').innerText = data.length;
                 let inboundCount = data.filter(item => item.direction === 'Inbound').length;
                 document.getElementById('metric-inbound').innerText = inboundCount;
@@ -289,7 +353,6 @@
                 let uniqueDocks = [...new Set(data.map(item => item.dockNumber))].length;
                 document.getElementById('metric-docks').innerText = uniqueDocks;
 
-                // Render Table rows (latest entries on top)
                 data.reverse().forEach(row => {
                     const tr = document.createElement('tr');
                     const badgeClass = row.direction.toLowerCase() === 'inbound' ? 'in' : 'out';
@@ -327,17 +390,17 @@
             try {
                 await fetch(API_URL, {
                     method: 'POST',
-                    mode: 'no-cors', // Bypasses browser CORS rules safely for Apps Script
+                    mode: 'no-cors', 
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                // Clear Form and reload logs
                 document.getElementById('entryForm').reset();
+                document.getElementById('scanStatus').innerHTML = "Ready to scan (No corporate tracking)";
+                document.getElementById('scanStatus').style.color = "var(--text-muted)";
                 submitBtn.innerText = "Submit Log";
                 submitBtn.disabled = false;
                 
-                // Fetch new logs after a brief pause for Google to process
                 setTimeout(fetchLogs, 1500);
 
             } catch (error) {
@@ -347,7 +410,6 @@
             }
         });
 
-        // Initialize dashboard logs on load
         fetchLogs();
     </script>
 </body>
