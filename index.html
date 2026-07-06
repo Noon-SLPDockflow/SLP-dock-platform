@@ -144,7 +144,6 @@
             .main-content { margin-left: 70px; width: calc(100% - 70px); }
         }
 
-        /* --- VIEWS CONTROLLER --- */
         .app-view {
             display: none; 
         }
@@ -203,7 +202,7 @@
             border-radius: 2px;
         }
 
-        /* --- THE DUAL-COLUMN LAYOUT LAYERS --- */
+        /* --- DASHBOARD SPLITS --- */
         .dashboard-mid-split {
             display: grid;
             grid-template-columns: 1.8fr 1fr;
@@ -245,7 +244,38 @@
             font-size: 0.8rem;
         }
 
-        /* --- TABLES SYSTEM --- */
+        /* --- NEW DYNAMIC VIEW HEADERS --- */
+        .view-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .view-header-title h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .view-header-title p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+        .counter-badge-orange {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-color);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        /* --- SUB-TABLE ELEMENTS --- */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -284,6 +314,23 @@
             color: #000;
         }
 
+        .btn-signout-action {
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 0.4rem 1rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: opacity 0.2s;
+        }
+        .btn-signout-action:hover { opacity: 0.9; }
+
         .dashboard-bottom-split {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -316,7 +363,7 @@
         .user-details h4 { font-size: 0.95rem; color: #fff; }
         .user-details p { font-size: 0.75rem; color: var(--text-muted); }
 
-        /* --- TRUCK ENTRY LAYOUT CONFIG --- */
+        /* --- TRUCK ENTRY REGION --- */
         .scanners-triple-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -350,7 +397,6 @@
             font-weight: 500;
         }
 
-        /* Toggle Button System Layout */
         .toggle-container {
             display: flex;
             justify-content: center;
@@ -381,7 +427,6 @@
             color: #000;
         }
 
-        /* Form Layout Grid System */
         .form-grid-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -429,7 +474,31 @@
             border-color: var(--accent-color);
         }
         
-        /* Unified Search Bar Interface Element */
+        /* Unified Top-Right Search Headers */
+        .header-search-box-container {
+            position: relative;
+            width: 280px;
+        }
+        .header-search-box-container span {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .header-search-input {
+            width: 100%;
+            background: rgba(11, 15, 25, 0.5);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 0.6rem 1rem 0.6rem 2.25rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .header-search-input:focus { border-color: var(--accent-color); }
+
         .search-input-wrapper {
             grid-column: 1 / -1;
             position: relative;
@@ -463,6 +532,23 @@
             transition: opacity 0.2s;
         }
         .submit-btn-global:hover { opacity: 0.9; }
+
+        /* Unified Dual Box Number Plate Styles */
+        .plate-box-split {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .plate-segment {
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            background: rgba(0,0,0,0.2);
+            text-align: center;
+            min-width: 45px;
+        }
     </style>
 </head>
 <body>
@@ -631,8 +717,7 @@
             </header>
             
             <div class="card" style="max-width: 850px; margin: 0 auto;">
-                
-                <div class="scanners-triple-row" id="cameraScannersRow">
+                <div class="scanners-triple-row">
                     <div class="scan-box-dashed" id="slotDriverCam" onclick="document.getElementById('driverPhotoInput').click()">
                         <span class="icon">📷</span>
                         <span id="driverPhotoStatus">Driver Photo / Truck Photo</span>
@@ -657,7 +742,6 @@
 
                 <form id="entryForm">
                     <div class="form-grid-columns">
-                        
                         <div class="form-group search-input-wrapper" id="driverLookupGroup" style="display: none;">
                             <label class="badge-style">Search Driver By Name or Plate... *</label>
                             <span class="search-icon-inside">🔍</span>
@@ -715,21 +799,49 @@
                                 <option value="Receiving">Receiving</option>
                             </select>
                         </div>
-
                     </div>
                     <button type="submit" class="submit-btn-global">Check In Truck</button>
                 </form>
-
             </div>
         </div>
 
         <div id="view-active-trucks" class="app-view">
-            <header>
-                <h1>Active Yard Status</h1>
-            </header>
-            <div class="card">
-                <h2>Currently Inside Bay</h2>
-                <p style="color: var(--text-muted); margin-top: 0.5rem;">View mode displays metrics filtered directly to dynamic Inbound yard statuses.</p>
+            <div class="view-header-row">
+                <div class="view-header-title">
+                    <h1>Active Trucks in Facility</h1>
+                    <p>Currently Checked-In Vehicles</p>
+                    <div class="counter-badge-orange">⏳ Total Inside: <span id="activeYardCounter">0</span></div>
+                </div>
+                <div class="header-search-box-container">
+                    <span>🔍</span>
+                    <input type="text" id="yardSearchQuery" class="header-search-input" placeholder="Search by name, plate number, or docks" oninput="filterActiveYardTable()">
+                </div>
+            </div>
+
+            <div class="card" style="overflow-x: auto; padding: 0.5rem;">
+                <table id="activeYardTable">
+                    <thead>
+                        <tr>
+                            <th>Driver</th>
+                            <th>Plate</th>
+                            <th>Direction</th>
+                            <th>Type</th>
+                            <th>Seal Number</th>
+                            <th>Dock</th>
+                            <th>Check-In Time</th>
+                            <th>Duration</th>
+                            <th>Security</th>
+                            <th style="text-align: right; padding-right: 1.5rem;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activeYardTableBody">
+                        <tr>
+                            <td colspan="10" style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic;">
+                                NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -758,7 +870,6 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbx5hQYr4uvmEhds13c1-WonqNzRut1Ksj52vjH7ncX5uo3Hqis2nAcHDQD0wxE2Eqo9zQ/exec";
         let globalLogsCache = []; 
-        let currentDriverModeState = "new";
 
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(view => {
@@ -771,11 +882,9 @@
             element.classList.add('active');
         }
 
-        /* --- LOGIC SWITCHER MATCHING BOTH YOUR SCREENSHOT DESIGNS --- */
         function setDriverMode(mode, element) {
             element.parentNode.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
-            currentDriverModeState = mode;
 
             const fields = document.querySelectorAll('.new-driver-field');
             const lookupGroup = document.getElementById('driverLookupGroup');
@@ -783,20 +892,14 @@
             const slotIqama = document.getElementById('slotIqamaCam');
 
             if (mode === "existing") {
-                // Hides camera slots 1 and 2 just like your screenshot
                 slotDriver.style.display = "none";
                 slotIqama.style.display = "none";
-                // Show the database lookup string element row
-                lookupGroup.style.color = "unset";
                 lookupGroup.style.display = "block";
-                
-                // Drop text required states so submission clears on missing fields
                 fields.forEach(f => {
                     f.style.display = "none";
                     f.querySelector('input').required = false;
                 });
             } else {
-                // RESTORES EVERYTHING BACK TO NEW DRIVER PRODUCTION MODE
                 slotDriver.style.display = "block";
                 slotIqama.style.display = "block";
                 lookupGroup.style.display = "none";
@@ -807,7 +910,6 @@
             }
         }
 
-        /* Predictive Lookup autofill match from Live Database row elements */
         document.getElementById('driverSearchBox').addEventListener('input', function(e) {
             let value = e.target.value.toUpperCase().trim();
             if(value.length >= 3 && globalLogsCache.length > 0) {
@@ -816,10 +918,9 @@
                     (log.plateNumber && log.plateNumber.toUpperCase().includes(value))
                 );
                 if(match) {
-                    console.log("Predictive Autocompilation Match Triggered:", match);
                     document.getElementById('driverName').value = match.driverName || "";
                     document.getElementById('plateNumber').value = match.plateNumber || "";
-                    document.getElementById('iqamaNumber').value = "1094328574"; // Fallback index mask
+                    document.getElementById('iqamaNumber').value = "1094328574"; 
                 }
             }
         });
@@ -831,7 +932,7 @@
             }
         });
 
-        /* --- OCR LOCAL EXECUTION READERS --- */
+        /* --- LOCAL OCR ENGINE CONFIG CHANNELS --- */
         document.getElementById('iqamaScanner').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -882,30 +983,132 @@
             });
         });
 
-        /* --- TELEMETRY ENGINE CONNECTIVITY --- */
-        window.handleLogsResponse = function(data) {
-            globalLogsCache = data || []; 
-            const tbody = document.getElementById('liveFeedBody');
-            tbody.innerHTML = ''; 
+        /* --- YARD LOGOUT OPERATION CONTROLLER --- */
+        async function executeRowSignout(driverName, plateNumber, securityName) {
+            if(!confirm("Proceed with terminal sign-out logging for vehicle: " + plateNumber + "?")) return;
             
+            const payload = {
+                driverName: driverName,
+                plateNumber: plateNumber,
+                securityName: securityName,
+                dockNumber: "Dock 1",
+                direction: "Outbound"
+            };
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                alert("Sign-out logged smoothly!");
+                fetchLogs();
+            } catch(e) {
+                alert("Error recording logging lifecycle event.");
+            }
+        }
+
+        /* --- DYNAMIC MULTI-TABLE ROUTING ENGINE --- */
+        window.handleLogsResponse = function(data) {
+            globalLogsCache = data || [];
+            
+            const liveBody = document.getElementById('liveFeedBody');
+            const activeBody = document.getElementById('activeYardTableBody');
+            
+            liveBody.innerHTML = '';
+            activeBody.innerHTML = '';
+
             if(!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding:2rem;">No entries recorded today.</td></tr>';
+                liveBody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding:2rem;">No entries recorded today.</td></tr>';
+                activeBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
+                document.getElementById('activeYardCounter').innerText = "0";
                 return;
             }
-            
-            document.getElementById('metric-total-checkins').innerText = data.length;
-            let inboundCount = data.filter(item => item.direction === 'Inbound').length;
-            document.getElementById('metric-active-now').innerText = inboundCount;
-            let completedToday = data.filter(item => item.direction === 'Outbound').length;
-            document.getElementById('metric-completed-today').innerText = completedToday;
 
+            // Metric tracking configurations
+            document.getElementById('metric-total-checkins').innerText = data.length;
+            
+            // Build temporary track loops to determine true yard status
+            let insideYardMap = {};
+            data.forEach(row => {
+                if(row.direction === "Inbound") {
+                    insideYardMap[row.plateNumber] = row; // Adds to facility
+                } else if(row.direction === "Outbound") {
+                    delete insideYardMap[row.plateNumber]; // Clears from facility
+                }
+            });
+
+            let activeTrucksList = Object.values(insideYardMap);
+            document.getElementById('metric-active-now').innerText = activeTrucksList.length;
+            document.getElementById('activeYardCounter').innerText = activeTrucksList.length;
+            
+            let completedTodayCount = data.filter(item => item.direction === 'Outbound').length;
+            document.getElementById('metric-completed-today').innerText = completedTodayCount;
+
+            // Render live feed rows (Dashboard)
             data.reverse().slice(0, 5).forEach(row => {
                 const tr = document.createElement('tr');
                 const badgeClass = row.direction.toLowerCase() === 'inbound' ? 'in' : 'out';
                 tr.innerHTML = '<td><strong>' + row.driverName + '</strong></td><td>' + row.plateNumber + '</td><td>' + row.dockNumber + '</td><td><span class="badge ' + badgeClass + '">' + row.direction + '</span></td>';
-                tbody.appendChild(tr);
+                liveBody.appendChild(tr);
             });
+
+            // Render active yard tracking rows (Active Trucks View)
+            if(activeTrucksList.length === 0) {
+                activeBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
+            } else {
+                activeTrucksList.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    // Splits numbers into dual boxes matching your plate style layout
+                    let plateParts = row.plateNumber.split(' ');
+                    let plateHtml = '';
+                    if(plateParts.length >= 2) {
+                        plateHtml = '<div class="plate-box-split"><div class="plate-segment">' + plateParts[0] + '</div><div class="plate-segment">' + plateParts[1] + '</div></div>';
+                    } else {
+                        plateHtml = '<div class="plate-box-split"><div class="plate-segment">' + row.plateNumber + '</div></div>';
+                    }
+
+                    let checkInDate = row.timestamp ? new Date(row.timestamp) : new Date();
+                    let hours = checkInDate.getHours();
+                    let ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12 || 12;
+                    let minutes = String(checkInDate.getMinutes()).padStart(2, '0');
+                    let timeFormatted = "Jul 6, " + hours + ":" + minutes + " " + ampm;
+
+                    tr.innerHTML = `
+                        <td><strong>${row.driverName}</strong></td>
+                        <td>${plateHtml}</td>
+                        <td><span class="badge in">INBOUND</span></td>
+                        <td style="color: var(--accent-color); font-weight:600; font-size:0.8rem;">DISPATCHING</td>
+                        <td style="font-family:monospace; color:var(--text-muted);">At Sign-out</td>
+                        <td><strong>${row.dockNumber.replace('Dock ', '')}</strong></td>
+                        <td style="font-size:0.85rem; color:var(--text-muted);">${timeFormatted}</td>
+                        <td style="color:var(--accent-color); font-weight:bold;">0h 0m</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">🛡️ Guard</td>
+                        <td style="text-align: right; padding-right:1rem;">
+                            <button class="btn-signout-action" onclick="executeRowSignout('${row.driverName}', '${row.plateNumber}', '${row.securityName || 'Guard'}')">
+                                🚪 SIGN OUT
+                            </button>
+                        </td>
+                    `;
+                    activeBody.appendChild(tr);
+                });
+            }
         };
+
+        /* Client-side search bar filtering for Active yard assets */
+        function filterActiveYardTable() {
+            let query = document.getElementById('yardSearchQuery').value.toLowerCase();
+            let rows = document.querySelectorAll('#activeYardTableBody tr');
+            
+            rows.forEach(row => {
+                if(row.cells.length < 2) return; 
+                let text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        }
 
         function fetchLogs() {
             const oldScript = document.getElementById('jsonp-fetcher');
@@ -948,9 +1151,7 @@
                 document.getElementById('officerStatus').innerText = "Security ID Scanner";
                 document.getElementById('officerStatus').style.color = "var(--text-muted)";
 
-                // Force layout state back to default new driver settings reset natively
                 setDriverMode('new', document.getElementById('toggleNewDriverBtn'));
-
                 switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
                 setTimeout(fetchLogs, 1500);
             } catch (error) {
@@ -965,3 +1166,4 @@
     </script>
 </body>
 </html>
+ 
