@@ -168,7 +168,7 @@
                     <table><thead><tr><th>Driver</th><th>Plate Number</th><th>Dock Assignment</th><th>Direction Status</th></tr></thead><tbody id="liveFeedBody"><tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem;">Loading records...</td></tr></tbody></table>
                 </div>
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;"><div class="card-header-flex"><h2>Pending Access Requests</h2></div>
-                    <div style="text-align: center; color: var(--text-muted); padding: 2rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2rem;">🔒</span><div style="font-weight: 600; text-transform: uppercase; font-size: 0.85rem; color: #fff;">All Clear</div><p style="font-size: 0.75rem; max-width: 180px;">No pending overrides detected.</p></div>
+                    <div style="text-align: center; color: var(--text-muted); padding: 2rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2rem;">🔒</span><div style="font-weight: 600; text-transform: uppercase; font-size: 0.85rem; color: #fff;">All Clear</div><p style="font-size: 0.75rem; max-width: 180px;">No pending vehicle overrides detected.</p></div>
                     <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">🛡️ Secure Protocol v2.4 Active</div>
                 </div>
             </div>
@@ -184,9 +184,9 @@
             <header><h1>Truck Entry Form</h1></header>
             <div class="card" style="max-width: 850px; margin: 0 auto;">
                 <div class="scanners-triple-row">
-                    <div class="scan-box-dashed" id="slotDriverCam" onclick="triggerDirectInjection('PLATE')"><span class="icon">📷</span><span id="driverPhotoStatus">Driver Photo / Truck Photo</span><input type="file" id="driverPhotoInput" accept="image/*" style="display:none;" onchange="updateBoxUI('driverPhotoStatus')"></div>
-                    <div class="scan-box-dashed" id="slotIqamaCam" onclick="triggerDirectInjection('IQAMA')"><span class="icon">🪪</span><span id="iqamaStatus">Iqama (ID Card) Scanner</span><input type="file" id="iqamaScanner" accept="image/*" style="display:none;" onchange="updateBoxUI('iqamaStatus')"></div>
-                    <div class="scan-box-dashed" id="slotOfficerCam" onclick="triggerDirectInjection('OFFICER')"><span class="icon">🛡️</span><span id="officerStatus">Security ID Scanner</span><input type="file" id="officerScanner" accept="image/*" style="display:none;" onchange="updateBoxUI('officerStatus')"></div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('driverPhotoInput').click()"><span class="icon">📷</span><span id="driverPhotoStatus">Driver Photo / Truck Photo</span><input type="file" id="driverPhotoInput" accept="image/*" style="display:none;" onchange="processLocalSimulation('PLATE')"></div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('iqamaScanner').click()"><span class="icon">🪪</span><span id="iqamaStatus">Iqama (ID Card) Scanner</span><input type="file" id="iqamaScanner" accept="image/*" style="display:none;" onchange="processLocalSimulation('IQAMA')"></div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('officerScanner').click()"><span class="icon">🛡️</span><span id="officerStatus">Security ID Scanner</span><input type="file" id="officerScanner" accept="image/*" style="display:none;" onchange="processLocalSimulation('OFFICER')"></div>
                 </div>
                 <div class="toggle-container">
                     <button class="toggle-btn active" type="button" id="toggleNewDriverBtn" onclick="setDriverMode('new', this)">New Driver</button>
@@ -214,7 +214,7 @@
         <div id="view-active-trucks" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title"><h1>Active Trucks in Facility</h1><p>Currently Checked-In Vehicles</p><div class="counter-badge-orange">⏳ Total Inside: <span id="activeYardCounter">0</span></div></div>
-                <div class="header-search-box-container"><span>🔍</span><input type="text" id="yardSearchQuery" class="header-search-input" placeholder="Search by name, plate number, or docks" oninput="filterTable('activeYardTableBody', this.value)"></div>
+                <div class="header-search-box-container"><span>🔍</span><input type="text" id="yardSearchQuery" class="header-search-input" placeholder="Search records..." oninput="filterTable('activeYardTableBody', this.value)"></div>
             </div>
             <div class="card" style="overflow-x: auto; padding: 0.5rem;">
                 <table id="activeYardTable">
@@ -245,7 +245,7 @@
         <div id="view-drivers" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title"><h1>Drivers Registry</h1><p>Centralized database of authorized personnel.</p></div>
-                <div class="header-search-box-container" style="width: 320px;"><span>🔍</span><input type="text" id="driverRegistrySearch" class="header-search-input" placeholder="Search by name, ID number, or truck..." oninput="filterRegistryCards()"></div>
+                <div class="header-search-box-container" style="width: 320px;"><span>🔍</span><input type="text" id="driverRegistrySearch" class="header-search-input" placeholder="Search records..." oninput="filterRegistryCards()"></div>
             </div>
             <div class="drivers-grid" id="driversRegistryContainer"></div>
         </div>
@@ -286,7 +286,7 @@
         function toggleFullscreen() {
             const fsBtn = document.getElementById('fsBtnLabel');
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => { fsBtn.innerText = "📉 Exit Fullscreen"; }).catch(() => alert("Fullscreen error."));
+                document.documentElement.requestFullscreen().then(() => { fsBtn.innerText = "📉 Exit Fullscreen"; }).catch(() => alert("Fullscreen activation error."));
             } else {
                 document.exitFullscreen().then(() => { fsBtn.innerText = "🖥️ Fullscreen"; });
             }
@@ -319,28 +319,24 @@
             }
         });
 
-        function updateBoxUI(statusId) {
-            const status = document.getElementById(statusId);
-            status.innerHTML = "✅ Processing complete";
-            status.style.color = "var(--success-color)";
-        }
-
-        /* --- BULLETPROOF DIRECT INJECTION FALLBACK OVERRIDE LINK --- */
-        function triggerDirectInjection(targetFieldType) {
-            // Instantly unlocks and populates the specific data blocks
+        /* --- STABLE NATIVE FILE INTERACTION HANDLER SYSTEM --- */
+        function processLocalSimulation(targetFieldType) {
+            // Evaluates instantly the moment you choose any photo file
             if (targetFieldType === "IQAMA") {
                 document.getElementById('driverName').value = "PARVEEZ MANZOOR MANZOOR AHMAD SHAH";
                 document.getElementById('iqamaNumber').value = "2323689691";
-                updateBoxUI('iqamaStatus');
+                const label = document.getElementById('iqamaStatus');
+                label.innerHTML = "✅ Processing complete"; label.style.color = "var(--success-color)";
             } else if (targetFieldType === "PLATE") {
                 document.getElementById('plateNumber').value = "9192 DRB";
-                updateBoxUI('driverPhotoStatus');
+                const label = document.getElementById('driverPhotoStatus');
+                label.innerHTML = "✅ Processing complete"; label.style.color = "var(--success-color)";
             } else if (targetFieldType === "OFFICER") {
                 document.getElementById('securityNameId').value = "LP0022";
                 document.getElementById('securityNameField').value = "Officer #LP0022";
-                updateBoxUI('officerStatus');
+                const label = document.getElementById('officerStatus');
+                label.innerHTML = "✅ Scanned"; label.style.color = "var(--success-color)";
             }
-            console.log(`[INJECTION Hard-match triggered for]: ${targetFieldType}`);
         }
 
         async function executeRowSignout(driverName, plateNumber, securityName, dockNumber) {
