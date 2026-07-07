@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SLP Security - Gateway Platform</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
         :root {
             --bg-color: #0b0f19; --card-bg: rgba(21, 28, 44, 0.85); --sidebar-bg: rgba(15, 22, 36, 0.95);
@@ -144,7 +143,7 @@
         <div class="brand-section"><img class="brand-logo" src="logo.png" alt="Logo"><div class="brand-text"><h2>Gateway <span>SLP</span></h2><p>Security Hub</p></div></div>
         <ul class="nav-links">
             <li class="nav-item active" onclick="switchView('dashboard', this)"><span>📊 Dashboard</span></li>
-            <li class="nav-item" onclick="switchView('checkin', this)"><span>94328574 Check-in Truck</span></li>
+            <li class="nav-item" onclick="switchView('checkin', this)"><span>🚛 Check-in Truck</span></li>
             <li class="nav-item" onclick="switchView('active-trucks', this)"><span>⏱️ Active Trucks</span></li>
             <li class="nav-item" onclick="switchView('history', this)"><span>📜 History Log</span></li>
             <li class="nav-item" onclick="switchView('drivers', this)"><span>🪪 Drivers Database</span></li>
@@ -185,9 +184,9 @@
             <header><h1>Truck Entry Form</h1></header>
             <div class="card" style="max-width: 850px; margin: 0 auto;">
                 <div class="scanners-triple-row">
-                    <div class="scan-box-dashed" onclick="document.getElementById('driverPhotoInput').click()"><span class="icon">📷</span><span id="driverPhotoStatus">Driver Photo / Truck Photo</span><input type="file" id="driverPhotoInput" accept="image/*" style="display:none;"></div>
-                    <div class="scan-box-dashed" onclick="document.getElementById('iqamaScanner').click()"><span class="icon">🪪</span><span id="iqamaStatus">Iqama (ID Card) Scanner</span><input type="file" id="iqamaScanner" accept="image/*" style="display:none;"></div>
-                    <div class="scan-box-dashed" onclick="document.getElementById('officerScanner').click()"><span class="icon">🛡️</span><span id="officerStatus">Security ID Scanner</span><input type="file" id="officerScanner" accept="image/*" style="display:none;"></div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('driverPhotoInput').click()"><span class="icon">📷</span><span id="driverPhotoStatus">Driver Photo / Truck Photo</span><input type="file" id="driverPhotoInput" accept="image/*" style="display:none;" onchange="processServerSideOCR('driverPhotoInput', 'driverPhotoStatus', 'PLATE')"></div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('iqamaScanner').click()"><span class="icon">🪪</span><span id="iqamaStatus">Iqama (ID Card) Scanner</span><input type="file" id="iqamaScanner" accept="image/*" style="display:none;" onchange="processServerSideOCR('iqamaScanner', 'iqamaStatus', 'IQAMA')"></div>
+                    <div class="scan-box-dashed" onclick="document.getElementById('officerScanner').click()"><span class="icon">🛡️</span><span id="officerStatus">Security ID Scanner</span><input type="file" id="officerScanner" accept="image/*" style="display:none;" onchange="processServerSideOCR('officerScanner', 'officerStatus', 'OFFICER')"></div>
                 </div>
                 <div class="toggle-container">
                     <button class="toggle-btn active" type="button" id="toggleNewDriverBtn" onclick="setDriverMode('new', this)">New Driver</button>
@@ -253,7 +252,7 @@
 
         <div id="view-settings" class="app-view">
             <header><h1>Control Panel Settings</h1></header>
-            <div class="card"><h2>Hardware Configurations</h2><p style="color: var(--text-muted); margin-top: 0.5rem;">OCR engines matching local configurations: Tesseract.js Build v5.0.</p></div>
+            <div class="card"><h2>Hardware Configurations</h2><p style="color: var(--text-muted); margin-top: 0.5rem;">OCR Engine Mode: Upgraded Native cloud pipeline framework.</p></div>
         </div>
     </div>
 
@@ -271,7 +270,6 @@
                     <div class="modal-slate-cell"><span>ID Token Reference</span><p style="font-family: monospace; font-size: 0.85rem; color: var(--accent-color);">d-k4v21l788</p></div>
                 </div>
             </div>
-            <div class="modal-overlay" style="display:none;"></div>
             <div class="modal-footer-container"><button class="btn-modal-cancel" onclick="closeDriverProfileModal()">Cancel</button></div>
         </div>
     </div>
@@ -321,77 +319,82 @@
             }
         });
 
+        /* --- GOOGLE DRIVE SERVER-SIDE OCR LINK AGENT --- */
         function convertArabicNumeralsToDigits(str) {
             const map = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };
             return str.replace(/[٠-٩]/g, match => map[match]);
         }
 
-        /* --- DYNAMIC PARSING OCR INTERFACE SYSTEM --- */
-        function runDynamicTextScanner(inputElementId, statusElementId, targetFieldType) {
-            document.getElementById(inputElementId).addEventListener('change', e => {
-                const file = e.target.files[0]; if (!file) return;
-                const status = document.getElementById(statusElementId);
-                status.innerHTML = "🌀 Processing OCR channels..."; status.style.color = "var(--accent-color)";
+        function processServerSideOCR(fileInputId, statusLabelId, scanType) {
+            const fileInput = document.getElementById(fileInputId);
+            const status = document.getElementById(statusLabelId);
+            const file = fileInput.files[0];
+            if (!file) return;
 
-                Tesseract.recognize(file, 'ara+eng').then(({ data: { text } }) => {
-                    status.innerHTML = "✅ Processing complete"; status.style.color = "var(--success-color)";
-                    
-                    let cleanText = convertArabicNumeralsToDigits(text).toUpperCase();
-                    console.log(`[OCR PIPELINE RUN - ${targetFieldType}]:`, cleanText);
+            status.innerHTML = "🌀 Processing via Google Cloud OCR...";
+            status.style.color = "var(--accent-color)";
 
-                    // Dynamic parsing logic maps strings to active layout entries directly
-                    if (targetFieldType === "IQAMA") {
-                        if (cleanText.includes("PARVEEZ") || cleanText.includes("MANZOOR") || cleanText.includes("232")) {
-                            document.getElementById('driverName').value = "PARVEEZ MANZOOR MANZOOR AHMAD SHAH";
-                            document.getElementById('iqamaNumber').value = "2323689691";
-                        } else if (cleanText.includes("MOHAMMAD") || cleanText.includes("KHAN") || cleanText.includes("211")) {
-                            document.getElementById('driverName').value = "MOHAMMAD KHAN";
-                            document.getElementById('iqamaNumber').value = "2112573981";
-                        } else if (cleanText.includes("ASHFAQUE") || cleanText.includes("PANHWAR") || cleanText.includes("239")) {
-                            document.getElementById('driverName').value = "ASHFAQUE ALI PANHWAR GUL MUHAMMAD";
-                            document.getElementById('iqamaNumber').value = "2398335287";
-                        } else {
-                            let matchedId = cleanText.match(/\b[12]\d{9}\b/);
-                            if (matchedId) document.getElementById('iqamaNumber').value = matchedId[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64String = e.target.result.split(',')[1];
+                
+                // Pack raw binary stream over directly to your backend script
+                const payload = {
+                    imageObj: base64String,
+                    scanType: scanType,
+                    mimeType: file.type
+                };
+
+                fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(response => {
+                    if (response.success && response.text) {
+                        status.innerHTML = "✅ Scanning complete";
+                        status.style.color = "var(--success-color)";
+                        
+                        let cleanText = convertArabicNumeralsToDigits(response.text).toUpperCase();
+                        console.log(`[GOOGLE OCR RESULTS - ${scanType}]:`, cleanText);
+
+                        if (scanType === "IQAMA") {
+                            // Extract 10-digit Saudi identity sequence
+                            let idMatch = cleanText.match(/\b[12]\d{9}\b/);
+                            if (idMatch) document.getElementById('iqamaNumber').value = idMatch[0];
+
+                            // Locate English name string row cleanly
                             let lines = cleanText.split('\n');
-                            let matchedName = lines.find(line => !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT/i.test(line) && /\b[A-Z\s]{12,}\b/.test(line));
-                            if (matchedName) document.getElementById('driverName').value = matchedName.trim();
-                        }
-                    } 
-                    else if (targetFieldType === "PLATE") {
-                        if (cleanText.includes("9192") || cleanText.includes("DRB") || cleanText.includes("ELANTRA")) {
-                            document.getElementById('plateNumber').value = "9192 DRB";
-                        } else if (cleanText.includes("3417") || cleanText.includes("UAJ")) {
-                            document.getElementById('plateNumber').value = "3417 UAJ";
-                        } else if (cleanText.includes("3467") || cleanText.includes("SBJ")) {
-                            document.getElementById('plateNumber').value = "3467 SBJ";
-                        } else {
+                            let nameMatch = lines.find(line => !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT/i.test(line) && /\b[A-Z\s]{12,}\b/.test(line));
+                            if (nameMatch) document.getElementById('driverName').value = nameMatch.trim();
+                        } 
+                        else if (scanType === "PLATE") {
                             let digitsMatch = cleanText.match(/\b\d{3,4}\b/);
                             let lettersMatch = cleanText.match(/\b[A-Z]{3}\b/);
-                            if (digitsMatch && lettersMatch) document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`;
+                            if (digitsMatch && lettersMatch) {
+                                document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`;
+                            } else if (digitsMatch) {
+                                document.getElementById('plateNumber').value = digitsMatch[0];
+                            }
                         }
+                        else if (scanType === "OFFICER") {
+                            let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
+                            document.getElementById('securityNameId').value = badgeMatch ? badgeMatch[0] : "LP0022";
+                            document.getElementById('securityNameField').value = badgeMatch ? "Officer #" + badgeMatch[0] : "Officer #LP0022";
+                        }
+                    } else {
+                        throw new Error(response.error || "Blank data returns");
                     }
-                }).catch(() => {
-                    status.innerHTML = "✅ Processing complete"; status.style.color = "var(--success-color)";
+                })
+                .catch(err => {
+                    console.error("Cloud backend handshake disconnect fallback:", err);
+                    status.innerHTML = "⚠️ Processing warning. Input manually.";
+                    status.style.color = "var(--accent-color)";
                 });
-            });
+            };
+            reader.readAsDataURL(file);
         }
-
-        // Initialize dynamic scanning tunnels natively
-        runDynamicTextScanner('iqamaScanner', 'iqamaStatus', 'IQAMA');
-        runDynamicTextScanner('driverPhotoInput', 'driverPhotoStatus', 'PLATE');
-
-        document.getElementById('officerScanner').addEventListener('change', function(e) {
-            const file = e.target.files[0]; if (!file) return;
-            const status = document.getElementById('officerStatus');
-            status.innerHTML = "🌀 Scanning Badge..."; status.style.color = "var(--accent-color)";
-            Tesseract.recognize(file, 'eng').then(({ data: { text } }) => {
-                status.innerHTML = "✅ Scanned"; status.style.color = "var(--success-color)";
-                let m = text.match(/LP\d+/i) || text.match(/[A-Z]{2}\d{4}\b/i);
-                document.getElementById('securityNameId').value = m ? m[0].toUpperCase() : "LP0022";
-                document.getElementById('securityNameField').value = m ? "Officer #" + m[0].toUpperCase() : "Officer #LP0022";
-            });
-        });
 
         async function executeRowSignout(driverName, plateNumber, securityName, dockNumber) {
             if(!confirm("Proceed with terminal sign-out logging for vehicle: " + plateNumber + "?")) return;
@@ -516,5 +519,3 @@
     </script>
 </body>
 </html>
-
-
