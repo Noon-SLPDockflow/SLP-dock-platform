@@ -275,6 +275,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbyR8_49OV91ebXs0aTiQOs-0l4_wCgHHrXptBBmNgXHzBfHN8cJMSu-CD_Rn_if6kmv6Q/exec";
+        const OCR_API_URL = "https://script.google.com/macros/s/AKfycby9lTuAoee2ZUHUPtV7i0lmcmHT9L4xU0jenC-EhJpxoXSQNckRwWNInjiv6mLc7REc/exec";
         let globalLogsCache = []; 
 
         function switchView(viewId, element) {
@@ -322,10 +323,6 @@
             return str.replace(/[٠-٩]/g, match => map[match]);
         }
 
-        /* --- REAL CLIENT-SIDE OCR ENGINE (no hardcoded profiles, no fake success) --- */
-
-        // Upscale + grayscale + boost contrast before sending the image for OCR.
-        // This also shrinks the base64 payload sent to the Apps Script backend.
         function preprocessImageForOcr(file) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -340,7 +337,7 @@
 
                     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                     const d = imageData.data;
-                    const contrast = 45; // -100..100
+                    const contrast = 45; 
                     const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
                     for (let i = 0; i < d.length; i += 4) {
                         let gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
@@ -355,9 +352,6 @@
                 img.src = URL.createObjectURL(file);
             });
         }
-
-        // Deploy ocr-backend.gs as its own Web App and paste its /exec URL here.
-        const OCR_API_URL = "https://script.google.com/macros/s/AKfycby9lTuAoee2ZUHUPtV7i0lmcmHT9L4xU0jenC-EhJpxoXSQNckRwWNInjiv6mLc7REc/exec";
 
         function blobToBase64(blob) {
             return new Promise((resolve, reject) => {
@@ -383,8 +377,6 @@
 
                 status.innerHTML = "🌀 Reading with Google OCR (a few seconds)...";
 
-                // Content-Type text/plain avoids a CORS preflight that Apps Script
-                // web apps don't handle; the server still JSON.parses the body itself.
                 const response = await fetch(OCR_API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -420,11 +412,25 @@
                     }
                 }
                 else if (scanType === "OFFICER") {
+                    // 1. Parse Badge Token Parameter (e.g., LP0023)
                     let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
                     if (badgeMatch) {
                         document.getElementById('securityNameId').value = badgeMatch[0];
-                        document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0];
                         matched = true;
+                    }
+
+                    // 2. Parse Legal Name Parameter, filtering structural system layouts (e.g., Tafsir)
+                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+                    let nameMatch = lines.find(line =>
+                        /^[A-Z][A-Z\s.']{2,25}$/i.test(line) &&
+                        !/LP|ASSOCIATE|EVERY|DOORBELL|DAY|AL\s+ABEER|SAUDI|SECURITY|GATEWAY/i.test(line)
+                    );
+
+                    if (nameMatch) {
+                        document.getElementById('securityNameField').value = nameMatch;
+                        matched = true;
+                    } else if (badgeMatch) {
+                        document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0];
                     }
                 }
 
