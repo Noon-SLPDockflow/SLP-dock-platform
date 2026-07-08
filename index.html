@@ -39,6 +39,7 @@
             transition: all 0.3s ease;
         }
         .brand-section { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
+        .brand-logo { height: 42px; width: auto; border-radius: 6px; }
         .brand-text h2 { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.5px; color: #fff; }
         .brand-text p { font-size: 0.7rem; color: var(--accent-color); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
         
@@ -59,6 +60,7 @@
             .sidebar { width: 75px; padding: 1.5rem 0.5rem; align-items: center; }
             .brand-text, .system-health, .nav-text { display: none; }
             .brand-section { padding-bottom: 1.5rem; justify-content: center; width: 100%; }
+            .brand-logo { height: 32px; }
             .nav-item { justify-content: center; padding: 0.85rem 0; width: 100%; border-radius: 8px; border-left: none; border-bottom: 3px solid transparent; }
             .nav-item.active { border-left: none; border-bottom: 3px solid var(--accent-color); }
             .nav-icon { font-size: 1.4rem; margin: 0; }
@@ -66,6 +68,30 @@
         }
 
         .app-view { display: none; } .app-view.active-view { display: block; }
+
+        /* DASHBOARD HERO BANNER */
+        .dashboard-hero {
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 3rem 1.5rem; 
+            margin-bottom: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            position: relative; 
+            backdrop-filter: blur(10px);
+        }
+        .hero-badges-wrapper { position: absolute; top: 1.5rem; display: flex; gap: 1rem; }
+        .hero-badge {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.35rem 0.85rem; border-radius: 4px;
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); font-family: monospace; text-transform: uppercase;
+        }
+        .hero-logo-box {
+            margin-top: 1rem; background: #0f131a; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 1.5rem;
+            box-shadow: 0 0 60px rgba(252, 194, 0, 0.15), 0 10px 20px rgba(0,0,0,0.5); /* The subtle yellow glow */
+        }
+        .hero-logo-box img { height: 130px; width: auto; display: block; }
 
         /* Dashboard Metric Cards */
         .metrics-bar-four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
@@ -227,6 +253,7 @@
 
     <div class="sidebar">
         <div class="brand-section">
+            <img class="brand-logo" src="logo.png" alt="Logo">
             <div class="brand-text"><h2>Gateway <span style="color:var(--accent-color);">SLP</span></h2><p>Security Hub</p></div>
         </div>
         <ul class="nav-links">
@@ -262,6 +289,18 @@
 
     <div class="main-content">
         <div id="view-dashboard" class="app-view active-view">
+            
+            <!-- NEW DASHBOARD HERO BANNER -->
+            <div class="dashboard-hero">
+                <div class="hero-badges-wrapper">
+                    <span class="hero-badge">SYSTEM ONLINE</span>
+                    <span class="hero-badge" id="heroDateBadge">--</span>
+                </div>
+                <div class="hero-logo-box">
+                    <img src="logo.png" alt="SLP Center Logo">
+                </div>
+            </div>
+
             <div class="metrics-bar-four">
                 <div class="metric-card-slate"><div class="card-icon">⏱️</div><div class="num" id="metric-active-now">0</div><div class="label">Active Now</div><div class="metric-accent-line"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">✅</div><div class="num" id="metric-completed-today">0</div><div class="label">Completed Today</div><div class="metric-accent-line" style="background-color: var(--success-color);"></div></div>
@@ -467,6 +506,16 @@
         let driversRegistryList = [];
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
+
+        // Auto-update Hero Date
+        function updateHeroDate() {
+            const d = new Date();
+            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const str = String(d.getDate()).padStart(2, '0') + " " + months[d.getMonth()] + " " + d.getFullYear();
+            const badge = document.getElementById('heroDateBadge');
+            if(badge) badge.innerText = str;
+        }
+        updateHeroDate();
 
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(v => v.id === 'view-' + viewId ? v.classList.add('active-view') : v.classList.remove('active-view'));
