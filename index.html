@@ -205,7 +205,7 @@
                 </div>
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;"><div class="card-header-flex"><h2>Pending Access Requests</h2></div>
                     <div style="text-align: center; color: var(--text-muted); padding: 2rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2rem;">🔒</span><div style="font-weight: 600; text-transform: uppercase; font-size: 0.85rem; color: #fff;">All Clear</div><p style="font-size: 0.75rem; max-width: 180px;">No pending vehicle overrides detected.</p></div>
-                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">🛡️ Secure Protocol v2.4 Active</div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">🛡️ Secure Protocol active</div>
                 </div>
             </div>
             <div class="dashboard-bottom-split">
@@ -352,6 +352,69 @@
         let driversRegistryList = [];
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
+
+        window.handleOcrResponse = function(result) {
+            const status = document.getElementById(window.currentOcrStatusId);
+            if (!status) return;
+
+            if (!result || !result.success) {
+                status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually";
+                status.style.color = "#ef4444";
+                return;
+            }
+
+            let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase();
+            let scanType = result.scanType;
+            let matched = false;
+
+            if (scanType === "IQAMA") {
+                let idMatch = cleanText.match(/\b[12]\d{9}\b/);
+                if (idMatch) { document.getElementById('iqamaNumber').value = idMatch[0]; matched = true; }
+
+                let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+                let nameMatch = lines.find(line =>
+                    /^[A-Z][A-Z\s.']{7,45}$/.test(line) &&
+                    !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NATIONALITY|GENDER|EXPIRY|BIRTH|OCCUPATION|EMPLOYER|RELIGION/.test(line)
+                );
+                if (nameMatch) { document.getElementById('driverName').value = nameMatch; matched = true; }
+            }
+            else if (scanType === "PLATE") {
+                let digitsMatch = cleanText.match(/\b\d{3,4}\b/);
+                let lettersMatch = cleanText.match(/\b[A-Z]{3}\b/);
+                if (digitsMatch && lettersMatch) {
+                    document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`;
+                    matched = true;
+                }
+            }
+            else if (scanType === "OFFICER") {
+                let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
+                if (badgeMatch) {
+                    document.getElementById('securityNameId').value = badgeMatch[0];
+                    matched = true;
+                }
+
+                let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+                let nameMatch = lines.find(line =>
+                    /^[A-Z\s.']{3,25}$/i.test(line) &&
+                    !/LP|ASSOCIATE|EVERY|DOORBELL|DAY|AL\s+ABEER|SAUDI|SECURITY|GATEWAY|OFFICER/i.test(line)
+                );
+
+                if (nameMatch) {
+                    document.getElementById('securityNameField').value = nameMatch;
+                    matched = true;
+                } else if (badgeMatch) {
+                    document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0];
+                }
+            }
+
+            if (matched) {
+                status.innerHTML = "✅ Extracted — please double-check the fields";
+                status.style.color = "var(--success-color)";
+            } else {
+                status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually";
+                status.style.color = "#ef4444";
+            }
+        };
 
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(v => v.id === 'view-' + viewId ? v.classList.add('active-view') : v.classList.remove('active-view'));
@@ -560,69 +623,13 @@
                 const base64Data = await blobToBase64(processedBlob);
 
                 status.innerHTML = "🌀 Reading with Google OCR...";
+                window.currentOcrStatusId = statusLabelId;
 
-                const response = await fetch(OCR_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ scanType: scanType, imageObj: base64Data })
-                });
-
-                if (!response.ok) throw new Error('Network error: ' + response.status);
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error || 'OCR backend returned an error');
-
-                let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase();
-                console.log(`[OCR RAW TEXT - ${scanType}]:`, cleanText);
-
-                let matched = false;
-
-                if (scanType === "IQAMA") {
-                    let idMatch = cleanText.match(/\b[12]\d{9}\b/);
-                    if (idMatch) { document.getElementById('iqamaNumber').value = idMatch[0]; matched = true; }
-
-                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-                    let nameMatch = lines.find(line =>
-                        /^[A-Z][A-Z\s.']{7,45}$/.test(line) &&
-                        !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NATIONALITY|GENDER|EXPIRY|BIRTH|OCCUPATION|EMPLOYER|RELIGION/.test(line)
-                    );
-                    if (nameMatch) { document.getElementById('driverName').value = nameMatch; matched = true; }
-                }
-                else if (scanType === "PLATE") {
-                    let digitsMatch = cleanText.match(/\b\d{3,4}\b/);
-                    let lettersMatch = cleanText.match(/\b[A-Z]{3}\b/);
-                    if (digitsMatch && lettersMatch) {
-                        document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`;
-                        matched = true;
-                    }
-                }
-                else if (scanType === "OFFICER") {
-                    let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
-                    if (badgeMatch) {
-                        document.getElementById('securityNameId').value = badgeMatch[0];
-                        matched = true;
-                    }
-
-                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-                    let nameMatch = lines.find(line =>
-                        /^[A-Z][A-Z\s.']{2,25}$/i.test(line) &&
-                        !/LP|ASSOCIATE|EVERY|DOORBELL|DAY|AL\s+ABEER|SAUDI|SECURITY|GATEWAY/i.test(line)
-                    );
-
-                    if (nameMatch) {
-                        document.getElementById('securityNameField').value = nameMatch;
-                        matched = true;
-                    } else if (badgeMatch) {
-                        document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0];
-                    }
-                }
-
-                if (matched) {
-                    status.innerHTML = "✅ Extracted — please double-check the fields";
-                    status.style.color = "var(--success-color)";
-                } else {
-                    status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually";
-                    status.style.color = "#ef4444";
-                }
+                const old = document.getElementById('jsonp-ocr-script'); if(old) old.remove();
+                const s = document.createElement('script');
+                s.id = 'jsonp-ocr-script';
+                s.src = OCR_API_URL + "?callback=handleOcrResponse&scanType=" + scanType + "&imageObj=" + encodeURIComponent(base64Data);
+                document.body.appendChild(s);
 
             } catch (err) {
                 console.error("OCR engine error:", err);
@@ -638,9 +645,14 @@
         async function executeRowSignout(driverName, plateNumber, securityName, dockNumber) {
             if(!confirm("Proceed with terminal sign-out logging for vehicle: " + plateNumber + "?")) return;
             try {
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ driverName, plateNumber, securityName, dockNumber, direction: "Outbound" }) });
-                if (!response.ok) throw new Error('Server returned ' + response.status);
-                alert("Sign-out logged smoothly!"); fetchLogs();
+                const payload = { driverName, plateNumber, securityName, dockNumber, direction: "Outbound" };
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify(payload) 
+                });
+                alert("Sign-out logged smoothly!"); setTimeout(fetchLogs, 1500);
             } catch(e) { alert("Error connecting to database: " + e.message); }
         }
 
@@ -839,14 +851,20 @@
             e.preventDefault(); const btn = document.querySelector('.submit-btn-global'); btn.innerText = "Processing Check In..."; btn.disabled = true;
             try {
                 const payload = { driverName: document.getElementById('driverName').value, iqamaNumber: document.getElementById('iqamaNumber').value, plateNumber: document.getElementById('plateNumber').value, securityName: document.getElementById('securityNameField').value, dockNumber: document.getElementById('dockNumber').value, direction: document.getElementById('direction').value };
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error('Server returned status ' + response.status);
+                
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify(payload) 
+                });
+                
                 document.getElementById('entryForm').reset(); btn.innerText = "Check In Truck"; btn.disabled = false;
                 document.getElementById('driverPhotoStatus').innerText = "Driver Photo / Truck Photo"; document.getElementById('driverPhotoStatus').style.color = document.getElementById('iqamaStatus').style.color = document.getElementById('officerStatus').style.color = "var(--text-muted)";
                 document.getElementById('iqamaStatus').innerText = "Iqama (ID Card) Scanner"; document.getElementById('officerStatus').innerText = "Security ID Scanner";
                 switchView('dashboard', document.querySelectorAll('.nav-item')[0]); setTimeout(fetchLogs, 1500);
             } catch (err) {
-                alert("Error saving log: " + err.message + "\n\nCheck that your logging Apps Script is deployed with 'Anyone' access and is accepting this request.");
+                alert("Error saving log: " + err.message);
                 btn.innerText = "Check In Truck"; btn.disabled = false;
             }
         });
