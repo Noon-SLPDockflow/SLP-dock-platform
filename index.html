@@ -163,6 +163,14 @@
         .custom-date-row.open { display: flex; }
         .custom-date-row input[type="date"] { background: rgba(11,15,25,0.7); border: 1px solid var(--border-color); color: #fff; padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem; }
         .custom-date-row button { background: var(--accent-color); color: #000; border: none; padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+
+        .badge { display: inline-block; padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: bold; border-radius: 4px; text-transform: uppercase; }
+        .badge.inbound, .badge.in { background: rgba(16, 185, 129, 0.15); color: var(--success-color); border: 1px solid rgba(16, 185, 129, 0.3); }
+        .badge.outbound, .badge.out { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .user-activity-row { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; }
+        .user-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--accent-color); color: #000; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; }
+        .user-details h4 { font-size: 0.95rem; color: #fff; }
+        .user-details p { font-size: 0.75rem; color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -197,7 +205,7 @@
                 </div>
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;"><div class="card-header-flex"><h2>Pending Access Requests</h2></div>
                     <div style="text-align: center; color: var(--text-muted); padding: 2rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2rem;">🔒</span><div style="font-weight: 600; text-transform: uppercase; font-size: 0.85rem; color: #fff;">All Clear</div><p style="font-size: 0.75rem; max-width: 180px;">No pending vehicle overrides detected.</p></div>
-                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">🛡️ Secure Protocol v2.4 Active</div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">🛡️ Secure Protocol active</div>
                 </div>
             </div>
             <div class="dashboard-bottom-split">
@@ -345,6 +353,69 @@
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
 
+        window.handleOcrResponse = function(result) {
+            const status = document.getElementById(window.currentOcrStatusId);
+            if (!status) return;
+
+            if (!result || !result.success) {
+                status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually";
+                status.style.color = "#ef4444";
+                return;
+            }
+
+            let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase();
+            let scanType = result.scanType;
+            let matched = false;
+
+            if (scanType === "IQAMA") {
+                let idMatch = cleanText.match(/\b[12]\d{9}\b/);
+                if (idMatch) { document.getElementById('iqamaNumber').value = idMatch[0]; matched = true; }
+
+                let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+                let nameMatch = lines.find(line =>
+                    /^[A-Z][A-Z\s.']{7,45}$/.test(line) &&
+                    !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NATIONALITY|GENDER|EXPIRY|BIRTH|OCCUPATION|EMPLOYER|RELIGION/.test(line)
+                );
+                if (nameMatch) { document.getElementById('driverName').value = nameMatch; matched = true; }
+            }
+            else if (scanType === "PLATE") {
+                let digitsMatch = cleanText.match(/\b\d{3,4}\b/);
+                let lettersMatch = cleanText.match(/\b[A-Z]{3}\b/);
+                if (digitsMatch && lettersMatch) {
+                    document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`;
+                    matched = true;
+                }
+            }
+            else if (scanType === "OFFICER") {
+                let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
+                if (badgeMatch) {
+                    document.getElementById('securityNameId').value = badgeMatch[0];
+                    matched = true;
+                }
+
+                let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
+                let nameMatch = lines.find(line =>
+                    /^[A-Z\s.']{3,25}$/i.test(line) &&
+                    !/LP|ASSOCIATE|EVERY|DOORBELL|DAY|AL\s+ABEER|SAUDI|SECURITY|GATEWAY|OFFICER/i.test(line)
+                );
+
+                if (nameMatch) {
+                    document.getElementById('securityNameField').value = nameMatch;
+                    matched = true;
+                } else if (badgeMatch) {
+                    document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0];
+                }
+            }
+
+            if (matched) {
+                status.innerHTML = "✅ Extracted — please double-check the fields";
+                status.style.color = "var(--success-color)";
+            } else {
+                status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually";
+                status.style.color = "#ef4444";
+            }
+        };
+
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(v => v.id === 'view-' + viewId ? v.classList.add('active-view') : v.classList.remove('active-view'));
             document.querySelectorAll('.nav-item').forEach(item => item === element ? item.classList.add('active') : item.classList.remove('active'));
@@ -360,9 +431,9 @@
         }
 
         function openDriverProfileModal(name, iqama, plate, date) {
-            document.getElementById('modalDataName').innerText = name;
-            document.getElementById('modalDataIqama').innerText = iqama;
-            document.getElementById('modalDataDate').innerText = date;
+            document.getElementById('modalDataName').innerText = name || '--';
+            document.getElementById('modalDataIqama').innerText = iqama || '--';
+            document.getElementById('modalDataDate').innerText = date || '--';
             let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
             let segments = plate ? plate.split(' ') : ['--'];
             segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
@@ -377,53 +448,48 @@
             document.querySelectorAll('.new-driver-field').forEach(f => { f.style.display = mode === "existing" ? "none" : "block"; f.querySelector('input').required = mode !== "existing"; });
         }
 
-        /* ---------------- Existing-driver autocomplete (Issue 5) ---------------- */
         const driverSearchBoxEl = document.getElementById('driverSearchBox');
-        const suggestionsListEl = document.getElementById('driverSuggestionsList');
+        if (driverSearchBoxEl) {
+            const suggestionsListEl = document.getElementById('driverSuggestionsList');
+            driverSearchBoxEl.addEventListener('input', function(e) {
+                let value = e.target.value.toUpperCase().trim();
+                suggestionsListEl.innerHTML = '';
+                if (value.length < 1 || driversRegistryList.length === 0) { suggestionsListEl.classList.remove('open'); return; }
 
-        driverSearchBoxEl.addEventListener('input', function(e) {
-            let value = e.target.value.toUpperCase().trim();
-            suggestionsListEl.innerHTML = '';
-            if (value.length < 1 || driversRegistryList.length === 0) { suggestionsListEl.classList.remove('open'); return; }
+                let matches = driversRegistryList.filter(d => String(d.name).toUpperCase().includes(value) || String(d.plate || '').toUpperCase().includes(value)).slice(0, 8);
+                if (matches.length === 0) { suggestionsListEl.classList.remove('open'); return; }
 
-            let matches = driversRegistryList.filter(d => d.name.toUpperCase().includes(value) || (d.plate || '').toUpperCase().includes(value)).slice(0, 8);
-            if (matches.length === 0) { suggestionsListEl.classList.remove('open'); return; }
-
-            matches.forEach(d => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.innerHTML = `${d.name}<small>Plate: ${d.plate || '--'} · Iqama: ${d.id || '--'}</small>`;
-                item.addEventListener('click', () => {
-                    driverSearchBoxEl.value = d.name;
-                    document.getElementById('driverName').value = d.name;
-                    document.getElementById('plateNumber').value = d.plate || '';
-                    document.getElementById('iqamaNumber').value = d.id || '';
-                    suggestionsListEl.classList.remove('open');
+                matches.forEach(d => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    item.innerHTML = `${d.name}<small>Plate: ${d.plate || '--'} · Iqama: ${d.id || '--'}</small>`;
+                    item.addEventListener('click', () => {
+                        driverSearchBoxEl.value = d.name;
+                        document.getElementById('driverName').value = d.name;
+                        document.getElementById('plateNumber').value = d.plate || '';
+                        document.getElementById('iqamaNumber').value = d.id || '';
+                        suggestionsListEl.classList.remove('open');
+                    });
+                    suggestionsListEl.appendChild(item);
                 });
-                suggestionsListEl.appendChild(item);
+                suggestionsListEl.classList.add('open');
             });
-            suggestionsListEl.classList.add('open');
-        });
-
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-input-wrapper')) suggestionsListEl.classList.remove('open');
-        });
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-input-wrapper')) suggestionsListEl.classList.remove('open');
+            });
+        }
 
         function convertArabicNumeralsToDigits(str) {
             const map = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };
             return str.replace(/[٠-٩]/g, match => map[match]);
         }
 
-        /* ---------------- Image preprocessing (Issues 2 & 3) ---------------- */
         function isLikelyHeic(file) {
             const type = (file.type || '').toLowerCase();
             const name = (file.name || '').toLowerCase();
             return type.includes('heic') || type.includes('heif') || name.endsWith('.heic') || name.endsWith('.heif');
         }
 
-        // Loads a File into an <img>. Tries a blob: URL first (fastest); if the browser
-        // can't decode it (wrong/unsupported format, some mobile browser quirks), falls
-        // back to a data: URL via FileReader, which is more broadly supported.
         function loadImageRobust(file) {
             return new Promise((resolve, reject) => {
                 if (isLikelyHeic(file)) {
@@ -456,13 +522,8 @@
             });
         }
 
-        // scanType PLATE gets a bottom-center crop first, since on a "front of truck/car"
-        // photo the plate is reliably in that region — this cuts out background signage
-        // and badge noise that was confusing the regex matching, and also means we only
-        // need to upscale a small, already-zoomed region instead of the whole photo.
         async function preprocessImageForOcr(file, scanType) {
             const img = await loadImageRobust(file);
-
             let sx = 0, sy = 0, sw = img.width, sh = img.height;
 
             if (scanType === 'PLATE') {
@@ -493,8 +554,6 @@
             ctx.putImageData(imageData, 0, 0);
 
             return new Promise((resolve, reject) => {
-                // JPEG instead of PNG: much smaller payload -> faster upload + faster
-                // Drive-side processing, with no real accuracy loss for OCR text.
                 canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('canvas toBlob failed')), 'image/jpeg', 0.85);
             });
         }
@@ -508,7 +567,6 @@
             });
         }
 
-        /* ---------------- Camera capture (Issue 3 suggestion) ---------------- */
         let cameraStream = null;
         let cameraTargetStatusId = null;
         let cameraTargetScanType = null;
@@ -521,7 +579,7 @@
             overlay.classList.add('open');
             try {
                 cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 960 }, height: { ideal: 720 } }
+                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 960 } }
                 });
                 video.srcObject = cameraStream;
             } catch (err) {
@@ -555,7 +613,6 @@
             runLocalOcrEngine(file, statusLabelId, scanType);
         }
 
-        /* ---------------- OCR engine (real Drive OCR backend, no hardcoding) ---------------- */
         async function runLocalOcrEngine(file, statusLabelId, scanType) {
             const status = document.getElementById(statusLabelId);
             status.innerHTML = "🌀 Preparing image...";
@@ -566,69 +623,13 @@
                 const base64Data = await blobToBase64(processedBlob);
 
                 status.innerHTML = "🌀 Reading with Google OCR...";
+                window.currentOcrStatusId = statusLabelId;
 
-                const response = await fetch(OCR_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ scanType: scanType, imageObj: base64Data })
-                });
-
-                if (!response.ok) throw new Error('Network error: ' + response.status);
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error || 'OCR backend returned an error');
-
-                let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase();
-                console.log(`[OCR RAW TEXT - ${scanType}]:`, cleanText);
-
-                let matched = false;
-
-                if (scanType === "IQAMA") {
-                    let idMatch = cleanText.match(/\b[12]\d{9}\b/);
-                    if (idMatch) { document.getElementById('iqamaNumber').value = idMatch[0]; matched = true; }
-
-                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-                    let nameMatch = lines.find(line =>
-                        /^[A-Z][A-Z\s.']{7,45}$/.test(line) &&
-                        !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NATIONALITY|GENDER|EXPIRY|BIRTH|OCCUPATION|EMPLOYER|RELIGION/.test(line)
-                    );
-                    if (nameMatch) { document.getElementById('driverName').value = nameMatch; matched = true; }
-                }
-                else if (scanType === "PLATE") {
-                    let digitsMatch = cleanText.match(/\b\d{3,4}\b/);
-                    let lettersMatch = cleanText.match(/\b[A-Z]{3}\b/);
-                    if (digitsMatch && lettersMatch) {
-                        document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`;
-                        matched = true;
-                    }
-                }
-                else if (scanType === "OFFICER") {
-                    let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
-                    if (badgeMatch) {
-                        document.getElementById('securityNameId').value = badgeMatch[0];
-                        matched = true;
-                    }
-
-                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-                    let nameMatch = lines.find(line =>
-                        /^[A-Z][A-Z\s.']{2,25}$/i.test(line) &&
-                        !/LP|ASSOCIATE|EVERY|DOORBELL|DAY|AL\s+ABEER|SAUDI|SECURITY|GATEWAY/i.test(line)
-                    );
-
-                    if (nameMatch) {
-                        document.getElementById('securityNameField').value = nameMatch;
-                        matched = true;
-                    } else if (badgeMatch) {
-                        document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0];
-                    }
-                }
-
-                if (matched) {
-                    status.innerHTML = "✅ Extracted — please double-check the fields";
-                    status.style.color = "var(--success-color)";
-                } else {
-                    status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually";
-                    status.style.color = "#ef4444";
-                }
+                const old = document.getElementById('jsonp-ocr-script'); if(old) old.remove();
+                const s = document.createElement('script');
+                s.id = 'jsonp-ocr-script';
+                s.src = OCR_API_URL + "?callback=handleOcrResponse&scanType=" + scanType + "&imageObj=" + encodeURIComponent(base64Data);
+                document.body.appendChild(s);
 
             } catch (err) {
                 console.error("OCR engine error:", err);
@@ -641,12 +642,21 @@
             }
         }
 
+        function safeStr(val, fallback) {
+            return String(val || fallback).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+        }
+
         async function executeRowSignout(driverName, plateNumber, securityName, dockNumber) {
             if(!confirm("Proceed with terminal sign-out logging for vehicle: " + plateNumber + "?")) return;
             try {
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ driverName, plateNumber, securityName, dockNumber, direction: "Outbound" }) });
-                if (!response.ok) throw new Error('Server returned ' + response.status);
-                alert("Sign-out logged smoothly!"); fetchLogs();
+                const payload = { driverName, plateNumber, securityName, dockNumber, direction: "Outbound" };
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify(payload) 
+                });
+                alert("Sign-out logged smoothly!"); setTimeout(fetchLogs, 1500);
             } catch(e) { alert("Error connecting to database: " + e.message); }
         }
 
@@ -667,34 +677,36 @@
         }
 
         function generatePlateBumperUI(plateStr) {
-            let parts = plateStr ? plateStr.split(' ') : ['--'];
+            let parts = plateStr ? String(plateStr).split(' ') : ['--'];
             if(parts.length >= 2) { return `<div class="plate-box-split"><div class="plate-segment">${parts[0]}</div><div class="plate-segment">${parts[1]}</div></div>`; }
-            return `<div class="plate-box-split"><div class="plate-segment">${plateStr}</div></div>`;
+            return `<div class="plate-box-split"><div class="plate-segment">${plateStr || '--'}</div></div>`;
         }
 
         function compileDriversRegistryCards(data) {
             const container = document.getElementById('driversRegistryContainer'); container.innerHTML = '';
             let uniqueDriversMap = {};
             data.forEach(item => {
-                if(!item.driverName || item.driverName.trim() === "") return;
+                if(!item.driverName || String(item.driverName).trim() === "") return;
                 if(!uniqueDriversMap[item.driverName]) {
                     uniqueDriversMap[item.driverName] = { name: item.driverName, plate: item.plateNumber || "--", registered: item.timestamp, id: item.iqamaNumber || "--" };
                 }
             });
 
             let list = Object.values(uniqueDriversMap);
-            driversRegistryList = list; // used by the existing-driver autocomplete
+            driversRegistryList = list;
             document.getElementById('metric-drivers-count').innerText = list.length;
             if(list.length === 0) { container.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:3rem;">No personnel maps cataloged.</div>'; return; }
 
             list.forEach(driver => {
                 let dateFormatted = fmtDate(driver.registered);
+                let safeSearchBlob = `${String(driver.name).toLowerCase()} ${String(driver.plate).toLowerCase()}`;
+                
                 container.innerHTML += `
-                    <div class="driver-registry-card" data-search-blob="${driver.name.toLowerCase()} ${driver.plate.toLowerCase()}">
+                    <div class="driver-registry-card" data-search-blob="${safeSearchBlob}">
                         <div class="card-management-actions"><button class="btn-icon-manage">✏️</button></div>
                         <div class="driver-card-header"><div class="driver-avatar-img">👤</div><div class="driver-meta"><h3>${driver.name}</h3><div class="driver-badges"><span class="tag-badge verified">Verified</span><span class="tag-badge carrier">SLP</span></div></div></div>
                         <div class="driver-card-info-grid"><div class="info-block"><p>🆔 IQAMA ID</p><data>${driver.id}</data></div><div class="info-block"><p>📅 Registered</p><data>${dateFormatted}</data></div><div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 Phone Number</p><data>0596584562</data></div></div>
-                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name}', '${driver.id}', '${driver.plate}', '${dateFormatted}')">View Records</button>
+                        <button class="btn-card-action" onclick="openDriverProfileModal('${safeStr(driver.name)}', '${safeStr(driver.id)}', '${safeStr(driver.plate)}', '${safeStr(dateFormatted)}')">View Records</button>
                     </div>`;
             });
         }
@@ -704,16 +716,17 @@
             document.querySelectorAll('.driver-registry-card').forEach(card => { card.style.display = card.getAttribute('data-search-blob').includes(query) ? 'flex' : 'none'; });
         }
 
-        /* ---------------- History rendering + date filters (Issue 6) ---------------- */
         function renderHistoryTable(list) {
             const historyBody = document.getElementById('historyLogTableBody');
+            if (!historyBody) return;
             historyBody.innerHTML = '';
             if (list.length === 0) {
                 historyBody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic;">No records match this range.</td></tr>';
                 return;
             }
             list.forEach(r => {
-                historyBody.innerHTML += `<tr><td><strong>${r.driverName}</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">ID: ${r.iqamaNumber || '--'}</span></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="badge ${r.isInside?'in':'out'}">${r.isInside?'INBOUND':'OUTBOUND'}</span></td><td><strong>${r.dockNumber.replace('Dock ','')}</strong></td><td style="color:var(--text-muted);">--</td><td style="font-size:0.85rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.85rem; color:var(--text-muted);">${r.isInside?'<span style="color:var(--accent-color);">Inside</span>':formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.isInside?null:r.timestamp)}</td><td style="font-size:0.8rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td></tr>`;
+                let cleanDock = String(r.dockNumber || '').replace('Dock ','') || '--';
+                historyBody.innerHTML += `<tr><td><strong>${r.driverName || 'Unknown'}</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">ID: ${r.iqamaNumber || '--'}</span></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="badge ${r.isInside?'in':'out'}">${r.isInside?'INBOUND':'OUTBOUND'}</span></td><td><strong>${cleanDock}</strong></td><td style="color:var(--text-muted);">--</td><td style="font-size:0.85rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.85rem; color:var(--text-muted);">${r.isInside?'<span style="color:var(--accent-color);">Inside</span>':formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.isInside?null:r.timestamp)}</td><td style="font-size:0.8rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td></tr>`;
             });
         }
 
@@ -722,9 +735,7 @@
             return globalHistoryListCache.filter(r => {
                 const refDate = new Date(r.checkInTime || r.timestamp);
                 if (isNaN(refDate.getTime())) return range === 'all';
-                if (range === 'today') {
-                    return refDate.toDateString() === now.toDateString();
-                }
+                if (range === 'today') return refDate.toDateString() === now.toDateString();
                 if (range === '7days') {
                     const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 7);
                     return refDate >= sevenDaysAgo && refDate <= now;
@@ -734,7 +745,7 @@
                     const from = new Date(fromStr); const to = new Date(toStr); to.setHours(23,59,59,999);
                     return refDate >= from && refDate <= to;
                 }
-                return true; // 'all'
+                return true;
             });
         }
 
@@ -743,10 +754,7 @@
             document.querySelectorAll('.filter-tabs-container .tab-filter-item').forEach(b => b.classList.remove('active'));
             btnEl.classList.add('active');
             const customRow = document.getElementById('customDateRow');
-            if (range === 'custom') {
-                customRow.classList.add('open');
-                return; // wait for Apply button
-            }
+            if (range === 'custom') { customRow.classList.add('open'); return; }
             customRow.classList.remove('open');
             renderHistoryTable(filterHistoryListByRange(range));
         }
@@ -758,7 +766,6 @@
             renderHistoryTable(filterHistoryListByRange('custom', from, to));
         }
 
-        /* ---------------- Export to Excel (Issue 6) ---------------- */
         function exportHistoryToExcel() {
             const rows = filterHistoryListByRange(currentHistoryDateRange, document.getElementById('customDateFrom').value, document.getElementById('customDateTo').value);
             if (rows.length === 0) { alert('No rows to export for the current filter.'); return; }
@@ -794,85 +801,68 @@
         }
 
         window.handleLogsResponse = function(data) {
-            let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; globalLogsCache = chronData;
-            const liveBody = document.getElementById('liveFeedBody'), activeBody = document.getElementById('activeYardTableBody');
-            liveBody.innerHTML = ''; activeBody.innerHTML = '';
- 
-            let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; 
-            globalLogsCache = chronData;
-            
-            const liveBody = document.getElementById('liveFeedBody');
-            const activeBody = document.getElementById('activeYardTableBody');
-            
-            if (liveBody) liveBody.innerHTML = ''; 
-            if (activeBody) activeBody.innerHTML = '';
-
-            compileDriversRegistryCards(chronData);
-            if(chronData.length === 0) { renderHistoryTable([]); return; }
-            
-            document.getElementById('metric-total-checkins').innerText = chronData.length;
- 
-            let activeYardMap = {}, historicalPairs = [];
-
-            let activeYardMap = {};
-            let historicalPairs = [];
-            
-            // BULLETPROOF SORTING: Forces everything to lowercase and trims spaces so "INBOUND" matches "inbound"
-            chronData.forEach(row => {
-                if(row.direction === "Inbound") activeYardMap[row.plateNumber] = row;
-                else if(row.direction === "Outbound") {
-                    let match = activeYardMap[row.plateNumber];
-                    historicalPairs.push({ ...row, checkInTime: match ? match.timestamp : "", iqamaNumber: match ? match.iqamaNumber : row.iqamaNumber });
-                    if(match) delete activeYardMap[row.plateNumber];
-                let plate = (row.plateNumber || 'UNKNOWN').toString().trim().toUpperCase();
-                let dir = (row.direction || '').toString().trim().toLowerCase();
+            try {
+                let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; globalLogsCache = chronData;
+                const liveBody = document.getElementById('liveFeedBody');
+                const activeBody = document.getElementById('activeYardTableBody');
                 
-                if(dir === "inbound") {
-                    activeYardMap[plate] = row;
-                }
-                else if(dir === "outbound") {
-                    let match = activeYardMap[plate];
-                    historicalPairs.push({ 
-                        ...row, 
-                        checkInTime: match ? match.timestamp : row.timestamp, 
-                        iqamaNumber: match ? match.iqamaNumber : row.iqamaNumber 
-                    });
-                    if(match) delete activeYardMap[plate]; // Removes from Active Trucks
-                }
-            });
- 
+                if (liveBody) liveBody.innerHTML = ''; 
+                if (activeBody) activeBody.innerHTML = '';
 
-            let activeList = Object.values(activeYardMap);
-            document.getElementById('metric-active-now').innerText = document.getElementById('activeYardCounter').innerText = activeList.length;
-            document.getElementById('metric-completed-today').innerText = historicalPairs.length;
- 
+                compileDriversRegistryCards(chronData);
+                if(chronData.length === 0) { renderHistoryTable([]); return; }
+                document.getElementById('metric-total-checkins').innerText = chronData.length;
 
-            [...chronData].reverse().slice(0, 5).forEach(r => {
-                liveBody.innerHTML += `<tr><td><strong>${r.driverName}</strong></td><td>${r.plateNumber}</td><td>${r.dockNumber}</td><td><span class="badge ${r.direction.toLowerCase()}">${r.direction}</span></td></tr>`;
-            });
- 
-            if(activeList.length === 0) activeBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
-            else activeList.reverse().forEach(r => {
-                activeBody.innerHTML += `<tr><td><strong>${r.driverName}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="badge in">INBOUND</span></td><td style="color:var(--accent-color); font-weight:600; font-size:0.8rem;">DISPATCHING</td><td style="color:var(--text-muted);">--</td><td><strong>${r.dockNumber.replace('Dock ','')}</strong></td><td style="font-size:0.85rem; color:var(--text-muted);">${formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.timestamp, null)}</td><td style="font-size:0.8rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td><td style="text-align:right; padding-right:1rem;"><button class="btn-signout-action" onclick="executeRowSignout('${r.driverName}','${r.plateNumber}','${r.securityName || 'Guard'}','${r.dockNumber}')">SIGN OUT</button></td></tr>`;
-                let dirClass = r.direction ? r.direction.toLowerCase().trim() : 'inbound';
-                let displayDir = r.direction ? r.direction.toUpperCase().trim() : 'INBOUND';
-                liveBody.innerHTML += `<tr><td><strong>${r.driverName || 'Unknown'}</strong></td><td>${r.plateNumber || '--'}</td><td>${r.dockNumber || '--'}</td><td><span class="badge ${dirClass}">${displayDir}</span></td></tr>`;
-            });
- 
+                let activeYardMap = {}, historicalPairs = [];
+                chronData.forEach(row => {
+                    let plate = String(row.plateNumber || 'UNKNOWN').trim().toUpperCase();
+                    let dir = String(row.direction || '').trim().toLowerCase();
 
-            if(activeList.length === 0) {
-                activeBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
-            } else {
-                activeList.reverse().forEach(r => {
-                    let cleanDock = (r.dockNumber || '').toString().replace('Dock ','') || '--';
-                    activeBody.innerHTML += `<tr><td><strong>${r.driverName || 'Unknown'}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="badge in">INBOUND</span></td><td style="color:var(--accent-color); font-weight:600; font-size:0.8rem;">DISPATCHING</td><td style="color:var(--text-muted);">--</td><td><strong>${cleanDock}</strong></td><td style="font-size:0.85rem; color:var(--text-muted);">${formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.timestamp, null)}</td><td style="font-size:0.8rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td><td style="text-align:right; padding-right:1rem;"><button class="btn-signout-action" onclick="executeRowSignout('${(r.driverName || 'Unknown').replace(/'/g, "\\'")}','${(r.plateNumber || '').replace(/'/g, "\\'")}','${(r.securityName || 'Guard').replace(/'/g, "\\'")}','${(r.dockNumber || '').replace(/'/g, "\\'")}')">SIGN OUT</button></td></tr>`;
+                    if(dir === "inbound") {
+                        activeYardMap[plate] = row;
+                    }
+                    else if(dir === "outbound") {
+                        let match = activeYardMap[plate];
+                        historicalPairs.push({
+                            ...row,
+                            checkInTime: match ? match.timestamp : row.timestamp,
+                            iqamaNumber: match ? match.iqamaNumber : row.iqamaNumber
+                        });
+                        if(match) delete activeYardMap[plate];
+                    }
                 });
-            }
 
-            globalHistoryListCache = [...historicalPairs, ...activeList.map(i => ({ ...i, checkInTime: i.timestamp, isInside: true }))].sort((a,b) => new Date(b.checkInTime) - new Date(a.checkInTime));
-            renderHistoryTable(filterHistoryListByRange(currentHistoryDateRange, document.getElementById('customDateFrom').value, document.getElementById('customDateTo').value));
+                let activeList = Object.values(activeYardMap);
+                document.getElementById('metric-active-now').innerText = document.getElementById('activeYardCounter').innerText = activeList.length;
+                document.getElementById('metric-completed-today').innerText = historicalPairs.length;
+
+                [...chronData].reverse().slice(0, 5).forEach(r => {
+                    let dirClass = r.direction ? String(r.direction).toLowerCase().trim() : 'inbound';
+                    let displayDir = r.direction ? String(r.direction).toUpperCase().trim() : 'INBOUND';
+                    if (liveBody) liveBody.innerHTML += `<tr><td><strong>${r.driverName || 'Unknown'}</strong></td><td>${r.plateNumber || '--'}</td><td>${r.dockNumber || '--'}</td><td><span class="badge ${dirClass}">${displayDir}</span></td></tr>`;
+                });
+
+                if(activeList.length === 0) {
+                    if (activeBody) activeBody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic;">NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr>';
+                } else {
+                    activeList.reverse().forEach(r => {
+                        let cleanDock = String(r.dockNumber || '').replace('Dock ','') || '--';
+                        let sName = safeStr(r.driverName, 'Unknown');
+                        let sPlate = safeStr(r.plateNumber, '');
+                        let sSec = safeStr(r.securityName, 'Guard');
+                        let sDock = safeStr(r.dockNumber, '');
+                        
+                        if (activeBody) activeBody.innerHTML += `<tr><td><strong>${r.driverName || 'Unknown'}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="badge in">INBOUND</span></td><td style="color:var(--accent-color); font-weight:600; font-size:0.8rem;">DISPATCHING</td><td style="color:var(--text-muted);">--</td><td><strong>${cleanDock}</strong></td><td style="font-size:0.85rem; color:var(--text-muted);">${formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.timestamp, null)}</td><td style="font-size:0.8rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td><td style="text-align:right; padding-right:1rem;"><button class="btn-signout-action" onclick="executeRowSignout('${sName}', '${sPlate}', '${sSec}', '${sDock}')">SIGN OUT</button></td></tr>`;
+                    });
+                }
+
+                globalHistoryListCache = [...historicalPairs, ...activeList.map(i => ({ ...i, checkInTime: i.timestamp, isInside: true }))].sort((a,b) => new Date(b.checkInTime) - new Date(a.checkInTime));
+                renderHistoryTable(filterHistoryListByRange(currentHistoryDateRange, document.getElementById('customDateFrom').value, document.getElementById('customDateTo').value));
+            } catch (err) {
+                console.error("Dashboard Rendering Error: ", err);
+            }
         };
- 
+
         function filterTable(bodyId, query) {
             document.querySelectorAll('#' + bodyId + ' tr').forEach(row => { if(row.cells.length >= 2) row.style.display = row.innerText.toLowerCase().includes(query.toLowerCase()) ? '' : 'none'; });
         }
@@ -882,21 +872,30 @@
             const s = document.createElement('script'); s.id = 'jsonp-fetcher'; s.src = API_URL + "?callback=handleLogsResponse&prefix=handleLogsResponse&_" + new Date().getTime(); document.body.appendChild(s);
         }
 
-        document.getElementById('entryForm').addEventListener('submit', async e => {
-            e.preventDefault(); const btn = document.querySelector('.submit-btn-global'); btn.innerText = "Processing Check In..."; btn.disabled = true;
-            try {
-                const payload = { driverName: document.getElementById('driverName').value, iqamaNumber: document.getElementById('iqamaNumber').value, plateNumber: document.getElementById('plateNumber').value, securityName: document.getElementById('securityNameField').value, dockNumber: document.getElementById('dockNumber').value, direction: document.getElementById('direction').value };
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error('Server returned status ' + response.status);
-                document.getElementById('entryForm').reset(); btn.innerText = "Check In Truck"; btn.disabled = false;
-                document.getElementById('driverPhotoStatus').innerText = "Driver Photo / Truck Photo"; document.getElementById('driverPhotoStatus').style.color = document.getElementById('iqamaStatus').style.color = document.getElementById('officerStatus').style.color = "var(--text-muted)";
-                document.getElementById('iqamaStatus').innerText = "Iqama (ID Card) Scanner"; document.getElementById('officerStatus').innerText = "Security ID Scanner";
-                switchView('dashboard', document.querySelectorAll('.nav-item')[0]); setTimeout(fetchLogs, 1500);
-            } catch (err) {
-                alert("Error saving log: " + err.message + "\n\nCheck that your logging Apps Script is deployed with 'Anyone' access and is accepting this request.");
-                btn.innerText = "Check In Truck"; btn.disabled = false;
-            }
-        });
+        const entryForm = document.getElementById('entryForm');
+        if (entryForm) {
+            entryForm.addEventListener('submit', async e => {
+                e.preventDefault(); const btn = document.querySelector('.submit-btn-global'); btn.innerText = "Processing Check In..."; btn.disabled = true;
+                try {
+                    const payload = { driverName: document.getElementById('driverName').value, iqamaNumber: document.getElementById('iqamaNumber').value, plateNumber: document.getElementById('plateNumber').value, securityName: document.getElementById('securityNameField').value, dockNumber: document.getElementById('dockNumber').value, direction: document.getElementById('direction').value };
+                    
+                    await fetch(API_URL, { 
+                        method: 'POST', 
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                        body: JSON.stringify(payload) 
+                    });
+                    
+                    document.getElementById('entryForm').reset(); btn.innerText = "Check In Truck"; btn.disabled = false;
+                    document.getElementById('driverPhotoStatus').innerText = "Driver Photo / Truck Photo"; document.getElementById('driverPhotoStatus').style.color = document.getElementById('iqamaStatus').style.color = document.getElementById('officerStatus').style.color = "var(--text-muted)";
+                    document.getElementById('iqamaStatus').innerText = "Iqama (ID Card) Scanner"; document.getElementById('officerStatus').innerText = "Security ID Scanner";
+                    switchView('dashboard', document.querySelectorAll('.nav-item')[0]); setTimeout(fetchLogs, 1500);
+                } catch (err) {
+                    alert("Error saving log: Check your internet connection.");
+                    btn.innerText = "Check In Truck"; btn.disabled = false;
+                }
+            });
+        }
 
         setInterval(fetchLogs, 15000); fetchLogs();
     </script>
