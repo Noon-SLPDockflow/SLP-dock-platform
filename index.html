@@ -6,11 +6,10 @@
     <title>Noon SLP Dock Security Platform</title>
     <style>
         :root {
-            /* Exact colors from the video/images */
-            --bg-color: #0b0e14; /* Deep dark background */
-            --card-bg: rgba(18, 22, 31, 0.85); /* Slightly lighter for cards */
+            --bg-color: #0b0e14; 
+            --card-bg: rgba(18, 22, 31, 0.85); 
             --sidebar-bg: #07090c;
-            --accent-color: #fcc200; /* Noon Yellow */
+            --accent-color: #fcc200; 
             --text-main: #f0f2f5;
             --text-muted: #8b949e;
             --border-color: rgba(255, 255, 255, 0.08);
@@ -33,90 +32,40 @@
             overflow-x: hidden;
         }
 
-        /* =========================================
-           INTRO SCREEN & PARTICLES
-           ========================================= */
+        /* INTRO SCREEN & PARTICLES */
         .intro-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color);
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); z-index: 99999;
+            display: flex; align-items: center; justify-content: center;
             transition: opacity 1s ease, transform 1s ease;
         }
-        .intro-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(1.05);
-        }
-        #particleCanvas {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
-        }
+        .intro-overlay.hidden { opacity: 0; pointer-events: none; transform: scale(1.05); }
+        #particleCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
         .login-container {
-            position: relative;
-            z-index: 2;
-            background: var(--sidebar-bg);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 3rem 4rem;
-            text-align: center;
-            box-shadow: 0 0 80px rgba(252, 194, 0, 0.15), 0 20px 40px rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: all 0.5s ease;
-            max-width: 400px;
-            width: 90%;
+            position: relative; z-index: 2; background: var(--sidebar-bg); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px; padding: 3rem 4rem; text-align: center; box-shadow: 0 0 80px rgba(252, 194, 0, 0.15), 0 20px 40px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center; transition: all 0.5s ease; max-width: 400px; width: 90%;
         }
-        .login-logo {
-            height: 140px;
-            margin-bottom: 2.5rem;
-            transition: transform 0.5s ease;
-        }
-        
-        .auth-status {
-            margin-top: 1.5rem;
-            display: none;
-        }
-        .auth-status p {
-            font-size: 0.75rem;
-            color: var(--accent-color);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-        }
-        .auth-status p.pulsing {
-            animation: authPulse 1.5s infinite;
-        }
-        @keyframes authPulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
-        }
+        .login-logo { height: 140px; margin-bottom: 2.5rem; transition: transform 0.5s ease; }
+        .auth-status { margin-top: 1.5rem; display: none; }
+        .auth-status p { font-size: 0.75rem; color: var(--accent-color); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
+        .auth-status p.pulsing { animation: authPulse 1.5s infinite; }
+        @keyframes authPulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
-        /* =========================================
-           MAIN APP STYLES
-           ========================================= */
+        /* MAIN APP STYLES */
         .sidebar {
             width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color);
-            display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100;
-            transition: all 0.3s ease;
+            display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; transition: all 0.3s ease;
         }
         .brand-section { display: flex; align-items: center; justify-content: flex-start; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .brand-text h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
         .brand-text p { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
-        
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; border-left: 3px solid transparent; }
         .nav-item:hover { background-color: var(--nav-hover); color: #fff; }
         .nav-item.active { background-color: rgba(252, 194, 0, 0.15); color: var(--accent-color); font-weight: 600; border-left: 3px solid var(--accent-color); }
         .nav-icon { font-size: 1.15rem; }
         .nav-text { white-space: nowrap; }
-
         .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
         .system-health { background: rgba(46, 160, 67, 0.05); border: 1px dashed rgba(46, 160, 67, 0.3); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.5rem; }
         .health-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color); }
@@ -300,12 +249,18 @@
                 <input type="text" id="loginName" class="input-box-styled" placeholder="Enter Full Name" required style="text-align: center; border-color: rgba(252, 194, 0, 0.4); background: rgba(0,0,0,0.5);">
                 <input type="text" id="loginEmail" class="input-box-styled" placeholder="Enter Noon Email / Guard ID" required style="text-align: center; border-color: rgba(252, 194, 0, 0.4); background: rgba(0,0,0,0.5);">
                 
+                <div id="adminPasswordContainer" style="display: none; width: 100%;">
+                    <input type="password" id="adminPassword" class="input-box-styled" placeholder="Enter Admin Password" style="text-align: center; border-color: rgba(248, 81, 73, 0.4); background: rgba(0,0,0,0.5);">
+                </div>
+
                 <button id="customSignInBtn" class="submit-btn-global" style="margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
                     AUTHORIZE ACCESS
                 </button>
+
+                <div id="adminToggle" style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-muted); cursor: pointer; font-weight: 600; transition: color 0.2s;">⚙️ Login as Administrator</div>
             </div>
             
             <div id="authStatus" class="auth-status">
@@ -335,10 +290,12 @@
             <li class="nav-item" onclick="switchView('history', this)">
                 <span class="nav-icon">📜</span><span class="nav-text">History Log</span>
             </li>
-            <li class="nav-item" onclick="switchView('drivers', this)">
+            
+            <!-- ADMIN ONLY NAV LINKS -->
+            <li class="nav-item" id="nav-drivers" onclick="switchView('drivers', this)">
                 <span class="nav-icon">🪪</span><span class="nav-text">Drivers Database</span>
             </li>
-            <li class="nav-item" onclick="switchView('settings', this)">
+            <li class="nav-item" id="nav-settings" onclick="switchView('settings', this)">
                 <span class="nav-icon">⚙️</span><span class="nav-text">Settings</span>
             </li>
         </ul>
@@ -390,7 +347,7 @@
                 </div>
 
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                    <div class="card-header-flex"><h2>Active Officer</h2></div>
+                    <div class="card-header-flex"><h2>Active User</h2></div>
                     <div style="display:flex; align-items:center; gap: 1rem; margin-top: 1rem;">
                         <div class="driver-avatar-img" id="dashUserPic" style="width: 55px; height: 55px; background:var(--accent-color); color:#000; font-weight:800; font-size:1.5rem; border:none;">?</div>
                         <div style="overflow: hidden;">
@@ -441,10 +398,7 @@
                         <div class="form-group new-driver-field"><label class="badge-style">Driver Name *</label><input type="text" id="driverName" class="input-box-styled" placeholder="Enter driver full name"></div>
                         <div class="form-group new-driver-field"><label class="badge-style">Iqama Number *</label><input type="text" id="iqamaNumber" class="input-box-styled" placeholder="Enter 10-digit identity card number"></div>
                         <div class="form-group new-driver-field"><label class="badge-style">Truck Plate Number *</label><input type="text" id="plateNumber" class="input-box-styled" placeholder="Enter bumper plate sequence"></div>
-                        
-                        <!-- REMOVED HARDCODED VALUE FOR MOBILE NUMBER -->
                         <div class="form-group new-driver-field"><label class="badge-style">Mobile Number</label><input type="text" id="mobileNumber" class="input-box-styled" placeholder="Enter mobile number"></div>
-                        
                         <div class="form-section-divider">Security & Facility Details</div>
                         
                         <div class="form-group"><label class="badge-style">Security Name *</label><input type="text" id="securityNameField" class="input-box-styled" required placeholder="Enter verification guard identity"></div>
@@ -505,7 +459,9 @@
 
         <div id="view-history" class="app-view">
             <div class="view-header-row">
-                <div class="view-header-title"><h1>Movement History</h1><p>Site Movement Activity</p></div><button class="btn-excel" onclick="exportHistoryToExcel()">⤓ Export to Excel</button>
+                <div class="view-header-title"><h1>Movement History</h1><p>Site Movement Activity</p></div>
+                <!-- ADMIN ONLY EXPORT BUTTON -->
+                <button class="btn-excel" id="btnExportExcel" onclick="exportHistoryToExcel()">⤓ Export to Excel</button>
             </div>
             <div class="card" style="padding: 1.5rem; background: transparent; border:none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
@@ -602,10 +558,26 @@
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
         
-        // Active User Details 
+        // Active User & Role Details 
         let loggedInUser = { name: "Guest User", email: "Not signed in", picture: "" };
+        let userRole = 'guard'; // Default role is 'guard'. Admin unlocks special features.
 
-        /* ---------------- CUSTOM LOGIN LOGIC (NO API REQUIRED) ---------------- */
+        /* ---------------- CUSTOM LOGIN & ADMIN TOGGLE LOGIC ---------------- */
+        let isAdminMode = false;
+        
+        document.getElementById('adminToggle').addEventListener('click', function() {
+            isAdminMode = !isAdminMode;
+            if (isAdminMode) {
+                document.getElementById('adminPasswordContainer').style.display = 'block';
+                this.innerText = 'Back to Standard Login';
+                this.style.color = 'var(--danger-color)';
+            } else {
+                document.getElementById('adminPasswordContainer').style.display = 'none';
+                this.innerText = '⚙️ Login as Administrator';
+                this.style.color = 'var(--text-muted)';
+            }
+        });
+
         document.getElementById('customSignInBtn').addEventListener('click', function(e) {
             e.preventDefault();
             
@@ -617,13 +589,37 @@
                 return;
             }
 
+            // Role check if Admin mode is active
+            if (isAdminMode) {
+                const pass = document.getElementById('adminPassword').value;
+                // EDIT THIS PASSWORD IF YOU WANT TO CHANGE THE ADMIN PASSWORD:
+                if (pass !== 'admin123') { 
+                    alert("Incorrect Administrator Password.");
+                    return;
+                }
+                userRole = 'admin';
+            } else {
+                userRole = 'guard';
+            }
+
             loggedInUser = { name: nameInput, email: emailInput, picture: "👤" };
 
+            // Apply Role-Based Access Control (RBAC) to the UI
+            if (userRole === 'guard') {
+                document.getElementById('nav-drivers').style.display = 'none';
+                document.getElementById('nav-settings').style.display = 'none';
+                document.getElementById('btnExportExcel').style.display = 'none';
+            } else {
+                document.getElementById('nav-drivers').style.display = 'flex';
+                document.getElementById('nav-settings').style.display = 'flex';
+                document.getElementById('btnExportExcel').style.display = 'block';
+            }
+
             document.getElementById('securityNameField').value = loggedInUser.name;
-            document.getElementById('sidebarUserName').innerText = loggedInUser.name;
+            document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
             document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
             document.getElementById('sidebarUserPic').innerText = "👤";
-            document.getElementById('dashUserName').innerText = loggedInUser.name;
+            document.getElementById('dashUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
             document.getElementById('dashUserEmail').innerText = loggedInUser.email;
             document.getElementById('dashUserPic').innerText = "👤";
 
@@ -735,7 +731,6 @@
             document.querySelectorAll('.new-driver-field').forEach(f => { f.style.display = mode === "existing" ? "none" : "block"; f.querySelector('input').required = mode !== "existing"; });
         }
 
-        /* ---------------- TOGGLE INCOMING SEAL LOGIC ---------------- */
         document.getElementById('dispatchSelect').addEventListener('change', function() {
             const container = document.getElementById('sealNumberContainer');
             const input = document.getElementById('sealNumber');
@@ -800,7 +795,7 @@
                 const img = new Image();
                 let triedFallback = false;
                 function fallbackToDataUrl() {
-                    if (triedFallback) { reject(new Error('image failed to load — try a JPG or PNG instead')); return; }
+                    if (triedFallback) { reject(new Error('image failed to load')); return; }
                     triedFallback = true;
                     const reader = new FileReader();
                     reader.onload = () => { img.onerror = () => reject(new Error('image failed to load')); img.onload = () => resolve(img); img.src = reader.result; };
@@ -935,10 +930,9 @@
         document.getElementById('btnConfirmSignOut').addEventListener('click', async () => {
             const sealVal = document.getElementById('signOutSeal').value.trim();
             if (!sealVal) { alert('Please attach a departure seal number.'); return; }
-            
             if(!currentSignOutContext) return;
-            const { driverName, plateNumber, securityName, dockNumber } = currentSignOutContext;
             
+            const { driverName, plateNumber, securityName, dockNumber } = currentSignOutContext;
             const btn = document.getElementById('btnConfirmSignOut');
             btn.innerText = "Processing..."; btn.disabled = true;
 
@@ -1103,6 +1097,7 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
 
+        /* ---------------- PAIRING ENGINE (BULLETPROOF UPDATES) ---------------- */
         window.handleLogsResponse = function(data) {
             let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; 
             globalLogsCache = chronData;
@@ -1119,7 +1114,6 @@
             let activeYardMap = {}; 
             let historicalPairs = [];
             
-            // Core pairing logic
             chronData.forEach(row => {
                 let p = (row.plateNumber || "").toString().trim().toUpperCase();
                 let d = (row.driverName || "").toString().trim().toUpperCase();
@@ -1129,8 +1123,10 @@
                 let dirCheck = (row.direction || "").toString().trim();
                 
                 if(dirCheck !== "Outbound") {
+                    // Check In -> Add to active tracking map
                     activeYardMap[trackingKey] = row;
                 } else {
+                    // Check Out -> Find match and move to history
                     let match = activeYardMap[trackingKey];
                     if(match) {
                         historicalPairs.push({ 
@@ -1142,6 +1138,7 @@
                         });
                         delete activeYardMap[trackingKey];
                     } else {
+                        // Orphan Outbound (Checked out without checking in)
                         historicalPairs.push({ ...row, checkInTime: row.timestamp, entryReason: "Unknown" });
                     }
                 }
