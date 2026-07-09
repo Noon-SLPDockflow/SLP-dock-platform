@@ -6,10 +6,11 @@
     <title>Noon SLP Dock Security Platform</title>
     <style>
         :root {
-            --bg-color: #0b0e14; 
-            --card-bg: rgba(18, 22, 31, 0.85); 
+            /* Exact colors from the video/images */
+            --bg-color: #0b0e14; /* Deep dark background */
+            --card-bg: rgba(18, 22, 31, 0.85); /* Slightly lighter for cards */
             --sidebar-bg: #07090c;
-            --accent-color: #fcc200; 
+            --accent-color: #fcc200; /* Noon Yellow */
             --text-main: #f0f2f5;
             --text-muted: #8b949e;
             --border-color: rgba(255, 255, 255, 0.08);
@@ -32,40 +33,90 @@
             overflow-x: hidden;
         }
 
-        /* INTRO SCREEN & PARTICLES */
+        /* =========================================
+           INTRO SCREEN & PARTICLES
+           ========================================= */
         .intro-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color); z-index: 99999;
-            display: flex; align-items: center; justify-content: center;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: opacity 1s ease, transform 1s ease;
         }
-        .intro-overlay.hidden { opacity: 0; pointer-events: none; transform: scale(1.05); }
-        #particleCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .login-container {
-            position: relative; z-index: 2; background: var(--sidebar-bg); border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px; padding: 3rem 4rem; text-align: center; box-shadow: 0 0 80px rgba(252, 194, 0, 0.15), 0 20px 40px rgba(0,0,0,0.8);
-            display: flex; flex-direction: column; align-items: center; transition: all 0.5s ease; max-width: 400px; width: 90%;
+        .intro-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
         }
-        .login-logo { height: 140px; margin-bottom: 2.5rem; transition: transform 0.5s ease; }
-        .auth-status { margin-top: 1.5rem; display: none; }
-        .auth-status p { font-size: 0.75rem; color: var(--accent-color); text-transform: uppercase; letter-spacing: 2px; font-weight: 700; }
-        .auth-status p.pulsing { animation: authPulse 1.5s infinite; }
-        @keyframes authPulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+        #particleCanvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+        .login-container {
+            position: relative;
+            z-index: 2;
+            background: var(--sidebar-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 3rem 4rem;
+            text-align: center;
+            box-shadow: 0 0 80px rgba(252, 194, 0, 0.15), 0 20px 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.5s ease;
+            max-width: 400px;
+            width: 90%;
+        }
+        .login-logo {
+            height: 140px;
+            margin-bottom: 2.5rem;
+            transition: transform 0.5s ease;
+        }
+        
+        .auth-status {
+            margin-top: 1.5rem;
+            display: none;
+        }
+        .auth-status p {
+            font-size: 0.75rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+        .auth-status p.pulsing {
+            animation: authPulse 1.5s infinite;
+        }
+        @keyframes authPulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
 
-        /* MAIN APP STYLES */
+        /* =========================================
+           MAIN APP STYLES
+           ========================================= */
         .sidebar {
             width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color);
-            display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; transition: all 0.3s ease;
+            display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100;
+            transition: all 0.3s ease;
         }
         .brand-section { display: flex; align-items: center; justify-content: flex-start; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .brand-text h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
         .brand-text p { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
+        
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; border-left: 3px solid transparent; }
         .nav-item:hover { background-color: var(--nav-hover); color: #fff; }
         .nav-item.active { background-color: rgba(252, 194, 0, 0.15); color: var(--accent-color); font-weight: 600; border-left: 3px solid var(--accent-color); }
         .nav-icon { font-size: 1.15rem; }
         .nav-text { white-space: nowrap; }
+
         .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
         .system-health { background: rgba(46, 160, 67, 0.05); border: 1px dashed rgba(46, 160, 67, 0.3); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.5rem; }
         .health-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color); }
@@ -83,13 +134,30 @@
 
         .app-view { display: none; } .app-view.active-view { display: block; }
 
-        .dashboard-hero { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4rem 1.5rem 3rem 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; position: relative; backdrop-filter: blur(10px); }
+        .dashboard-hero {
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 4rem 1.5rem 3rem 1.5rem; 
+            margin-bottom: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            position: relative; 
+            backdrop-filter: blur(10px);
+        }
         .hero-badges-wrapper { position: absolute; top: 1.5rem; display: flex; gap: 1rem; }
-        .hero-badge { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.35rem 0.85rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); font-family: monospace; text-transform: uppercase; }
+        .hero-badge {
+            background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.35rem 0.85rem; border-radius: 4px;
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); font-family: monospace; text-transform: uppercase;
+        }
         .hero-title-box { margin-top: 1rem; text-align: center; }
         .hero-title-box h1 { font-size: 3.5rem; font-weight: 900; color: #fff; letter-spacing: 1px; margin-bottom: 0.25rem; text-shadow: 0 0 50px rgba(252, 194, 0, 0.2); }
         .hero-title-box p { font-size: 1.25rem; color: var(--accent-color); font-weight: 700; text-transform: uppercase; letter-spacing: 4px; }
-        @media (max-width: 768px) { .hero-title-box h1 { font-size: 2.2rem; } .hero-title-box p { font-size: 0.9rem; letter-spacing: 2px; } }
+        @media (max-width: 768px) {
+            .hero-title-box h1 { font-size: 2.2rem; }
+            .hero-title-box p { font-size: 0.9rem; letter-spacing: 2px; }
+        }
 
         .metrics-bar-four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
         @media (max-width: 1200px) { .metrics-bar-four { grid-template-columns: repeat(2, 1fr); } }
@@ -106,6 +174,7 @@
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; backdrop-filter: blur(10px); }
         .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; }
         .card h2 { font-size: 0.95rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; font-weight: 700; }
+        
         .view-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
         .view-header-title h1 { font-size: 1.75rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
         .view-header-title p { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; font-weight: 600; }
@@ -333,10 +402,9 @@
                 <div class="metric-card-slate"><div class="card-icon">🚛</div><div class="num" id="metric-total-checkins">0</div><div class="label">Total Check-Ins</div><div class="metric-accent-line" style="background-color: #79c0ff;"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">🪪</div><div class="num" id="metric-drivers-count">0</div><div class="label">Drivers Database</div><div class="metric-accent-line" style="background-color: #d2a8ff;"></div></div>
             </div>
-            
             <div class="dashboard-mid-split">
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                    <div class="card-header-flex"><h2>Pending Access Requests</h2></div>
+                
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;"><div class="card-header-flex"><h2>Pending Access Requests</h2></div>
                     <div style="text-align: center; color: var(--text-muted); padding: 4rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2.5rem;">🔒</span><div style="font-weight: 700; text-transform: uppercase; font-size: 0.95rem; color: #fff; margin-top: 0.5rem;">All Clear</div><p style="font-size: 0.8rem; max-width: 220px; line-height: 1.4;">No pending vehicle overrides detected.</p></div>
                     <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.75rem; font-weight:700;">🛡️ Secure Protocol v2.4 Active</div>
                 </div>
@@ -356,6 +424,7 @@
                         <div><span style="color: var(--text-muted)">System Uptime:</span> <strong style="color:#fff;">98.5%</strong></div>
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -397,7 +466,6 @@
                         <div class="form-group new-driver-field"><label class="badge-style">Mobile Number</label><input type="text" id="mobileNumber" class="input-box-styled" value="0596584562" placeholder="Enter contact parameter text"></div>
                         <div class="form-section-divider">Security & Facility Details</div>
                         
-                        <!-- SECURITY NAME FIELD NOW AUTO-FILLS based on custom Log In -->
                         <div class="form-group"><label class="badge-style">Security Name *</label><input type="text" id="securityNameField" class="input-box-styled" required placeholder="Enter verification guard identity"></div>
                         <div class="form-group"><label class="badge-style">Security ID *</label><input type="text" id="securityNameId" class="input-box-styled" required placeholder="Enter staff token number"></div>
                         
@@ -553,23 +621,16 @@
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
         
-        // Active User Details 
         let loggedInUser = { name: "Guest User", email: "Not signed in", picture: "" };
 
-        /* ---------------- CUSTOM LOGIN LOGIC (NO API REQUIRED) ---------------- */
+        /* ---------------- CUSTOM LOGIN LOGIC ---------------- */
         document.getElementById('customSignInBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            
             const nameInput = document.getElementById('loginName').value.trim();
             const emailInput = document.getElementById('loginEmail').value.trim();
-
-            if(!nameInput || !emailInput) {
-                alert("Please enter your Full Name and Noon ID/Email to authorize access.");
-                return;
-            }
+            if(!nameInput || !emailInput) { alert("Please enter your Full Name and Noon ID/Email to authorize access."); return; }
 
             loggedInUser = { name: nameInput, email: emailInput, picture: "👤" };
-
             document.getElementById('securityNameField').value = loggedInUser.name;
             document.getElementById('sidebarUserName').innerText = loggedInUser.name;
             document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
@@ -590,7 +651,6 @@
                 authText.style.color = "var(--success-color)";
                 authText.classList.remove('pulsing');
                 container.style.boxShadow = "0 0 80px rgba(46, 160, 67, 0.25), 0 20px 40px rgba(0,0,0,0.8)";
-                
                 setTimeout(() => {
                     document.getElementById('introOverlay').classList.add('hidden');
                     setTimeout(() => { introActive = false; cancelAnimationFrame(animationFrameId); fetchLogs(); }, 1000);
@@ -606,44 +666,33 @@
         let introActive = true;
 
         function initParticles() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            particles = [];
+            width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; particles = [];
             const particleCount = window.innerWidth < 768 ? 40 : 80;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 2 + 1 });
-            }
+            for (let i = 0; i < particleCount; i++) particles.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 2 + 1 });
         }
 
         function animateParticles() {
             if (!introActive) return;
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = 'rgba(252, 194, 0, 0.6)'; ctx.strokeStyle = 'rgba(252, 194, 0, 0.15)';
+            ctx.clearRect(0, 0, width, height); ctx.fillStyle = 'rgba(252, 194, 0, 0.6)'; ctx.strokeStyle = 'rgba(252, 194, 0, 0.15)';
             for (let i = 0; i < particles.length; i++) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                if (p.x < 0 || p.x > width) p.vx *= -1;
-                if (p.y < 0 || p.y > height) p.vy *= -1;
+                let p = particles[i]; p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > width) p.vx *= -1; if (p.y < 0 || p.y > height) p.vy *= -1;
                 ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
                 for (let j = i + 1; j < particles.length; j++) {
-                    let p2 = particles[j];
-                    let dist = Math.sqrt((p.x - p2.x)**2 + (p.y - p2.y)**2);
+                    let p2 = particles[j]; let dist = Math.sqrt((p.x - p2.x)**2 + (p.y - p2.y)**2);
                     if (dist < 120) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
                 }
             }
             animationFrameId = requestAnimationFrame(animateParticles);
         }
-
         window.addEventListener('resize', () => { if(introActive) initParticles(); });
         initParticles(); animateParticles();
 
         /* ---------------- CORE DASHBOARD LOGIC ---------------- */
         function updateHeroDate() {
-            const d = new Date();
-            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const d = new Date(); const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
             const str = String(d.getDate()).padStart(2, '0') + " " + months[d.getMonth()] + " " + d.getFullYear();
-            const badge = document.getElementById('heroDateBadge');
-            if(badge) badge.innerText = str;
+            const badge = document.getElementById('heroDateBadge'); if(badge) badge.innerText = str;
         }
         updateHeroDate();
 
@@ -653,25 +702,14 @@
         }
 
         function toggleFullscreen() {
-            const fsBtnText = document.getElementById('fsBtnLabel');
-            const fsIcon = document.getElementById('fsIcon');
+            const fsBtnText = document.getElementById('fsBtnLabel'); const fsIcon = document.getElementById('fsIcon');
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => { 
-                    fsBtnText.innerText = "Exit Fullscreen"; 
-                    fsIcon.innerText = "📉"; 
-                }).catch(() => alert("Fullscreen error."));
-            } else {
-                document.exitFullscreen().then(() => { 
-                    fsBtnText.innerText = "Fullscreen"; 
-                    fsIcon.innerText = "🖥️"; 
-                });
-            }
+                document.documentElement.requestFullscreen().then(() => { fsBtnText.innerText = "Exit Fullscreen"; fsIcon.innerText = "📉"; }).catch(() => alert("Fullscreen error."));
+            } else { document.exitFullscreen().then(() => { fsBtnText.innerText = "Fullscreen"; fsIcon.innerText = "🖥️"; }); }
         }
 
         function openDriverProfileModal(name, iqama, plate, date) {
-            document.getElementById('modalDataName').innerText = name;
-            document.getElementById('modalDataIqama').innerText = iqama;
-            document.getElementById('modalDataDate').innerText = date;
+            document.getElementById('modalDataName').innerText = name; document.getElementById('modalDataIqama').innerText = iqama; document.getElementById('modalDataDate').innerText = date;
             let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
             let segments = plate ? plate.split(' ') : ['--'];
             segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
@@ -686,38 +724,27 @@
         }
 
         document.getElementById('dispatchSelect').addEventListener('change', function() {
-            const container = document.getElementById('sealNumberContainer');
-            const input = document.getElementById('sealNumber');
-            if (this.value === 'Receiving') {
-                container.style.display = 'block';
-                input.required = true;
-            } else {
-                container.style.display = 'none';
-                input.required = false;
-                input.value = '';
-            }
+            const container = document.getElementById('sealNumberContainer'); const input = document.getElementById('sealNumber');
+            if (this.value === 'Receiving') { container.style.display = 'block'; input.required = true; } 
+            else { container.style.display = 'none'; input.required = false; input.value = ''; }
         });
 
+        /* ---------------- Existing-driver autocomplete ---------------- */
         const driverSearchBoxEl = document.getElementById('driverSearchBox');
         const suggestionsListEl = document.getElementById('driverSuggestionsList');
 
         driverSearchBoxEl.addEventListener('input', function(e) {
-            let value = e.target.value.toUpperCase().trim();
-            suggestionsListEl.innerHTML = '';
+            let value = e.target.value.toUpperCase().trim(); suggestionsListEl.innerHTML = '';
             if (value.length < 1 || driversRegistryList.length === 0) { suggestionsListEl.classList.remove('open'); return; }
-
             let matches = driversRegistryList.filter(d => d.name.toUpperCase().includes(value) || (d.plate || '').toUpperCase().includes(value)).slice(0, 8);
             if (matches.length === 0) { suggestionsListEl.classList.remove('open'); return; }
 
             matches.forEach(d => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
+                const item = document.createElement('div'); item.className = 'suggestion-item';
                 item.innerHTML = `${d.name}<small>Plate: ${d.plate || '--'} · Iqama: ${d.id || '--'}</small>`;
                 item.addEventListener('click', () => {
-                    driverSearchBoxEl.value = d.name;
-                    document.getElementById('driverName').value = d.name;
-                    document.getElementById('plateNumber').value = d.plate || '';
-                    document.getElementById('iqamaNumber').value = d.id || '';
+                    driverSearchBoxEl.value = d.name; document.getElementById('driverName').value = d.name;
+                    document.getElementById('plateNumber').value = d.plate || ''; document.getElementById('iqamaNumber').value = d.id || '';
                     suggestionsListEl.classList.remove('open');
                 });
                 suggestionsListEl.appendChild(item);
@@ -725,37 +752,30 @@
             suggestionsListEl.classList.add('open');
         });
 
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-input-wrapper')) suggestionsListEl.classList.remove('open');
-        });
+        document.addEventListener('click', function(e) { if (!e.target.closest('.search-input-wrapper')) suggestionsListEl.classList.remove('open'); });
 
         function convertArabicNumeralsToDigits(str) {
-            const map = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };
+            const map = { '٠':'0', '١':'1', '٢':'2', '٣':'3', '٤':'4', '٥':'5', '٦':'6', '٧':'7', '٨':'8', '٩':'9' };
             return str.replace(/[٠-٩]/g, match => map[match]);
         }
 
         /* ---------------- Image preprocessing & Camera ---------------- */
         function isLikelyHeic(file) {
-            const type = (file.type || '').toLowerCase();
-            const name = (file.name || '').toLowerCase();
+            const type = (file.type || '').toLowerCase(); const name = (file.name || '').toLowerCase();
             return type.includes('heic') || type.includes('heif') || name.endsWith('.heic') || name.endsWith('.heif');
         }
 
         function loadImageRobust(file) {
             return new Promise((resolve, reject) => {
                 if (isLikelyHeic(file)) { reject(new Error('HEIC_UNSUPPORTED')); return; }
-                const img = new Image();
-                let triedFallback = false;
+                const img = new Image(); let triedFallback = false;
                 function fallbackToDataUrl() {
-                    if (triedFallback) { reject(new Error('image failed to load — try a JPG or PNG instead')); return; }
-                    triedFallback = true;
-                    const reader = new FileReader();
+                    if (triedFallback) { reject(new Error('image failed to load')); return; }
+                    triedFallback = true; const reader = new FileReader();
                     reader.onload = () => { img.onerror = () => reject(new Error('image failed to load')); img.onload = () => resolve(img); img.src = reader.result; };
-                    reader.onerror = () => reject(new Error('could not read the selected file'));
-                    reader.readAsDataURL(file);
+                    reader.onerror = () => reject(new Error('could not read the selected file')); reader.readAsDataURL(file);
                 }
-                img.onload = () => resolve(img);
-                img.onerror = fallbackToDataUrl;
+                img.onload = () => resolve(img); img.onerror = fallbackToDataUrl;
                 try { img.src = URL.createObjectURL(file); } catch (e) { fallbackToDataUrl(); }
             });
         }
@@ -764,18 +784,13 @@
             const img = await loadImageRobust(file);
             let sx = 0, sy = 0, sw = img.width, sh = img.height;
             if (scanType === 'PLATE') { sw = img.width * 0.7; sh = img.height * 0.42; sx = (img.width - sw) / 2; sy = img.height * 0.52; }
-            const targetWidth = scanType === 'PLATE' ? 1100 : 1400;
-            const scale = sw < targetWidth ? targetWidth / sw : 1;
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.round(sw * scale); canvas.height = Math.round(sh * scale);
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const d = imageData.data; const contrast = 50; const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+            const targetWidth = scanType === 'PLATE' ? 1100 : 1400; const scale = sw < targetWidth ? targetWidth / sw : 1;
+            const canvas = document.createElement('canvas'); canvas.width = Math.round(sw * scale); canvas.height = Math.round(sh * scale);
+            const ctx = canvas.getContext('2d'); ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); const d = imageData.data; const contrast = 50; const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
             for (let i = 0; i < d.length; i += 4) {
                 let gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-                gray = factor * (gray - 128) + 128;
-                gray = Math.min(255, Math.max(0, gray));
+                gray = factor * (gray - 128) + 128; gray = Math.min(255, Math.max(0, gray));
                 d[i] = d[i + 1] = d[i + 2] = gray;
             }
             ctx.putImageData(imageData, 0, 0);
@@ -793,8 +808,7 @@
 
         async function openCamera(statusLabelId, scanType) {
             cameraTargetStatusId = statusLabelId; cameraTargetScanType = scanType;
-            const overlay = document.getElementById('cameraOverlay'), video = document.getElementById('cameraVideo');
-            overlay.classList.add('open');
+            const overlay = document.getElementById('cameraOverlay'), video = document.getElementById('cameraVideo'); overlay.classList.add('open');
             try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 960 }, height: { ideal: 720 } } }); video.srcObject = cameraStream; } 
             catch (err) { alert('Could not access camera: ' + err.message); closeCamera(); }
         }
@@ -806,8 +820,7 @@
 
         function captureCameraFrame() {
             const video = document.getElementById('cameraVideo'), canvas = document.getElementById('cameraCanvas');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
+            canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext('2d').drawImage(video, 0, 0);
             canvas.toBlob(blob => {
                 const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
                 closeCamera(); runLocalOcrEngine(file, cameraTargetStatusId, cameraTargetScanType);
@@ -815,24 +828,19 @@
         }
 
         function handleFileSelected(inputEl, statusLabelId, scanType) {
-            const file = inputEl.files[0];
-            if (!file) return; runLocalOcrEngine(file, statusLabelId, scanType);
+            const file = inputEl.files[0]; if (!file) return; runLocalOcrEngine(file, statusLabelId, scanType);
         }
 
         async function runLocalOcrEngine(file, statusLabelId, scanType) {
-            const status = document.getElementById(statusLabelId);
-            status.innerHTML = "🌀 Preparing image..."; status.style.color = "var(--accent-color)";
+            const status = document.getElementById(statusLabelId); status.innerHTML = "🌀 Preparing image..."; status.style.color = "var(--accent-color)";
             try {
-                const processedBlob = await preprocessImageForOcr(file, scanType);
-                const base64Data = await blobToBase64(processedBlob);
+                const processedBlob = await preprocessImageForOcr(file, scanType); const base64Data = await blobToBase64(processedBlob);
                 status.innerHTML = "🌀 Reading with Google OCR...";
                 const response = await fetch(OCR_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ scanType: scanType, imageObj: base64Data }) });
                 if (!response.ok) throw new Error('Network error: ' + response.status);
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error || 'OCR backend returned an error');
+                const result = await response.json(); if (!result.success) throw new Error(result.error || 'OCR backend returned an error');
 
-                let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase();
-                let matched = false;
+                let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase(); let matched = false;
 
                 if (scanType === "IQAMA") {
                     let idMatch = cleanText.match(/\b[12]\d{9}\b/);
@@ -856,7 +864,6 @@
 
                 if (matched) { status.innerHTML = "✅ Extracted — please double-check the fields"; status.style.color = "var(--success-color)"; } 
                 else { status.innerHTML = "⚠️ Couldn't confidently read this image — enter details manually"; status.style.color = "#ef4444"; }
-
             } catch (err) {
                 if (err.message === 'HEIC_UNSUPPORTED') { status.innerHTML = "⚠️ iPhone HEIC photos aren't supported — use 📸 Camera above"; } 
                 else { status.innerHTML = "❌ OCR failed — enter details manually"; }
@@ -864,12 +871,12 @@
             }
         }
 
-        /* ---------------- SIGN OUT MODAL LOGIC ---------------- */
+        /* ---------------- SIGN OUT MODAL LOGIC & OPTIMISTIC UPDATES ---------------- */
         let currentSignOutContext = null;
 
         function promptSignOut(driverName, plateNumber, securityName, dockNumber, dispatchType) {
             currentSignOutContext = { driverName, plateNumber, securityName, dockNumber, dispatchType };
-            document.getElementById('signOutModalSubtext').innerText = `Completing SLP cycle for vehicle ${plateNumber}`;
+            document.getElementById('signOutModalSubtext').innerText = `Completing SLP cycle for vehicle ${plateNumber || 'without plate'}`;
             document.getElementById('signOutSeal').value = '';
             document.getElementById('signOutModal').classList.add('modal-active');
         }
@@ -882,22 +889,27 @@
         document.getElementById('btnConfirmSignOut').addEventListener('click', async () => {
             const sealVal = document.getElementById('signOutSeal').value.trim();
             if (!sealVal) { alert('Please attach a departure seal number.'); return; }
-            
             if(!currentSignOutContext) return;
-            const { driverName, plateNumber, securityName, dockNumber } = currentSignOutContext;
             
+            const { driverName, plateNumber, securityName, dockNumber } = currentSignOutContext;
             const btn = document.getElementById('btnConfirmSignOut');
             btn.innerText = "Processing..."; btn.disabled = true;
 
             try {
                 const payload = { driverName, plateNumber, securityName, dockNumber, direction: "Outbound", sealNumber: sealVal, actionByEmail: loggedInUser.email, actionByName: loggedInUser.name };
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error('Server returned ' + response.status);
+                
+                // Fire the post request without awaiting immediately so UI updates instantly
+                fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+                    .catch(e => console.error("Background save issue:", e));
+                
+                // Optimistic UI Update: Fake the log locally so it instantly disappears from active!
+                globalLogsCache.push({ ...payload, timestamp: new Date().toISOString() });
+                window.handleLogsResponse(globalLogsCache);
                 
                 closeSignOutModal();
-                fetchLogs();
-            } catch(e) { 
-                alert("Error connecting to database: " + e.message); 
+                
+                // Fetch actual remote logs a few seconds later to verify sync silently
+                setTimeout(fetchLogs, 3000);
             } finally {
                 btn.innerText = "CONFIRM SIGN OUT";
                 btn.disabled = false;
@@ -953,7 +965,7 @@
                         <div class="card-management-actions"><button class="btn-icon-manage">✏️</button></div>
                         <div class="driver-card-header"><div class="driver-avatar-img">👤</div><div class="driver-meta"><h3>${driver.name}</h3><div class="driver-badges"><span class="tag-badge verified">Verified</span><span class="tag-badge carrier">SLP</span></div></div></div>
                         <div class="driver-card-info-grid"><div class="info-block"><p>🆔 IQAMA ID</p><data>${driver.id}</data></div><div class="info-block"><p>📅 Registered</p><data>${dateFormatted}</data></div><div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 Phone Number</p><data>0596584562</data></div></div>
-                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name}', '${driver.id}', '${driver.plate}', '${dateFormatted}')">View Records</button>
+                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${driver.plate}', '${dateFormatted}')">View Records</button>
                     </div>`;
             });
         }
@@ -972,7 +984,9 @@
                 return;
             }
             list.forEach(r => {
-                let displayDir = r.isInside ? (r.direction || '').split(' - ')[0].toUpperCase() : (r.entryReason && r.entryReason !== "Unknown" ? r.entryReason.split(' - ')[0].toUpperCase() : 'OUTBOUND');
+                let dirSafe = r.direction ? r.direction : '';
+                let entryReasonSafe = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason : 'OUTBOUND';
+                let displayDir = r.isInside ? dirSafe.split(' - ')[0].toUpperCase() : entryReasonSafe.split(' - ')[0].toUpperCase();
                 let cssClass = getBadgeClass(displayDir, !r.isInside && displayDir==='OUTBOUND');
                 
                 historyBody.innerHTML += `<tr><td><strong>${r.driverName}</strong><br><span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">ID: ${r.iqamaNumber || '--'}</span></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="${cssClass}">${displayDir}</span></td><td><strong>${r.dockNumber}</strong></td><td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td><td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.8rem; color:var(--text-muted);">${r.isInside?'<span style="color:var(--accent-color); font-weight:700;">Inside</span>':formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.isInside?null:r.timestamp)}</td><td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td></tr>`;
@@ -1055,37 +1069,39 @@
             chronData.forEach(row => {
                 let plate = (row.plateNumber || "").toString().trim().toUpperCase();
                 
-                // IMPORTANT FALLBACK: If guard forgot to enter a plate number, generate a unique placeholder
-                // so it doesn't accidentally overwrite other blank plates and vanish from the active tab.
-                if(!plate) plate = "NO-PLATE-" + row.timestamp;
+                // IMPORTANT: If plate is empty, pair using driver name so sign-out works perfectly
+                let trackingKey = plate ? plate : "NOPLATE-" + (row.driverName || "").toString().trim().toUpperCase();
 
-                if(row.direction !== "Outbound") {
-                    activeYardMap[plate] = row;
+                let dirCheck = (row.direction || "").toString().trim();
+                
+                if(dirCheck !== "Outbound") {
+                    activeYardMap[trackingKey] = row;
                 } else {
-                    let match = activeYardMap[plate];
-                    historicalPairs.push({ 
-                        ...row, 
-                        checkInTime: match ? match.timestamp : row.timestamp, 
-                        iqamaNumber: match ? match.iqamaNumber : row.iqamaNumber, 
-                        entryReason: match ? match.direction : "Unknown",
-                        sealNumber: row.sealNumber || (match ? match.sealNumber : '--')
-                    });
-                    if(match) delete activeYardMap[plate];
+                    let match = activeYardMap[trackingKey];
+                    if(match) {
+                        historicalPairs.push({ 
+                            ...row, 
+                            checkInTime: match.timestamp, 
+                            iqamaNumber: match.iqamaNumber || row.iqamaNumber, 
+                            entryReason: match.direction || "Unknown",
+                            sealNumber: row.sealNumber || match.sealNumber || '--'
+                        });
+                        delete activeYardMap[trackingKey];
+                    } else {
+                        // Edge case: Outbound with no matching inbound
+                        historicalPairs.push({ ...row, checkInTime: row.timestamp, entryReason: "Unknown" });
+                    }
                 }
             });
 
             let activeList = Object.values(activeYardMap);
             document.getElementById('metric-active-now').innerText = activeList.length;
-            
-            if (document.getElementById('activeYardCounter')) {
-                document.getElementById('activeYardCounter').innerText = activeList.length;
-            }
-            
+            if (document.getElementById('activeYardCounter')) { document.getElementById('activeYardCounter').innerText = activeList.length; }
             document.getElementById('metric-completed-today').innerText = historicalPairs.length;
 
             if (liveBody) {
                 [...chronData].reverse().slice(0, 5).forEach(r => {
-                    let isOut = r.direction === "Outbound";
+                    let isOut = (r.direction || '').trim() === "Outbound";
                     let displayDir = isOut ? "OUTBOUND" : (r.direction || '').split(' - ')[0].toUpperCase(); 
                     let cssClass = getBadgeClass(displayDir, isOut);
                     liveBody.innerHTML += `<tr><td><strong style="font-size:0.9rem;">${r.driverName}</strong></td><td><span style="font-family:monospace; font-weight:700;">${r.plateNumber || '--'}</span></td><td><strong style="font-size:0.85rem;">${r.dockNumber}</strong></td><td><span class="${cssClass}">${displayDir}</span></td></tr>`;
@@ -1113,7 +1129,7 @@
                             <td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.timestamp, null)}</td>
                             <td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td>
                             <td style="text-align:right; padding-right:1rem;">
-                                <button class="btn-signout-action" onclick="promptSignOut('${r.driverName}','${r.plateNumber || ''}','${r.securityName || 'Guard'}','${r.dockNumber}','${activeDispType}')">SIGN OUT</button>
+                                <button class="btn-signout-action" onclick="promptSignOut('${r.driverName.replace(/'/g, "\\'")}','${(r.plateNumber || '').replace(/'/g, "\\'")}','${(r.securityName || 'Guard').replace(/'/g, "\\'")}','${r.dockNumber}','${activeDispType}')">SIGN OUT</button>
                             </td>
                         </tr>`;
                     });
@@ -1123,8 +1139,6 @@
             globalHistoryListCache = [...historicalPairs, ...activeList.map(i => ({ ...i, checkInTime: i.timestamp, isInside: true }))].sort((a,b) => new Date(b.checkInTime) - new Date(a.checkInTime));
             renderHistoryTable(filterHistoryListByRange(currentHistoryDateRange, document.getElementById('customDateFrom').value, document.getElementById('customDateTo').value));
         };
-
-        function filterTable(bodyId, query) { document.querySelectorAll('#' + bodyId + ' tr').forEach(row => { if(row.cells.length >= 2) row.style.display = row.innerText.toLowerCase().includes(query.toLowerCase()) ? '' : 'none'; }); }
 
         function fetchLogs() {
             const old = document.getElementById('jsonp-fetcher'); if(old) old.remove();
@@ -1146,20 +1160,24 @@
                     actionByEmail: loggedInUser.email,
                     actionByName: loggedInUser.name
                 };
-                const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error('Server returned status ' + response.status);
                 
+                // Fire post request in background
+                fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+                    .catch(e => console.error(e));
+                
+                // Optimistic UI Update instantly
+                globalLogsCache.push({ ...payload, timestamp: new Date().toISOString() });
+                window.handleLogsResponse(globalLogsCache);
+
                 document.getElementById('entryForm').reset(); btn.innerText = "Check In Truck"; btn.disabled = false;
                 document.getElementById('sealNumberContainer').style.display = 'none'; document.getElementById('sealNumber').required = false;
-                
                 document.getElementById('securityNameField').value = loggedInUser.name;
-
-                document.getElementById('driverPhotoStatus').innerText = "Driver Photo / Truck Photo"; document.getElementById('driverPhotoStatus').style.color = document.getElementById('iqamaStatus').style.color = document.getElementById('officerStatus').style.color = "var(--text-muted)";
-                document.getElementById('iqamaStatus').innerText = "Iqama (ID Card) Scanner"; document.getElementById('officerStatus').innerText = "Security ID Scanner";
                 
-                switchView('dashboard', document.querySelectorAll('.nav-item')[0]); setTimeout(fetchLogs, 1500);
+                switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
+                
+                setTimeout(fetchLogs, 3000); // Verify background fetch worked
             } catch (err) {
-                alert("Error saving log: " + err.message + "\n\nCheck that your logging Apps Script is deployed with 'Anyone' access and is accepting this request.");
+                alert("Error saving log: " + err.message);
                 btn.innerText = "Check In Truck"; btn.disabled = false;
             }
         });
