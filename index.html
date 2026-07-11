@@ -343,11 +343,32 @@
                 <div class="metric-card-slate"><div class="card-icon">🚛</div><div class="num" id="metric-total-checkins">0</div><div class="label">Total Check-Ins</div><div class="metric-accent-line" style="background-color: #79c0ff;"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">🪪</div><div class="num" id="metric-drivers-count">0</div><div class="label">Drivers Database</div><div class="metric-accent-line" style="background-color: #d2a8ff;"></div></div>
             </div>
+            
             <div class="dashboard-mid-split">
                 
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;"><div class="card-header-flex"><h2>Pending Access Requests</h2></div>
-                    <div style="text-align: center; color: var(--text-muted); padding: 4rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2.5rem;">🔒</span><div style="font-weight: 700; text-transform: uppercase; font-size: 0.95rem; color: #fff; margin-top: 0.5rem;">All Clear</div><p style="font-size: 0.8rem; max-width: 220px; line-height: 1.4;">No pending vehicle overrides detected.</p></div>
-                    <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.75rem; font-weight:700;">🛡️ Secure Protocol v2.4 Active</div>
+                <!-- NEW LIVE FLOOR ANALYTICS -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
+                    <div class="card-header-flex"><h2>Live Floor Analytics</h2></div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
+                            <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">🔥 Most Utilized Dock</p>
+                            <div id="statTopDock" style="font-size: 1.5rem; font-weight: 800; color: #fff;">--</div>
+                            <div id="statTopDockSub" style="font-size: 0.7rem; color: var(--accent-color); font-weight: 600; margin-top: 4px;">No data</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
+                            <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">📊 Primary Movement</p>
+                            <div id="statTopPurpose" style="font-size: 1.25rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
+                            <div id="statTopPurposeSub" style="font-size: 0.7rem; color: #79c0ff; font-weight: 600; margin-top: 4px;">No data</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p style="font-size: 0.7rem; color: #fff; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">🚛 Currently Occupied Docks</p>
+                        <div id="occupiedDocksContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); min-height: 60px; align-items: center;">
+                            <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">All Docks Available</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
@@ -601,7 +622,6 @@
             // Role check if Admin mode is active
             if (isAdminMode) {
                 const pass = document.getElementById('adminPassword').value;
-                // EDIT THIS PASSWORD IF YOU WANT TO CHANGE THE ADMIN PASSWORD:
                 if (pass !== 'admin123') { 
                     alert("Incorrect Administrator Password.");
                     return;
@@ -697,7 +717,6 @@
         window.addEventListener('resize', () => { if(introActive) initParticles(); });
 
         /* ---------------- ON LOAD SESSION CHECK ---------------- */
-        // Check if user is already logged in
         const sessionStr = localStorage.getItem('noonSlpUserSession');
         if (sessionStr) {
             const sessionData = JSON.parse(sessionStr);
@@ -843,7 +862,7 @@
                 const img = new Image();
                 let triedFallback = false;
                 function fallbackToDataUrl() {
-                    if (triedFallback) { reject(new Error('image failed to load')); return; }
+                    if (triedFallback) { reject(new Error('image failed to load — try a JPG or PNG instead')); return; }
                     triedFallback = true;
                     const reader = new FileReader();
                     reader.onload = () => { img.onerror = () => reject(new Error('image failed to load')); img.onload = () => resolve(img); img.src = reader.result; };
@@ -1145,15 +1164,13 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
 
-        /* ---------------- PAIRING ENGINE (BULLETPROOF UPDATES) ---------------- */
+        /* ---------------- PAIRING ENGINE & ANALYTICS ---------------- */
         window.handleLogsResponse = function(data) {
             let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; 
             globalLogsCache = chronData;
             
             const activeBody = document.getElementById('activeYardTableBody');
-            const liveBody = document.getElementById('liveFeedBody');
             if(activeBody) activeBody.innerHTML = '';
-            if(liveBody) liveBody.innerHTML = '';
 
             compileDriversRegistryCards(chronData);
             if(chronData.length === 0) { renderHistoryTable([]); return; }
@@ -1162,10 +1179,28 @@
             let activeYardMap = {}; 
             let historicalPairs = [];
             
+            // For Analytics
+            let dockCounts = {};
+            let dirCounts = {};
+            let topDock = "--", topDockCount = 0;
+            let topDir = "--", topDirCount = 0;
+            
             chronData.forEach(row => {
+                // Analytics gathering
+                if (row.dockNumber) {
+                    let dk = row.dockNumber.toUpperCase().trim();
+                    dockCounts[dk] = (dockCounts[dk] || 0) + 1;
+                    if (dockCounts[dk] > topDockCount) { topDockCount = dockCounts[dk]; topDock = row.dockNumber; }
+                }
+                if (row.direction && row.direction !== "Outbound") {
+                    let dir = row.direction.trim();
+                    dirCounts[dir] = (dirCounts[dir] || 0) + 1;
+                    if (dirCounts[dir] > topDirCount) { topDirCount = dirCounts[dir]; topDir = dir.split(' - ')[0]; }
+                }
+
+                // Tracking Logic
                 let p = (row.plateNumber || "").toString().trim().toUpperCase();
                 let d = (row.driverName || "").toString().trim().toUpperCase();
-                // We use a super-key (Plate + Name) so if the plate is blank, it pairs based on the driver.
                 let trackingKey = p + "|||" + d;
 
                 let dirCheck = (row.direction || "").toString().trim();
@@ -1189,17 +1224,26 @@
                 }
             });
 
+            // Update Analytics UI
+            document.getElementById('statTopDock').innerText = topDockCount > 0 ? `${topDock}` : "--";
+            document.getElementById('statTopDockSub').innerText = topDockCount > 0 ? `${topDockCount} Operations recorded` : "Awaiting data";
+            document.getElementById('statTopPurpose').innerText = topDirCount > 0 ? `${topDir}` : "--";
+            document.getElementById('statTopPurposeSub').innerText = topDirCount > 0 ? `${topDirCount} Movements recorded` : "Awaiting data";
+
             let activeList = Object.values(activeYardMap);
             document.getElementById('metric-active-now').innerText = activeList.length;
             if (document.getElementById('activeYardCounter')) { document.getElementById('activeYardCounter').innerText = activeList.length; }
             document.getElementById('metric-completed-today').innerText = historicalPairs.length;
 
-            if (liveBody) {
-                [...chronData].reverse().slice(0, 5).forEach(r => {
-                    let isOut = (r.direction || '').trim() === "Outbound";
-                    let displayDir = isOut ? "OUTBOUND" : (r.direction || '').split(' - ')[0].toUpperCase(); 
-                    let cssClass = getBadgeClass(displayDir, isOut);
-                    liveBody.innerHTML += `<tr><td><strong style="font-size:0.9rem;">${r.driverName}</strong></td><td><span style="font-family:monospace; font-weight:700;">${r.plateNumber || '--'}</span></td><td><strong style="font-size:0.85rem;">${r.dockNumber}</strong></td><td><span class="${cssClass}">${displayDir}</span></td></tr>`;
+            // Render Currently Occupied Docks
+            const occupiedDocksContainer = document.getElementById('occupiedDocksContainer');
+            if (activeList.length === 0) {
+                occupiedDocksContainer.innerHTML = '<span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">All Docks Available</span>';
+            } else {
+                occupiedDocksContainer.innerHTML = '';
+                let occupied = [...new Set(activeList.map(t => t.dockNumber))].filter(Boolean);
+                occupied.forEach(dock => {
+                    occupiedDocksContainer.innerHTML += `<span class="badge in" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">${dock}</span>`;
                 });
             }
 
