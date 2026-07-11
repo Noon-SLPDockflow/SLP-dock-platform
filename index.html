@@ -104,6 +104,19 @@
         .dashboard-mid-split { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
         @media (max-width: 1100px) { .dashboard-mid-split { grid-template-columns: 1fr; } }
 
+        /* ACTIVE DOCKS BADGES */
+        .dock-badge-active {
+            background: rgba(46, 160, 67, 0.1);
+            border: 1px solid rgba(46, 160, 67, 0.4);
+            color: var(--success-color);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: monospace;
+            display: inline-block;
+        }
+
         /* DEEP-DIVE ANALYTICS CHARTS SECTION */
         .analytics-hub-title {
             background: rgba(56, 139, 253, 0.1);
@@ -432,9 +445,15 @@
             </div>
             <div class="dashboard-mid-split">
                 
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;"><div class="card-header-flex"><h2>Pending Access Requests</h2></div>
-                    <div style="text-align: center; color: var(--text-muted); padding: 4rem 0; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 0.75rem;"><span style="font-size: 2.5rem;">🔒</span><div style="font-weight: 700; text-transform: uppercase; font-size: 0.95rem; color: #fff; margin-top: 0.5rem;">All Clear</div><p style="font-size: 0.8rem; max-width: 220px; line-height: 1.4;">No pending vehicle overrides detected.</p></div>
-                    <div style="font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 0.75rem; font-weight:700;">🛡️ Secure Protocol v2.4 Active</div>
+                <!-- CURRENTLY OCCUPIED DOCKS -->
+                <div class="card" style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 250px;">
+                    <div class="card-header-flex">
+                        <h2>Currently Occupied Docks</h2>
+                        <span id="occupiedDocksCount" style="font-size:0.75rem; background: rgba(46,160,67,0.15); color: var(--success-color); padding: 0.2rem 0.5rem; border-radius:4px; font-weight:700;">0 Docks In Use</span>
+                    </div>
+                    <div id="occupiedDocksContainer" style="display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: flex-start; align-content: flex-start; flex-grow: 1; padding: 1.5rem; border: 1px dashed rgba(255,255,255,0.05); border-radius: 8px;">
+                        <div style="width:100%; text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:2rem;">All docks are currently clear.</div>
+                    </div>
                 </div>
 
                 <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
@@ -1347,6 +1366,29 @@
             if (document.getElementById('activeYardCounter')) { document.getElementById('activeYardCounter').innerText = activeList.length; }
             document.getElementById('metric-completed-today').innerText = historicalPairs.length;
 
+            // Extract Active Docks
+            const occupiedDocksContainer = document.getElementById('occupiedDocksContainer');
+            const occupiedDocksCount = document.getElementById('occupiedDocksCount');
+            if (occupiedDocksContainer) {
+                if (activeList.length === 0) {
+                    occupiedDocksContainer.innerHTML = '<div style="width:100%; text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:2rem;">All docks are currently clear.</div>';
+                    if(occupiedDocksCount) occupiedDocksCount.innerText = '0 Docks In Use';
+                } else {
+                    occupiedDocksContainer.innerHTML = '';
+                    let activeDocks = activeList.map(r => r.dockNumber).filter(Boolean);
+                    activeDocks = [...new Set(activeDocks)].sort((a,b) => String(a).localeCompare(String(b), undefined, {numeric: true}));
+                    
+                    if(occupiedDocksCount) occupiedDocksCount.innerText = `${activeDocks.length} Docks In Use`;
+                    
+                    activeDocks.forEach(dock => {
+                        let badge = document.createElement('div');
+                        badge.className = 'dock-badge-active';
+                        badge.innerText = dock;
+                        occupiedDocksContainer.appendChild(badge);
+                    });
+                }
+            }
+
             if (liveBody) {
                 [...chronData].reverse().slice(0, 5).forEach(r => {
                     let isOut = (r.direction || '').trim() === "Outbound";
@@ -1377,7 +1419,7 @@
                             <td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.timestamp, null)}</td>
                             <td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td>
                             <td style="text-align:right; padding-right:1rem;">
-                                <button class="btn-signout-action" onclick="promptSignOut('${r.driverName.replace(/'/g, "\\'")}','${(r.plateNumber || '').replace(/'/g, "\\'")}','${(r.securityName || 'Guard').replace(/'/g, "\\'")}','${r.dockNumber}','${activeDispType}')">SIGN OUT</button>
+                                <button class="btn-signout-action" onclick="promptSignOut('${r.driverName.replace(/'/g, "\\'")}','${(r.plateNumber || '').replace(/'/g, "\\'")}', '${(r.securityName || 'Guard').replace(/'/g, "\\'")}','${r.dockNumber}','${activeDispType}')">SIGN OUT</button>
                             </td>
                         </tr>`;
                     });
@@ -1416,9 +1458,9 @@
                 
                 // Optimistic UI Update instantly
                 globalLogsCache.push({
-    ...payload,
-    timestamp: new Date().toISOString()
-});
+                    ...payload,
+                    timestamp: new Date().toISOString()
+                });
                 window.handleLogsResponse(globalLogsCache);
 
                 document.getElementById('entryForm').reset(); btn.innerText = "Check In Truck"; btn.disabled = false;
