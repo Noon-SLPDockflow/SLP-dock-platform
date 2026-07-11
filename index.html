@@ -124,7 +124,7 @@
         .analytics-card { 
             background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; 
             display: flex; flex-direction: column; backdrop-filter: blur(10px); 
-            min-width: 0; min-height: 0; overflow: hidden; /* Fixes Chart.js blowout */
+            min-width: 0; min-height: 0; overflow: hidden; 
         }
         .analytics-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; font-weight: 700; text-align: start; }
         .chart-container { position: relative; height: 220px; width: 100%; flex-shrink: 0; min-height: 200px; }
@@ -314,7 +314,6 @@
             <li class="nav-item active" onclick="switchView('dashboard', this)">
                 <span class="nav-icon">📊</span><span class="nav-text" data-translate>Dashboard</span>
             </li>
-            
             <li class="nav-item" onclick="switchView('checkin', this)">
                 <span class="nav-icon">🚛</span><span class="nav-text" data-translate>Check-in Truck</span>
             </li>
@@ -654,6 +653,7 @@
         // Chart.js Configuration
         Chart.defaults.color = '#8b949e';
         Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
+        const chartColorPalette = ['#fcc200', '#2ea043', '#388bfd', '#a371f7', '#f85149', '#ff7b72', '#d2a8ff', '#58a6ff'];
 
         /* ---------------- TRANSLATION DICTIONARY & LOGIC ---------------- */
         let currentLang = localStorage.getItem('noonSlpLang') || 'en';
@@ -745,7 +745,7 @@
             "Action": "إجراء",
             "SIGN OUT": "خروج",
             "Deep-Dive Analytics Hub": "مركز التحليلات المتعمقة",
-            "Total Historical Operations": "العمليات التاريخية",
+            "Total Historical Operations": "إجمالي العمليات التاريخية",
             "Avg. Turnaround Time": "متوسط وقت الإنجاز",
             "Busiest Operating Hour": "ساعة الذروة",
             "Vehicle Processing Growth (7 Days)": "نمو معالجة المركبات (7 أيام)",
@@ -791,7 +791,25 @@
             "Usage Count": "عدد الاستخدامات",
             "Trucks Processed": "الشاحنات المعالجة",
             "Check-ins": "دخول",
-            "Processing...": "جاري المعالجة..."
+            "Processing...": "جاري المعالجة...",
+            "Trucks": "شاحنات",
+            "Uses": "استخدامات",
+            "Logs": "سجلات",
+            "Inbound": "وارد",
+            "Outbound": "صادر",
+            "RTV Handover": "تسليم مرتجعات",
+            "ST CFCs": "نقل بضائع بين المستودعات",
+            "ST Supermall": "نقل بضائع سوبر مول",
+            "ST Minutes": "نقل بضائع منيتس",
+            "LQD Handover": "تسليم مبيعات التالف",
+            "Fixed Asset Movement": "نقل أصول ثابتة",
+            "Dispose/Scrape": "المخلفات",
+            "Contractor Material In": "تنزيل معدات المقاولين",
+            "Contractor Material out": "تحميل معدات المقاولين",
+            "BT SuperMall": "رجيع سوبر مول",
+            "BT Minutes": "رجيع مينيتس",
+            "Liquidation": "إعادة بيع التالف",
+            "Unknown": "غير معروف"
         };
 
         function t(text) {
@@ -815,7 +833,8 @@
 
             document.querySelectorAll('[data-translate]').forEach(el => {
                 if(!el.hasAttribute('data-en-text')) {
-                    el.setAttribute('data-en-text', el.innerText.trim());
+                    // We grab textContent so CSS text-transform doesn't mess with dictionary keys
+                    el.setAttribute('data-en-text', el.textContent.trim());
                 }
                 let enText = el.getAttribute('data-en-text');
                 el.innerText = t(enText);
@@ -1371,7 +1390,7 @@
         function formatHour(h) {
             let ampm = h >= 12 ? 'PM' : 'AM';
             let hr = h % 12 || 12;
-            return hr + ' ' + ampm;
+            return currentLang === 'ar' ? `${hr} ${ampm === 'PM' ? 'م' : 'ص'}` : `${hr} ${ampm}`;
         }
 
         function renderTextList(containerId, dataObj, valLabel, reverseSort = false) {
@@ -1386,7 +1405,7 @@
             let html = '<ul class="analytic-text-list">';
             for(let i=0; i<entries.length; i++) {
                 let cls = i >= 4 ? 'class="hidden-item"' : '';
-                html += `<li ${cls}><span>${entries[i][0]}</span> <strong>${entries[i][1]} ${t(valLabel)}</strong></li>`;
+                html += `<li ${cls}><span>${t(entries[i][0])}</span> <strong>${entries[i][1]} ${t(valLabel)}</strong></li>`;
             }
             html += '</ul>';
 
@@ -1405,12 +1424,12 @@
             
             if(!analyticsCharts.traffic) {
                 analyticsCharts.traffic = new Chart(document.getElementById('chartTrafficTime'), {
-                    type: 'line',
-                    data: { labels: dates, datasets: [{ label: 'Data', data: datesData, borderColor: '#fcc200', backgroundColor: 'rgba(252, 194, 0, 0.1)', fill: true, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+                    type: 'doughnut',
+                    data: { labels: dates.map(d=>t(d)), datasets: [{ data: datesData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
             } else {
-                analyticsCharts.traffic.data.labels = dates;
+                analyticsCharts.traffic.data.labels = dates.map(d=>t(d));
                 analyticsCharts.traffic.data.datasets[0].data = datesData;
                 analyticsCharts.traffic.update();
             }
@@ -1421,11 +1440,11 @@
             if(!analyticsCharts.movement) {
                 analyticsCharts.movement = new Chart(document.getElementById('chartMovementDist'), {
                     type: 'doughnut',
-                    data: { labels: movKeys, datasets: [{ data: movData, backgroundColor: ['#fcc200', '#2ea043', '#388bfd', '#a371f7', '#f85149', '#ff7b72'], borderWidth: 0 }] },
+                    data: { labels: movKeys.map(k=>t(k)), datasets: [{ data: movData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
                     options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
             } else {
-                analyticsCharts.movement.data.labels = movKeys;
+                analyticsCharts.movement.data.labels = movKeys.map(k=>t(k));
                 analyticsCharts.movement.data.datasets[0].data = movData;
                 analyticsCharts.movement.update();
             }
@@ -1436,12 +1455,12 @@
             
             if(!analyticsCharts.hours) {
                 analyticsCharts.hours = new Chart(document.getElementById('chartPeakHours'), {
-                    type: 'bar',
-                    data: { labels: topHours, datasets: [{ label: 'Data', data: hoursData, backgroundColor: '#388bfd', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+                    type: 'doughnut',
+                    data: { labels: topHours.map(k=>t(k)), datasets: [{ data: hoursData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
             } else {
-                analyticsCharts.hours.data.labels = topHours;
+                analyticsCharts.hours.data.labels = topHours.map(k=>t(k));
                 analyticsCharts.hours.data.datasets[0].data = hoursData;
                 analyticsCharts.hours.update();
             }
@@ -1451,12 +1470,12 @@
             let dockData = dockKeys.map(k => byDock[k]);
             if(!analyticsCharts.docks) {
                 analyticsCharts.docks = new Chart(document.getElementById('chartDockUtil'), {
-                    type: 'bar',
-                    data: { labels: dockKeys, datasets: [{ label: 'Data', data: dockData, backgroundColor: '#2ea043', borderRadius: 4 }] },
-                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { display: false } } } }
+                    type: 'doughnut',
+                    data: { labels: dockKeys.map(k=>t(k)), datasets: [{ data: dockData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
             } else {
-                analyticsCharts.docks.data.labels = dockKeys;
+                analyticsCharts.docks.data.labels = dockKeys.map(k=>t(k));
                 analyticsCharts.docks.data.datasets[0].data = dockData;
                 analyticsCharts.docks.update();
             }
@@ -1486,12 +1505,16 @@
             let totalTurnaroundMins = 0;
             let completedCount = 0;
 
+            const monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
             chronData.forEach(row => {
                 
                 if (row.direction !== "Outbound") {
                     let d = new Date(row.timestamp);
                     if (!isNaN(d.getTime())) {
-                        let dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        let m = d.getMonth();
+                        let dateStr = currentLang === 'ar' ? `${d.getDate()} ${monthsAr[m]}` : `${monthsEn[m]} ${d.getDate()}`;
                         trafficByDate[dateStr] = (trafficByDate[dateStr] || 0) + 1;
                         let hourStr = formatHour(d.getHours());
                         trafficByHour[hourStr] = (trafficByHour[hourStr] || 0) + 1;
@@ -1527,7 +1550,7 @@
                     let diff = new Date(r.timestamp) - new Date(r.checkInTime);
                     if(diff > 0) { totalTurnaroundMins += (diff / 60000); completedCount++; }
                 }
-                let dir = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason.split(' - ')[0] : (r.direction ? r.direction.split(' - ')[0] : 'Other');
+                let dir = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason.split(' - ')[0].trim() : (r.direction ? r.direction.split(' - ')[0].trim() : 'Other');
                 movementDist[dir] = (movementDist[dir] || 0) + 1;
                 
                 if(r.dockNumber) { dockUtil[r.dockNumber.toUpperCase()] = (dockUtil[r.dockNumber.toUpperCase()] || 0) + 1; }
@@ -1569,7 +1592,7 @@
                         activeBody.innerHTML += `<tr>
                             <td><strong>${r.driverName}</strong></td>
                             <td>${generatePlateBumperUI(r.plateNumber)}</td>
-                            <td><span class="${cssClass}">${displayDir}</span></td>
+                            <td><span class="${cssClass}">${t(displayDir)}</span></td>
                             <td style="color:var(--accent-color); font-weight:700; font-size:0.75rem;">${t(activeDispType.toUpperCase() === 'RECEIVING' ? 'Receiving' : 'Dispatching')}</td>
                             <td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${activeSeal}</td>
                             <td><strong style="font-size:0.9rem;">${r.dockNumber}</strong></td>
