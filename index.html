@@ -20,7 +20,7 @@
             --success-color: #2ea043;
             --danger-color: #f85149;
             --nav-hover: rgba(252, 194, 0, 0.1);
-            --transform-dir: 1; /* Used to flip sidebar animation dynamically */
+            --transform-dir: 1;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
@@ -39,7 +39,7 @@
 
         /* INTRO SCREEN & PARTICLES */
         .intro-overlay {
-            position: fixed; inset: 0;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-color); z-index: 99999;
             display: flex; align-items: center; justify-content: center;
             transition: opacity 1s ease, transform 1s ease;
@@ -58,7 +58,6 @@
         @keyframes authPulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
         /* MAIN APP STYLES & SIDEBAR TOGGLE */
-        /* Note: using inline-start/end logical properties to perfectly mirror RTL without extra code */
         .sidebar {
             width: 260px; background-color: var(--sidebar-bg); border-inline-end: 1px solid var(--border-color);
             display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; inset-inline-start: 0; z-index: 100; 
@@ -104,9 +103,9 @@
         .hero-title-box p { font-size: 1.25rem; color: var(--accent-color); font-weight: 700; text-transform: uppercase; letter-spacing: 4px; }
         @media (max-width: 768px) { .hero-title-box h1 { font-size: 2.2rem; } .hero-title-box p { font-size: 0.9rem; letter-spacing: 2px; } }
 
-        .metrics-bar-four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
-        @media (max-width: 1200px) { .metrics-bar-four { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .metrics-bar-four { grid-template-columns: 1fr; } }
+        .metrics-bar-four { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; margin-bottom: 2rem; }
+        @media (max-width: 1200px) { .metrics-bar-four { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 600px) { .metrics-bar-four { grid-template-columns: minmax(0, 1fr); } }
         .metric-card-slate { text-align: start; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; position: relative; backdrop-filter: blur(10px); }
         .metric-card-slate .card-icon { font-size: 1.1rem; margin-bottom: 1rem; opacity: 0.9; }
         .metric-card-slate .num { font-size: 2.25rem; font-weight: 700; color: #fff; line-height: 1.1; }
@@ -115,28 +114,33 @@
 
         .dashboard-mid-split { display: grid; gap: 1.5rem; margin-bottom: 1.5rem; }
         .dashboard-mid-split.admin-mode { grid-template-columns: 2fr 1fr; }
-        .dashboard-mid-split.guard-mode { grid-template-columns: 1fr; }
-        @media (max-width: 1100px) { .dashboard-mid-split.admin-mode { grid-template-columns: 1fr; } }
+        .dashboard-mid-split.guard-mode { grid-template-columns: minmax(0, 1fr); }
+        @media (max-width: 1100px) { .dashboard-mid-split.admin-mode { grid-template-columns: minmax(0, 1fr); } }
 
-        /* ADVANCED ANALYTICS GRID & LISTS */
-        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-        @media (max-width: 1000px) { .analytics-grid { grid-template-columns: 1fr; } }
-        .analytics-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; display: flex; flex-direction: column; backdrop-filter: blur(10px); }
-        .analytics-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; font-weight: 700; text-align: start; }
-        .chart-container { position: relative; height: 220px; width: 100%; flex-shrink: 0; }
+        /* ADVANCED ANALYTICS GRID & LISTS - RESPONSIVE FIXES */
+        .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-bottom: 2rem; width: 100%; }
+        @media (max-width: 1000px) { .analytics-grid { grid-template-columns: minmax(0, 1fr); } }
         
-        .analytic-text-list { list-style: none; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); padding: 0; }
-        .analytic-text-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); gap: 1rem; }
+        .analytics-card { 
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; 
+            display: flex; flex-direction: column; backdrop-filter: blur(10px); 
+            min-width: 0; min-height: 0; overflow: hidden; /* Fixes Chart.js blowout */
+        }
+        .analytics-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; font-weight: 700; text-align: start; }
+        .chart-container { position: relative; height: 220px; width: 100%; flex-shrink: 0; min-height: 200px; }
+        
+        .analytic-text-list { list-style: none; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); padding: 0; width: 100%; }
+        .analytic-text-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); gap: 1rem; width: 100%; }
         .analytic-text-list li:last-child { border-bottom: none; }
-        .analytic-text-list li span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); }
-        .analytic-text-list li strong { color: #fff; white-space: nowrap; flex-shrink: 0; font-size: 0.85rem; }
+        .analytic-text-list li span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); flex-grow: 1; text-align: start;}
+        .analytic-text-list li strong { color: #fff; white-space: nowrap; flex-shrink: 0; font-size: 0.85rem; text-align: end; }
         .analytic-text-list li.hidden-item { display: none; }
         .analytic-text-list.expanded li.hidden-item { display: flex; }
         
         .btn-expand { background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 0.35rem 0.6rem; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin-top: 0.75rem; width: 100%; transition: 0.2s; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
         .btn-expand:hover { background: var(--accent-color); color: #000; }
 
-        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; backdrop-filter: blur(10px); }
+        .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; backdrop-filter: blur(10px); min-width: 0; }
         .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; }
         .card h2 { font-size: 0.95rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; font-weight: 700; }
         .view-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
@@ -200,8 +204,8 @@
         .submit-btn-global { width: 100%; background-color: var(--accent-color); color: #000; border: none; padding: 1rem; font-size: 0.95rem; font-weight: 800; border-radius: 6px; cursor: pointer; text-transform: uppercase; margin-top: 2.5rem; letter-spacing: 1px; transition: opacity 0.2s; }
         .submit-btn-global:hover { opacity: 0.9; }
 
-        .drivers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 1rem; }
-        @media (max-width: 1100px) { .drivers-grid { grid-template-columns: 1fr; } }
+        .drivers-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1.5rem; margin-top: 1rem; }
+        @media (max-width: 1100px) { .drivers-grid { grid-template-columns: minmax(0,1fr); } }
         .driver-registry-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; position: relative; backdrop-filter: blur(10px); }
         .driver-card-header { display: flex; align-items: center; gap: 1rem; }
         .driver-avatar-img { width: 50px; height: 50px; border-radius: 50%; background: rgba(0,0,0,0.5); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; overflow: hidden;}
@@ -413,7 +417,7 @@
             <div id="analyticsSectionContainer" style="display: none;">
                 <div class="form-section-divider" style="margin: 3.5rem 0 2rem 0; width: 100%; max-width: 100%;" data-translate>Deep-Dive Analytics Hub</div>
                 
-                <div class="metrics-bar-four" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="metrics-bar-four" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
                     <div class="metric-card-slate"><div class="card-icon">📈</div><div class="num" id="statTotalOps">0</div><div class="label" data-translate>Total Historical Operations</div><div class="metric-accent-line"></div></div>
                     <div class="metric-card-slate"><div class="card-icon">⏱️</div><div class="num" id="statAvgTurnaround">--</div><div class="label" data-translate>Avg. Turnaround Time</div><div class="metric-accent-line" style="background-color: #388bfd;"></div></div>
                     <div class="metric-card-slate"><div class="card-icon">⚡</div><div class="num" id="statPeakHour">--</div><div class="label" data-translate>Busiest Operating Hour</div><div class="metric-accent-line" style="background-color: #a371f7;"></div></div>
@@ -531,7 +535,7 @@
                 <div class="view-header-title"><h1 data-translate>Active Trucks in Facility</h1><p data-translate>Currently Checked-In Vehicles</p><div class="counter-badge-orange"><span data-translate>Total Inside:</span> <span id="activeYardCounter">0</span></div></div>
                 <div class="header-search-box-container"><span>🔍</span><input type="text" id="yardSearchQuery" class="header-search-input" data-translate-placeholder placeholder="Search records..." oninput="filterTable('activeYardTableBody', this.value)"></div>
             </div>
-            <div class="card" style="overflow-x: auto; padding: 0.5rem; background: transparent; border: none;">
+            <div class="card" style="overflow-x: auto; padding: 0.5rem; background: transparent; border: none; min-width: 0;">
                 <table id="activeYardTable">
                     <thead><tr><th data-translate>Driver</th><th data-translate>Plate</th><th data-translate>Direction</th><th data-translate>Type</th><th data-translate>Seal Number</th><th data-translate>Dock</th><th data-translate>Check-In Time</th><th data-translate>Duration</th><th data-translate>Security</th><th style="text-align: end; padding-inline-end: 1.5rem;" data-translate>Action</th></tr></thead>
                     <tbody id="activeYardTableBody"><tr><td colspan="10" style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;" data-translate>NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.</td></tr></tbody>
@@ -545,7 +549,7 @@
                 <!-- ADMIN ONLY EXPORT BUTTON -->
                 <button class="btn-excel" id="btnExportExcel" onclick="exportHistoryToExcel()" data-translate>⤓ Export to Excel</button>
             </div>
-            <div class="card" style="padding: 1.5rem; background: transparent; border:none;">
+            <div class="card" style="padding: 1.5rem; background: transparent; border:none; min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
                     <div class="header-search-box-container" style="width: 320px;"><span>🔍</span><input type="text" id="historySearchQuery" class="header-search-input" data-translate-placeholder placeholder="Filter by driver, plate, or security ID..." oninput="filterTable('historyLogTableBody', this.value)"></div>
                     <div class="filter-tabs-container">
@@ -729,12 +733,6 @@
             "Not signed in": "غير مسجل الدخول",
             "Currently Occupied Docks": "الأرصفة المشغولة حالياً",
             "All Docks Available": "جميع الأرصفة متاحة",
-            "Live Floor Analytics": "تحليلات الساحة المباشرة",
-            "🔥 Most Utilized Dock": "🔥 الرصيف الأكثر استخداماً",
-            "📊 Primary Movement": "📊 الحركة الأساسية",
-            "Operations recorded": "عمليات مسجلة",
-            "Movements recorded": "حركات مسجلة",
-            "Awaiting data": "في انتظار البيانات",
             "Driver": "السائق",
             "Plate": "اللوحة",
             "Direction": "الاتجاه",
@@ -790,13 +788,9 @@
             "Show More": "عرض المزيد",
             "Show Less": "عرض أقل",
             "AUTHENTICATING...": "جاري المصادقة...",
-            "Total Volume": "إجمالي الحجم",
+            "Usage Count": "عدد الاستخدامات",
             "Trucks Processed": "الشاحنات المعالجة",
             "Check-ins": "دخول",
-            "Usage Count": "عدد مرات الاستخدام",
-            "Trucks": "شاحنات",
-            "Logs": "سجلات",
-            "Uses": "استخدامات",
             "Processing...": "جاري المعالجة..."
         };
 
@@ -812,16 +806,13 @@
         }
 
         function applyLanguage() {
-            // Document direction & base attributes
             document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
             document.documentElement.setAttribute('lang', currentLang);
             document.documentElement.style.setProperty('--transform-dir', currentLang === 'ar' ? '-1' : '1');
             
-            // Toggle Button Text
             const langBtn = document.getElementById('langBtn');
             if (langBtn) langBtn.innerText = currentLang === 'ar' ? 'English' : 'العربية';
 
-            // Static Text
             document.querySelectorAll('[data-translate]').forEach(el => {
                 if(!el.hasAttribute('data-en-text')) {
                     el.setAttribute('data-en-text', el.innerText.trim());
@@ -830,7 +821,6 @@
                 el.innerText = t(enText);
             });
 
-            // Input Placeholders
             document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
                 if(!el.hasAttribute('data-en-placeholder')) {
                     el.setAttribute('data-en-placeholder', el.getAttribute('placeholder'));
@@ -839,7 +829,6 @@
                 el.setAttribute('placeholder', t(enText));
             });
 
-            // Re-render Dynamic Content
             if(window.handleLogsResponse && globalLogsCache.length > 0) {
                 window.handleLogsResponse(globalLogsCache);
             }
@@ -1411,78 +1400,64 @@
         function updateAnalyticsCharts(byDate, byHour, byMovement, byDock) {
             const getSortedKeys = (obj, limit) => Object.keys(obj).sort((a,b) => obj[b] - obj[a]).slice(0, limit);
             
-            // 1. Traffic Over Time (Line)
             let dates = Object.keys(byDate).slice(-7); 
             let datesData = dates.map(k => byDate[k]);
             
             if(!analyticsCharts.traffic) {
                 analyticsCharts.traffic = new Chart(document.getElementById('chartTrafficTime'), {
                     type: 'line',
-                    data: { labels: dates, datasets: [{ label: t('Trucks Processed'), data: datesData, borderColor: '#fcc200', backgroundColor: 'rgba(252, 194, 0, 0.1)', fill: true, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, position: currentLang === 'ar' ? 'right' : 'left' }, x: { grid: { display: false }, reverse: currentLang === 'ar' } } }
+                    data: { labels: dates, datasets: [{ label: 'Data', data: datesData, borderColor: '#fcc200', backgroundColor: 'rgba(252, 194, 0, 0.1)', fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
                 });
             } else {
                 analyticsCharts.traffic.data.labels = dates;
-                analyticsCharts.traffic.data.datasets[0].label = t('Trucks Processed');
                 analyticsCharts.traffic.data.datasets[0].data = datesData;
-                analyticsCharts.traffic.options.scales.y.position = currentLang === 'ar' ? 'right' : 'left';
-                analyticsCharts.traffic.options.scales.x.reverse = currentLang === 'ar';
                 analyticsCharts.traffic.update();
             }
             renderTextList('listTrafficTime', byDate, 'Trucks', true);
 
-            // 2. Movement Dist (Doughnut)
             let movKeys = Object.keys(byMovement);
             let movData = movKeys.map(k => byMovement[k]);
             if(!analyticsCharts.movement) {
                 analyticsCharts.movement = new Chart(document.getElementById('chartMovementDist'), {
                     type: 'doughnut',
                     data: { labels: movKeys, datasets: [{ data: movData, backgroundColor: ['#fcc200', '#2ea043', '#388bfd', '#a371f7', '#f85149', '#ff7b72'], borderWidth: 0 }] },
-                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: currentLang === 'ar' ? 'left' : 'right', labels: { color: '#8b949e', font: { size: 10 } } } } }
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
             } else {
                 analyticsCharts.movement.data.labels = movKeys;
                 analyticsCharts.movement.data.datasets[0].data = movData;
-                analyticsCharts.movement.options.plugins.legend.position = currentLang === 'ar' ? 'left' : 'right';
                 analyticsCharts.movement.update();
             }
             renderTextList('listMovementDist', byMovement, 'Logs');
 
-            // 3. Peak Hours (Bar)
             let topHours = getSortedKeys(byHour, 7);
             let hoursData = topHours.map(k => byHour[k]);
             
             if(!analyticsCharts.hours) {
                 analyticsCharts.hours = new Chart(document.getElementById('chartPeakHours'), {
                     type: 'bar',
-                    data: { labels: topHours, datasets: [{ label: t('Check-ins'), data: hoursData, backgroundColor: '#388bfd', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, position: currentLang === 'ar' ? 'right' : 'left' }, x: { grid: { display: false }, reverse: currentLang === 'ar' } } }
+                    data: { labels: topHours, datasets: [{ label: 'Data', data: hoursData, backgroundColor: '#388bfd', borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
                 });
             } else {
                 analyticsCharts.hours.data.labels = topHours;
-                analyticsCharts.hours.data.datasets[0].label = t('Check-ins');
                 analyticsCharts.hours.data.datasets[0].data = hoursData;
-                analyticsCharts.hours.options.scales.y.position = currentLang === 'ar' ? 'right' : 'left';
-                analyticsCharts.hours.options.scales.x.reverse = currentLang === 'ar';
                 analyticsCharts.hours.update();
             }
             renderTextList('listPeakHours', byHour, 'Check-ins');
 
-            // 4. Dock Utilization (Horizontal Bar)
             let dockKeys = getSortedKeys(byDock, 5);
             let dockData = dockKeys.map(k => byDock[k]);
             if(!analyticsCharts.docks) {
                 analyticsCharts.docks = new Chart(document.getElementById('chartDockUtil'), {
                     type: 'bar',
-                    data: { labels: dockKeys, datasets: [{ label: t('Usage Count'), data: dockData, backgroundColor: '#2ea043', borderRadius: 4 }] },
-                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, reverse: currentLang === 'ar' }, y: { grid: { display: false }, position: currentLang === 'ar' ? 'right' : 'left' } } }
+                    data: { labels: dockKeys, datasets: [{ label: 'Data', data: dockData, backgroundColor: '#2ea043', borderRadius: 4 }] },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, y: { grid: { display: false } } } }
                 });
             } else {
                 analyticsCharts.docks.data.labels = dockKeys;
-                analyticsCharts.docks.data.datasets[0].label = t('Usage Count');
                 analyticsCharts.docks.data.datasets[0].data = dockData;
-                analyticsCharts.docks.options.scales.x.reverse = currentLang === 'ar';
-                analyticsCharts.docks.options.scales.y.position = currentLang === 'ar' ? 'right' : 'left';
                 analyticsCharts.docks.update();
             }
             renderTextList('listDockUtil', byDock, 'Uses');
@@ -1504,7 +1479,6 @@
             let activeYardMap = {}; 
             let historicalPairs = [];
             
-            // Advanced Analytics Containers
             let trafficByDate = {};
             let trafficByHour = {};
             let movementDist = {};
@@ -1512,10 +1486,8 @@
             let totalTurnaroundMins = 0;
             let completedCount = 0;
 
-            // Process all chronological data
             chronData.forEach(row => {
                 
-                // Analytics - Check-in Timestamps
                 if (row.direction !== "Outbound") {
                     let d = new Date(row.timestamp);
                     if (!isNaN(d.getTime())) {
@@ -1526,7 +1498,6 @@
                     }
                 }
 
-                // Core Match Logic
                 let p = (row.plateNumber || "").toString().trim().toUpperCase();
                 let dName = (row.driverName || "").toString().trim().toUpperCase();
                 let trackingKey = p + "|||" + dName;
@@ -1551,7 +1522,6 @@
                 }
             });
 
-            // Process Completed Pairs for Advanced Analytics
             historicalPairs.forEach(r => {
                 if(r.checkInTime && r.timestamp) {
                     let diff = new Date(r.timestamp) - new Date(r.checkInTime);
@@ -1563,7 +1533,6 @@
                 if(r.dockNumber) { dockUtil[r.dockNumber.toUpperCase()] = (dockUtil[r.dockNumber.toUpperCase()] || 0) + 1; }
             });
 
-            // Update Advanced Analytics KPI Cards
             let avgTurnaround = completedCount > 0 ? Math.round(totalTurnaroundMins / completedCount) : 0;
             let avgH = Math.floor(avgTurnaround / 60);
             let avgM = avgTurnaround % 60;
@@ -1571,7 +1540,6 @@
             let busiestHour = Object.keys(trafficByHour).length > 0 ? Object.keys(trafficByHour).reduce((a, b) => trafficByHour[a] > trafficByHour[b] ? a : b) : "--";
             document.getElementById('statPeakHour').innerText = busiestHour;
 
-            // Paint Advanced Charts
             updateAnalyticsCharts(trafficByDate, trafficByHour, movementDist, dockUtil);
 
             let activeList = Object.values(activeYardMap);
@@ -1654,7 +1622,7 @@
                 
                 switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
                 
-                setTimeout(fetchLogs, 3500);
+                setTimeout(fetchLogs, 3500); 
             } catch (err) {
                 alert("Error saving log: " + err.message);
                 btn.innerText = t("Check In Truck"); btn.disabled = false;
