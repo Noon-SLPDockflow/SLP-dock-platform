@@ -212,6 +212,7 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
+            transition: background 0.5s ease;
         }
         
         .donut-hole {
@@ -243,6 +244,7 @@
         .chart-legend li:last-child { border-bottom: none; padding-bottom: 0; }
         .chart-legend li span { color: #fff; font-weight: 700; }
 
+        /* Chart Legend Coloring Fixes */
         .chart-legend li .legend-label-group { display: flex; align-items: center; gap: 8px; }
         .chart-legend li .legend-color-box { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
@@ -515,13 +517,11 @@
                 <div class="chart-card">
                     <h3>Vehicle Processing Growth (7 Days)</h3>
                     <div class="donut-container">
-                        <!-- Conic Gradient acts as the donut colors -->
-                        <div class="donut-chart" style="background: conic-gradient(var(--success-color) 0% 40%, var(--accent-color) 40% 100%);"></div>
+                        <div class="donut-chart" id="chartGrowthDonut" style="background: var(--card-solid);"></div>
                         <div class="donut-hole"></div>
                     </div>
-                    <ul class="chart-legend">
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--success-color);"></span>Jul 9</div> <span>2 Trucks</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--accent-color);"></span>Jul 8</div> <span>3 Trucks</span></li>
+                    <ul class="chart-legend" id="chartGrowthLegend">
+                        <li><div class="legend-label-group">No Data</div></li>
                     </ul>
                 </div>
 
@@ -529,14 +529,11 @@
                 <div class="chart-card">
                     <h3>Movement Cohorts</h3>
                     <div class="donut-container">
-                        <div class="donut-chart" style="background: conic-gradient(#79c0ff 0% 15%, #a371f7 15% 45%, var(--accent-color) 45% 85%, var(--success-color) 85% 100%);"></div>
+                        <div class="donut-chart" id="chartCohortsDonut" style="background: var(--card-solid);"></div>
                         <div class="donut-hole"></div>
                     </div>
-                    <ul class="chart-legend">
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--accent-color);"></span>Outbound</div> <span>4 Logs</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: #a371f7;"></span>Inbound</div> <span>2 Logs</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: #79c0ff;"></span>ST Minutes</div> <span>1 Logs</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--success-color);"></span>Liquidation</div> <span>1 Logs</span></li>
+                    <ul class="chart-legend" id="chartCohortsLegend">
+                        <li><div class="legend-label-group">No Data</div></li>
                     </ul>
                 </div>
 
@@ -544,14 +541,11 @@
                 <div class="chart-card">
                     <h3>Peak Operating Hours</h3>
                     <div class="donut-container">
-                        <div class="donut-chart" style="background: conic-gradient(#79c0ff 0% 25%, #a371f7 25% 45%, var(--accent-color) 45% 80%, var(--success-color) 80% 100%);"></div>
+                        <div class="donut-chart" id="chartHoursDonut" style="background: var(--card-solid);"></div>
                         <div class="donut-hole"></div>
                     </div>
-                    <ul class="chart-legend">
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--accent-color);"></span>3 PM</div> <span>2 Check-ins</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: #a371f7;"></span>2 PM</div> <span>1 Check-ins</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: #79c0ff;"></span>9 AM</div> <span>1 Check-ins</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--success-color);"></span>10 AM</div> <span>1 Check-ins</span></li>
+                    <ul class="chart-legend" id="chartHoursLegend">
+                        <li><div class="legend-label-group">No Data</div></li>
                     </ul>
                 </div>
 
@@ -559,13 +553,11 @@
                 <div class="chart-card">
                     <h3>Dock Utilization Ranking</h3>
                     <div class="donut-container">
-                        <div class="donut-chart" style="background: conic-gradient(var(--success-color) 0% 30%, #79c0ff 30% 50%, var(--accent-color) 50% 100%);"></div>
+                        <div class="donut-chart" id="chartDocksDonut" style="background: var(--card-solid);"></div>
                         <div class="donut-hole"></div>
                     </div>
-                    <ul class="chart-legend">
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--accent-color);"></span>58</div> <span>5 Uses</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: var(--success-color);"></span>25</div> <span>2 Uses</span></li>
-                        <li><div class="legend-label-group"><span class="legend-color-box" style="background: #79c0ff;"></span>DOCK 2</div> <span>1 Uses</span></li>
+                    <ul class="chart-legend" id="chartDocksLegend">
+                        <li><div class="legend-label-group">No Data</div></li>
                     </ul>
                 </div>
 
@@ -1033,7 +1025,6 @@
             closeEditDriverModal();
         }
 
-
         function setDriverMode(mode, element) {
             element.parentNode.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active')); element.classList.add('active');
             
@@ -1313,6 +1304,102 @@
             return "badge blue";
         }
 
+        /* ---------------- Analytics Hub Dynamism ---------------- */
+        function buildDonutChart(dataObj, donutId, legendId, emptyLabel = "No Data") {
+            let total = dataObj.reduce((sum, item) => sum + item.count, 0);
+            const colors = ['var(--accent-color)', 'var(--success-color)', '#79c0ff', '#a371f7', '#f85149'];
+
+            let donutEl = document.getElementById(donutId);
+            let legendEl = document.getElementById(legendId);
+
+            if (total === 0 || dataObj.length === 0) {
+                if(donutEl) donutEl.style.background = 'var(--card-solid)';
+                if(legendEl) legendEl.innerHTML = `<li><div class="legend-label-group">${emptyLabel}</div></li>`;
+                return;
+            }
+
+            let gradientParts = [];
+            let currentPct = 0;
+            let legendHTML = '';
+
+            dataObj.slice(0, 5).forEach((item, index) => {
+                let color = colors[index % colors.length];
+                let pct = (item.count / total) * 100;
+                let nextPct = currentPct + pct;
+                gradientParts.push(`${color} ${currentPct}% ${nextPct}%`);
+                currentPct = nextPct;
+
+                legendHTML += `<li>
+                    <div class="legend-label-group">
+                        <span class="legend-color-box" style="background: ${color};"></span>
+                        ${item.label}
+                    </div>
+                    <span>${item.count} ${item.suffix || ''}</span>
+                </li>`;
+            });
+
+            if(donutEl) donutEl.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+            if(legendEl) legendEl.innerHTML = legendHTML;
+        }
+
+        function updateAnalyticsHub(logsData) {
+            // We use globalHistoryListCache structure which maps entries and groups checkins vs log events.
+            
+            // 1. Vehicle Processing Growth (Last 7 Days Check-ins)
+            let growthMap = {};
+            const now = new Date();
+            logsData.forEach(log => {
+                let time = new Date(log.checkInTime || log.timestamp);
+                if (!isNaN(time.getTime())) {
+                    let diffDays = (now - time) / (1000 * 60 * 60 * 24);
+                    if (diffDays <= 7) {
+                        let dateLabel = time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        growthMap[dateLabel] = (growthMap[dateLabel] || 0) + 1;
+                    }
+                }
+            });
+            let growthData = Object.keys(growthMap).map(k => ({ label: k, count: growthMap[k], suffix: 'Trucks' }))
+                .sort((a,b) => b.count - a.count);
+            buildDonutChart(growthData, 'chartGrowthDonut', 'chartGrowthLegend', 'No recent processing data');
+
+            // 2. Movement Cohorts
+            let cohortMap = {};
+            logsData.forEach(log => {
+                let rawDir = (log.isInside ? log.direction : log.entryReason) || "Unknown";
+                let dir = rawDir.split(' - ')[0].trim().toUpperCase();
+                cohortMap[dir] = (cohortMap[dir] || 0) + 1;
+            });
+            let cohortData = Object.keys(cohortMap).map(k => ({ label: k, count: cohortMap[k], suffix: 'Logs' }))
+                .sort((a,b) => b.count - a.count);
+            buildDonutChart(cohortData, 'chartCohortsDonut', 'chartCohortsLegend', 'No movement data');
+
+            // 3. Peak Operating Hours
+            let hourMap = {};
+            logsData.forEach(log => {
+                let time = new Date(log.checkInTime || log.timestamp);
+                if (!isNaN(time.getTime())) {
+                    let hour = time.getHours();
+                    let hourLabel = `${hour % 12 || 12} ${hour >= 12 ? 'PM' : 'AM'}`;
+                    hourMap[hourLabel] = (hourMap[hourLabel] || 0) + 1;
+                }
+            });
+            let hourData = Object.keys(hourMap).map(k => ({ label: k, count: hourMap[k], suffix: 'Check-ins' }))
+                .sort((a,b) => b.count - a.count);
+            buildDonutChart(hourData, 'chartHoursDonut', 'chartHoursLegend', 'No time records');
+
+            // 4. Dock Utilization Ranking
+            let dockMap = {};
+            logsData.forEach(log => {
+                let dock = log.dockNumber;
+                if(dock) {
+                    dockMap[dock] = (dockMap[dock] || 0) + 1;
+                }
+            });
+            let dockData = Object.keys(dockMap).map(k => ({ label: k, count: dockMap[k], suffix: 'Uses' }))
+                .sort((a,b) => b.count - a.count);
+            buildDonutChart(dockData, 'chartDocksDonut', 'chartDocksLegend', 'No docks utilized');
+        }
+
         /* ---------------- Driver Cards Rendering ---------------- */
         function compileDriversRegistryCards(data) {
             const container = document.getElementById('driversRegistryContainer'); container.innerHTML = '';
@@ -1550,7 +1637,9 @@
             }
 
             globalHistoryListCache = [...historicalPairs, ...activeList.map(i => ({ ...i, checkInTime: i.timestamp, isInside: true }))].sort((a,b) => new Date(b.checkInTime) - new Date(a.checkInTime));
+            
             applyHistoryFilters(); // Applies both date and search text filters
+            updateAnalyticsHub(globalHistoryListCache); // Dynamically update charts!
         };
 
         function fetchLogs() {
