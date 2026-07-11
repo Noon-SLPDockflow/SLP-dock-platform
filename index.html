@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Noon SLP Dock Security Platform</title>
     
+    <!-- CHART.JS LIBRARY FOR ADVANCED ANALYTICS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -36,6 +37,7 @@
             overflow-x: hidden;
         }
 
+        /* INTRO SCREEN & PARTICLES */
         .intro-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-color); z-index: 99999;
@@ -55,6 +57,7 @@
         .auth-status p.pulsing { animation: authPulse 1.5s infinite; }
         @keyframes authPulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
 
+        /* MAIN APP STYLES & SIDEBAR TOGGLE */
         .sidebar {
             width: 260px; background-color: var(--sidebar-bg); border-inline-end: 1px solid var(--border-color);
             display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; inset-inline-start: 0; z-index: 100; 
@@ -114,9 +117,15 @@
         .dashboard-mid-split.guard-mode { grid-template-columns: minmax(0, 1fr); }
         @media (max-width: 1100px) { .dashboard-mid-split.admin-mode { grid-template-columns: minmax(0, 1fr); } }
 
+        /* ADVANCED ANALYTICS GRID & LISTS */
         .analytics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-bottom: 2rem; width: 100%; }
         @media (max-width: 1000px) { .analytics-grid { grid-template-columns: minmax(0, 1fr); } }
-        .analytics-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; display: flex; flex-direction: column; backdrop-filter: blur(10px); min-width: 0; min-height: 0; overflow: hidden; }
+        
+        .analytics-card { 
+            background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; 
+            display: flex; flex-direction: column; backdrop-filter: blur(10px); 
+            min-width: 0; min-height: 0; overflow: hidden; 
+        }
         .analytics-card h3 { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; font-weight: 700; text-align: start; }
         .chart-container { position: relative; height: 220px; width: 100%; flex-shrink: 0; min-height: 200px; }
         
@@ -127,6 +136,7 @@
         .analytic-text-list li strong { color: #fff; white-space: nowrap; flex-shrink: 0; font-size: 0.85rem; text-align: end; }
         .analytic-text-list li.hidden-item { display: none; }
         .analytic-text-list.expanded li.hidden-item { display: flex; }
+        
         .btn-expand { background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 0.35rem 0.6rem; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin-top: 0.75rem; width: 100%; transition: 0.2s; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
         .btn-expand:hover { background: var(--accent-color); color: #000; }
 
@@ -138,7 +148,7 @@
         .view-header-title p { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; font-weight: 600; }
         .counter-badge-orange { display: inline-block; background: rgba(252, 194, 0, 0.15); color: var(--accent-color); border: 1px solid rgba(252, 194, 0, 0.3); font-size: 0.7rem; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 4px; margin-top: 8px; }
         
-        .filter-tabs-container { display: flex; gap: 0.25rem; background: rgba(0,0,0,0.4); padding: 0.25rem; border-radius: 6px; border: 1px solid var(--border-color); }
+        .filter-tabs-container { display: flex; gap: 0.25rem; background: rgba(0,0,0,0.4); padding: 0.25rem; border-radius: 6px; border: 1px solid var(--border-color); flex-wrap: wrap; }
         .tab-filter-item { background: transparent; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 700; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
         .tab-filter-item.active { background: var(--accent-color); color: #000; }
         .btn-excel { background-color: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: background 0.2s; }
@@ -183,7 +193,7 @@
         .input-box-styled { width: 100%; background-color: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.85rem 1rem; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
         .input-box-styled:focus { border-color: var(--accent-color); background-color: #161b22; }
         
-        .header-search-box-container { position: relative; width: 280px; }
+        .header-search-box-container { position: relative; width: 280px; max-width: 100%; }
         .header-search-box-container span { position: absolute; inset-inline-start: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
         .header-search-input { width: 100%; background: #0d1117; border: 1px solid var(--border-color); color: #fff; padding-block: 0.6rem; padding-inline-start: 2.25rem; padding-inline-end: 1rem; border-radius: 6px; font-size: 0.85rem; outline: none; }
         .header-search-input:focus { border-color: var(--accent-color); }
@@ -212,29 +222,6 @@
         .card-management-actions { position: absolute; top: 1.5rem; inset-inline-end: 1.5rem; display: flex; gap: 0.5rem; }
         .btn-icon-manage { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.75rem; transition: 0.2s;}
         .btn-icon-manage:hover { border-color: var(--accent-color); color: var(--accent-color); }
-
-        .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-top: 1rem; }
-        @media (max-width: 800px) { .settings-grid { grid-template-columns: minmax(0, 1fr); } }
-        .settings-card { background: #12161f; border-radius: 8px; border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; text-align: start; }
-        .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem; }
-        .settings-title-group { display: flex; align-items: center; gap: 1rem; }
-        .settings-icon-box { background: rgba(255,255,255,0.05); color: var(--accent-color); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
-        .settings-title-text h3 { font-size: 0.85rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
-        .settings-title-text p { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-        .settings-status-badge { padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-blocked { background: rgba(248,81,73,0.1); color: var(--danger-color); }
-        .status-windowed { background: rgba(255,255,255,0.05); color: var(--text-muted); }
-        .settings-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
-        .settings-btn-primary { background: var(--accent-color); color: #000; width: 100%; border: none; padding: 0.8rem; border-radius: 6px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
-        .settings-btn-primary:hover { opacity: 0.9; }
-        .settings-btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-muted); width: 100%; padding: 0.8rem; border-radius: 6px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
-        .settings-btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .settings-alert-box { background: rgba(248,81,73,0.05); border: 1px solid rgba(248,81,73,0.2); border-radius: 6px; padding: 1rem; }
-        .settings-alert-box h4 { color: var(--danger-color); font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-        .settings-alert-box p { color: var(--text-muted); font-size: 0.75rem; line-height: 1.5; }
-        .theme-toggle-group { display: flex; gap: 0.5rem; background: rgba(0,0,0,0.4); padding: 0.35rem; border-radius: 8px; border: 1px solid var(--border-color); }
-        .theme-btn { flex: 1; padding: 0.6rem; border: none; background: transparent; color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 6px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem;}
-        .theme-btn.active { background: var(--card-bg); color: var(--accent-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
         .modal-overlay {
             position: fixed; inset: 0;
@@ -282,6 +269,11 @@
         .camera-controls button { padding: 0.8rem 1.5rem; border-radius: 6px; border: none; font-weight: 800; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
         .btn-capture { background: var(--accent-color); color: #000; }
         .btn-cancel-cam { background: var(--danger-color); color: #fff; }
+        
+        .custom-date-row { display: none; gap: 0.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap;}
+        .custom-date-row.open { display: flex; }
+        .custom-date-row input[type="date"] { background: #0d1117; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 0.75rem; border-radius: 4px; font-size: 0.8rem; outline:none; min-width: 120px;}
+        .custom-date-row button { background: var(--accent-color); color: #000; border: none; padding: 0.55rem 1rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
 <body>
@@ -377,6 +369,7 @@
 
     <div class="main-content">
         
+        <!-- SIDEBAR & LANGUAGE TOGGLE BUTTONS -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
             <button class="btn-mini" onclick="toggleSidebar()" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; display: flex; align-items: center; gap: 6px; background: var(--card-bg); border-color: rgba(255,255,255,0.1);">
                 <span style="font-size: 1.1rem;">☰</span> <span data-translate>Expand Workspace</span>
@@ -384,6 +377,7 @@
             <button class="btn-mini" onclick="toggleLanguage()" id="langBtn" style="font-weight: 800; color: var(--accent-color); font-size: 0.8rem; padding: 0.4rem 1rem;">العربية</button>
         </div>
 
+        <!-- MAIN DASHBOARD -->
         <div id="view-dashboard" class="app-view active-view">
             
             <div class="dashboard-hero">
@@ -774,857 +768,106 @@
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
         
-        // Chart Objects
         let analyticsCharts = {};
-
-        // Active User & Role Details 
         let loggedInUser = { name: "Guest User", email: "Not signed in", picture: "" };
         let userRole = 'guard';
 
-        // Chart.js Configuration
         Chart.defaults.color = '#8b949e';
         Chart.defaults.font.family = "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
         const chartColorPalette = ['#fcc200', '#2ea043', '#388bfd', '#a371f7', '#f85149', '#ff7b72', '#d2a8ff', '#58a6ff'];
 
-        /* ---------------- TRANSLATION DICTIONARY & LOGIC ---------------- */
-        let currentLang = localStorage.getItem('noonSlpLang') || 'en';
-
-        const arDict = {
-            "Dashboard": "لوحة القيادة",
-            "Check-in Truck": "تسجيل شاحنة",
-            "Active Trucks": "الشاحنات النشطة",
-            "History Log": "سجل التحركات",
-            "Drivers Database": "قاعدة بيانات السائقين",
-            "Settings": "الإعدادات",
-            "System Health": "حالة النظام",
-            "Operational": "يعمل",
-            "Fullscreen": "ملء الشاشة",
-            "Exit Fullscreen": "إنهاء ملء الشاشة",
-            "Expand Workspace": "توسيع مساحة العمل",
-            "SYSTEM ONLINE": "النظام متصل",
-            "Dock Security Platform": "منصة أمن الأرصفة",
-            "Active Now": "نشط الآن",
-            "Completed Today": "اكتمل اليوم",
-            "Total Check-Ins": "إجمالي الدخول",
-            "Pending Access Requests": "طلبات الدخول المعلقة",
-            "All Clear": "الكل آمن",
-            "No pending vehicle overrides detected.": "لا توجد تجاوزات معلقة للمركبات.",
-            "SECURE PROTOCOL V2.4 ACTIVE": "البروتوكول الآمن V2.4 نشط",
-            "Active User": "المستخدم النشط",
-            "System Uptime:": "وقت التشغيل:",
-            "Truck Entry Form": "نموذج دخول الشاحنة",
-            "Record arriving and departing vehicles": "تسجيل المركبات القادمة والمغادرة",
-            "Driver Photo / Truck Photo": "صورة السائق / الشاحنة",
-            "Iqama (ID Card) Scanner": "ماسح الإقامة",
-            "Security ID Scanner": "ماسح هوية الحارس",
-            "New Driver": "سائق جديد",
-            "Existing Driver": "سائق حالي",
-            "Search Driver By Name or Plate... *": "البحث عن سائق بالاسم أو اللوحة... *",
-            "Driver Name *": "اسم السائق *",
-            "Iqama Number *": "رقم الإقامة *",
-            "Truck Plate Number *": "رقم لوحة الشاحنة *",
-            "Mobile Number": "رقم الجوال",
-            "Security Name *": "اسم الحارس *",
-            "Security ID *": "رقم هوية الحارس *",
-            "Dock Number *": "رقم الرصيف *",
-            "Purpose / Direction *": "الغرض / الاتجاه *",
-            "Dispatching / Receiving *": "إرسال / استلام *",
-            "Incoming Seal Number *": "رقم الختم الوارد *",
-            "Check In Truck": "تسجيل الدخول",
-            "Processing Check In...": "جاري التسجيل...",
-            "Active Trucks in Facility": "الشاحنات النشطة بالمنشأة",
-            "Currently Checked-In Vehicles": "المركبات المسجلة حالياً",
-            "Movement History": "سجل التحركات",
-            "Site Movement Activity": "نشاط الحركة بالموقع",
-            "⤓ Export to Excel": "⤓ تصدير إلى Excel",
-            "Drivers Registry": "سجل السائقين",
-            "Centralized database of authorized personnel.": "قاعدة بيانات مركزية للموظفين المصرح لهم.",
-            "Control Panel Settings": "إعدادات لوحة التحكم",
-            "Hardware Configurations": "تكوينات الأجهزة",
-            "OCR Engine Mode: Dynamic Client-Side Recognition Engine.": "وضع محرك التعرف: محرك ديناميكي من جانب العميل.",
-            "Driver Details": "تفاصيل السائق",
-            "Full Legal Name": "الاسم الكامل",
-            "Iqama/National ID": "الإقامة/الهوية الوطنية",
-            "Primary Vehicle Plate": "لوحة المركبة الأساسية",
-            "Registered Date": "تاريخ التسجيل",
-            "ID Token Reference": "رمز الهوية المرجعي",
-            "Close Window": "إغلاق النافذة",
-            "Authorize Departure": "تصريح المغادرة",
-            "Completing SLP cycle...": "إكمال دورة الأمن...",
-            "ATTACH DEPARTURE SEAL *": "إرفاق ختم المغادرة *",
-            "CONFIRM SIGN OUT": "تأكيد تسجيل الخروج",
-            "DISCARD CHANGES": "تجاهل التغييرات",
-            "Enter Full Name": "أدخل الاسم الكامل",
-            "Enter Noon Email / Guard ID": "أدخل بريد نون / رقم الحارس",
-            "Enter Admin Password": "أدخل كلمة مرور المسؤول",
-            "AUTHORIZE ACCESS": "تصريح الدخول",
-            "⚙️ Login as Administrator": "⚙️ تسجيل الدخول كمسؤول",
-            "Back to Standard Login": "العودة لتسجيل الدخول القياسي",
-            "Guest User": "مستخدم زائر",
-            "Not signed in": "غير مسجل الدخول",
-            "Currently Occupied Docks": "الأرصفة المشغولة حالياً",
-            "All Docks Available": "جميع الأرصفة متاحة",
-            "Driver": "السائق",
-            "Plate": "اللوحة",
-            "Direction": "الاتجاه",
-            "Type": "النوع",
-            "Seal Number": "رقم الختم",
-            "Dock": "الرصيف",
-            "Check-In Time": "وقت الدخول",
-            "Duration": "المدة",
-            "Security": "الأمن",
-            "Action": "إجراء",
-            "SIGN OUT": "خروج",
-            "Deep-Dive Analytics Hub": "مركز التحليلات المتعمقة",
-            "Total Historical Operations": "إجمالي العمليات التاريخية",
-            "Avg. Turnaround Time": "متوسط وقت الإنجاز",
-            "Busiest Operating Hour": "ساعة الذروة",
-            "Vehicle Processing Growth (7 Days)": "نمو معالجة المركبات (7 أيام)",
-            "Movement Cohorts": "مجموعات الحركة",
-            "Peak Operating Hours": "ساعات الذروة التشغيلية",
-            "Dock Utilization Ranking": "تصنيف استخدام الأرصفة",
-            "Today": "اليوم",
-            "Last 7 Days": "آخر 7 أيام",
-            "Custom": "مخصص",
-            "All Time": "كل الوقت",
-            "Apply": "تطبيق",
-            "TO": "إلى",
-            "Select...": "اختر...",
-            "Dispatching": "إرسال",
-            "Receiving": "استلام",
-            "Enter driver full name": "أدخل اسم السائق",
-            "Enter 10-digit identity card number": "أدخل رقم الهوية (10 أرقام)",
-            "Enter bumper plate sequence": "أدخل رقم اللوحة",
-            "Enter mobile number": "أدخل رقم الجوال",
-            "Enter verification guard identity": "أدخل اسم حارس الأمن",
-            "Enter staff token number": "أدخل رقم هوية الحارس",
-            "e.g. 25 or Dock 4": "مثال: 25 أو Dock 4",
-            "Enter incoming seal number": "أدخل رقم الختم الوارد",
-            "Search records...": "البحث في السجلات...",
-            "Filter by driver, plate, or security ID...": "البحث بالسائق أو اللوحة أو الهوية...",
-            "Search name, id, number...": "البحث بالاسم، الهوية، الرقم...",
-            "e.g. SEAL-9022-X": "مثال: SEAL-9022-X",
-            "NO ACTIVE TRUCKS FOUND IN CURRENT SESSION.": "لا توجد شاحنات نشطة حالياً.",
-            "No historical logs parsed inside database.": "لم يتم العثور على سجلات تاريخية.",
-            "Security & Facility Details": "تفاصيل الأمن والمنشأة",
-            "Total Inside:": "الإجمالي بالداخل:",
-            "Total Check-ins": "عمليات الدخول",
-            "Use Camera": "استخدم الكاميرا",
-            "Preparing image...": "جاري تحضير الصورة...",
-            "Reading with Google OCR...": "جاري قراءة البيانات...",
-            "Extracted — please double-check the fields": "تم الاستخراج — يرجى التحقق",
-            "Couldn't confidently read this image — enter details manually": "تعذرت القراءة التلقائية — يرجى الإدخال يدوياً",
-            "iPhone HEIC photos aren't supported — use 📸 Camera above": "صور iPhone HEIC غير مدعومة",
-            "OCR failed — enter details manually": "فشل التعرف — أدخل البيانات يدوياً",
-            "Show More": "عرض المزيد",
-            "Show Less": "عرض أقل",
-            "AUTHENTICATING...": "جاري المصادقة...",
-            "Usage Count": "عدد الاستخدامات",
-            "Trucks Processed": "الشاحنات المعالجة",
-            "Check-ins": "دخول",
-            "Processing...": "جاري المعالجة...",
-            "Trucks": "شاحنات",
-            "Uses": "استخدامات",
-            "Logs": "سجلات",
-            "Inbound": "وارد",
-            "Outbound": "صادر",
-            "RTV Handover": "تسليم مرتجعات",
-            "ST CFCs": "نقل بضائع بين المستودعات",
-            "ST Supermall": "نقل بضائع سوبر مول",
-            "ST Minutes": "نقل بضائع منيتس",
-            "LQD Handover": "تسليم مبيعات التالف",
-            "Fixed Asset Movement": "نقل أصول ثابتة",
-            "Dispose/Scrape": "المخلفات",
-            "Contractor Material In": "تنزيل معدات المقاولين",
-            "Contractor Material out": "تحميل معدات المقاولين",
-            "BT SuperMall": "رجيع سوبر مول",
-            "BT Minutes": "رجيع مينيتس",
-            "Liquidation": "إعادة بيع التالف",
-            "Unknown": "غير معروف",
-            "DRIVERS DATABASE": "قاعدة بيانات السائقين",
-            "TOTAL CHECK-INS": "إجمالي الدخول",
-            "COMPLETED TODAY": "اكتمل اليوم",
-            "ACTIVE NOW": "نشط الآن",
-            "CURRENTLY OCCUPIED DOCKS": "الأرصفة المشغولة حالياً",
-            "ACTIVE USER": "المستخدم النشط",
-            "Log out": "تسجيل الخروج",
-            "Manage system preferences and permissions": "إدارة تفضيلات النظام والصلاحيات",
-            "CAMERA ACCESS": "الوصول للكاميرا",
-            "REQUIRED FOR SCANNING": "مطلوب للمسح الضوئي",
-            "BLOCKED": "محظور",
-            "To scan truck numbers and driver IDs, the browser needs permission to use your camera. If you previously denied access, you may need to reset it in your browser settings.": "لمسح أرقام الشاحنات وهويات السائقين، يحتاج المتصفح إلى إذن لاستخدام الكاميرا. إذا رفضت الوصول مسبقاً، قد تحتاج إلى إعادة تعيينه في إعدادات المتصفح.",
-            "FORCE PERMISSION PROMPT": "فرض طلب الإذن",
-            "REFRESH STATUS": "تحديث الحالة",
-            "STILL BLOCKED?": "لا يزال محظوراً؟",
-            "Click the lock icon in your browser's address bar next to the URL and toggle 'Camera' to ON. Then refresh the page.": "انقر على أيقونة القفل في شريط عنوان المتصفح بجوار الرابط وقم بتبديل 'الكاميرا' إلى التشغيل. ثم قم بتحديث الصفحة.",
-            "LOCATION ACCESS": "الوصول للموقع",
-            "REQUIRED FOR REGIONAL TRACKING": "مطلوب للتتبع الإقليمي",
-            "To accurately track check-ins and show regional data, the system needs your location permission.": "لتتبع عمليات الدخول بدقة وإظهار البيانات الإقليمية، يحتاج النظام إلى إذن الموقع الخاص بك.",
-            "Check your browser's location settings or clear the permission block in your address bar.": "تحقق من إعدادات موقع المتصفح أو امسح حظر الإذن في شريط العنوان.",
-            "INTERFACE MODE": "وضع الواجهة",
-            "EXPERIMENTAL APP MODE": "وضع التطبيق التجريبي",
-            "WINDOWED": "في نافذة",
-            "Enable fullscreen mode for a more immersive dashboard experience. This hides browser toolbars and is recommended for tablet use.": "تمكين وضع ملء الشاشة لتجربة لوحة قيادة أكثر تفاعلية. يخفي هذا أشرطة أدوات المتصفح ويوصى به لاستخدام الأجهزة اللوحية.",
-            "ENTER FULLSCREEN MODE": "الدخول في وضع ملء الشاشة",
-            "THEME": "المظهر",
-            "CUSTOMIZE LOOK AND FEEL": "تخصيص المظهر والانطباع",
-            "LIGHT": "فاتح",
-            "DARK": "داكن",
-            "Edit Driver": "تعديل بيانات السائق",
-            "Save Changes": "حفظ التغييرات",
-            "Delete Driver": "حذف السائق",
-            "Confirm Action": "تأكيد الإجراء",
-            "Confirm": "تأكيد",
-            "Decline": "تراجع",
-            "Are you sure you want to save these changes?": "هل أنت متأكد من حفظ التعديلات؟",
-            "Are you sure you want to permanently delete this driver and all their history?": "هل أنت متأكد من حذف هذا السائق وسجلاته نهائياً؟"
-        };
-
-        function t(text) {
-            if (currentLang === 'ar' && arDict[text]) return arDict[text];
-            return text;
+        function formatHour(h) {
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            let hr = h % 12 || 12;
+            return currentLang === 'ar' ? `${hr} ${ampm === 'PM' ? 'م' : 'ص'}` : `${hr} ${ampm}`;
         }
 
-        function toggleLanguage() {
-            currentLang = currentLang === 'en' ? 'ar' : 'en';
-            localStorage.setItem('noonSlpLang', currentLang);
-            applyLanguage();
+        function renderTextList(containerId, labelsArray, dataArray, valLabel) {
+            let html = '<ul class="analytic-text-list">';
+            for(let i=0; i<labelsArray.length; i++) {
+                let cls = i >= 4 ? 'class="hidden-item"' : '';
+                let color = chartColorPalette[i % chartColorPalette.length];
+                html += `<li ${cls}>
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background-color:${color}; flex-shrink:0;"></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); font-weight:600;">${t(labelsArray[i])}</span>
+                    </div>
+                    <strong style="color: #fff; white-space: nowrap; flex-shrink: 0; font-size: 0.85rem;">${dataArray[i]} ${t(valLabel)}</strong>
+                </li>`;
+            }
+            html += '</ul>';
+
+            if(labelsArray.length > 4) {
+                html += `<button class="btn-expand" onclick="this.previousElementSibling.classList.toggle('expanded'); this.innerText = this.previousElementSibling.classList.contains('expanded') ? '${t('Show Less')}' : '${t('Show More')}'">${t('Show More')}</button>`;
+            }
+
+            document.getElementById(containerId).innerHTML = html;
         }
 
-        function applyLanguage() {
-            document.documentElement.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
-            document.documentElement.setAttribute('lang', currentLang);
-            document.documentElement.style.setProperty('--transform-dir', currentLang === 'ar' ? '-1' : '1');
+        function updateAnalyticsCharts(byDate, byHour, byMovement, byDock) {
+            const getSortedKeys = (obj, limit) => Object.keys(obj).sort((a,b) => obj[b] - obj[a]).slice(0, limit);
             
-            const langBtn = document.getElementById('langBtn');
-            if (langBtn) langBtn.innerText = currentLang === 'ar' ? 'English' : 'العربية';
-
-            document.querySelectorAll('[data-translate]').forEach(el => {
-                if(!el.hasAttribute('data-en-text')) {
-                    el.setAttribute('data-en-text', el.textContent.trim());
-                }
-                let enText = el.getAttribute('data-en-text');
-                el.innerText = t(enText);
-            });
-
-            document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
-                if(!el.hasAttribute('data-en-placeholder')) {
-                    el.setAttribute('data-en-placeholder', el.getAttribute('placeholder'));
-                }
-                let enText = el.getAttribute('data-en-placeholder');
-                el.setAttribute('placeholder', t(enText));
-            });
-
-            if(window.handleLogsResponse && globalLogsCache.length > 0) {
-                window.handleLogsResponse(globalLogsCache);
-            }
-        }
-
-        /* ---------------- SAFE DATE PARSER (TABLET FIX) ---------------- */
-        function safeDate(dStr) {
-            if(!dStr) return new Date();
-            let d = new Date(dStr);
-            if(!isNaN(d.getTime())) return d;
-            
-            let str = String(dStr).trim();
-            if(str.includes('T')) {
-                let parts = str.split(/\D+/);
-                if(parts.length >= 6) {
-                    let isUTC = str.endsWith('Z');
-                    let parsed = isUTC ? 
-                        new Date(Date.UTC(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5])) : 
-                        new Date(parts[0], parts[1]-1, parts[2], parts[3], parts[4], parts[5]);
-                    if(!isNaN(parsed.getTime())) return parsed;
-                }
-            }
-            d = new Date(str.replace(/-/g, '/').replace('T', ' ').split('.')[0]);
-            if(!isNaN(d.getTime())) return d;
-            
-            return new Date();
-        }
-
-        function logoutUser() {
-            localStorage.removeItem('noonSlpUserSession');
-            location.reload();
-        }
-        
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-            document.querySelector('.main-content').classList.toggle('expanded');
-        }
-
-        /* ---------------- CUSTOM LOGIN & ADMIN TOGGLE LOGIC ---------------- */
-        let isAdminMode = false;
-        
-        document.getElementById('adminToggle').addEventListener('click', function() {
-            isAdminMode = !isAdminMode;
-            if (isAdminMode) {
-                document.getElementById('adminPasswordContainer').style.display = 'block';
-                this.innerText = t('Back to Standard Login');
-                this.style.color = 'var(--danger-color)';
-            } else {
-                document.getElementById('adminPasswordContainer').style.display = 'none';
-                this.innerText = t('⚙️ Login as Administrator');
-                this.style.color = 'var(--text-muted)';
-            }
-        });
-
-        document.getElementById('customSignInBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const nameInput = document.getElementById('loginName').value.trim();
-            const emailInput = document.getElementById('loginEmail').value.trim();
-
-            if(!nameInput || !emailInput) { alert("Please enter your Full Name and Noon ID/Email to authorize access."); return; }
-
-            if (isAdminMode) {
-                const pass = document.getElementById('adminPassword').value;
-                if (pass !== 'admin123') { alert("Incorrect Administrator Password."); return; }
-                userRole = 'admin';
-            } else { userRole = 'guard'; }
-
-            loggedInUser = { name: nameInput, email: emailInput, picture: "👤" };
-
-            localStorage.setItem('noonSlpUserSession', JSON.stringify({ name: nameInput, email: emailInput, role: userRole }));
-
-            applyRBAC();
-
-            const statusBox = document.getElementById('authStatus');
-            const authText = document.getElementById('authText');
-            const container = document.getElementById('loginContainer');
-            
-            document.getElementById('customLoginBox').style.display = 'none';
-            statusBox.style.display = 'block';
-
-            setTimeout(() => {
-                authText.innerText = currentLang === 'ar' ? "اكتملت مصادقة النظام" : "SYSTEM AUTHENTICATION COMPLETE";
-                authText.style.color = "var(--success-color)";
-                authText.classList.remove('pulsing');
-                container.style.boxShadow = "0 0 80px rgba(46, 160, 67, 0.25), 0 20px 40px rgba(0,0,0,0.8)";
-                
-                setTimeout(() => {
-                    document.getElementById('introOverlay').classList.add('hidden');
-                    setTimeout(() => { introActive = false; cancelAnimationFrame(animationFrameId); fetchLogs(); }, 1000);
-                }, 1200);
-            }, 1200); 
-        });
-
-        function applyRBAC() {
-            const midSplit = document.getElementById('dashMidSplit');
-            if (userRole === 'guard') {
-                document.getElementById('nav-drivers').style.display = 'none';
-                document.getElementById('nav-settings').style.display = 'none';
-                document.getElementById('btnExportExcel').style.display = 'none';
-                document.getElementById('analyticsSectionContainer').style.display = 'none';
-                
-                document.getElementById('activeUserCard').style.display = 'none';
-                midSplit.classList.remove('admin-mode');
-                midSplit.classList.add('guard-mode');
-            } else {
-                document.getElementById('nav-drivers').style.display = 'flex';
-                document.getElementById('nav-settings').style.display = 'flex';
-                document.getElementById('btnExportExcel').style.display = 'block';
-                document.getElementById('analyticsSectionContainer').style.display = 'block';
-                
-                document.getElementById('activeUserCard').style.display = 'flex';
-                midSplit.classList.remove('guard-mode');
-                midSplit.classList.add('admin-mode');
-            }
-
-            document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? (currentLang==='ar'?" (مسؤول)":" (Admin)") : "");
-            document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
-            document.getElementById('sidebarUserPic').innerText = "👤";
-            document.getElementById('dashUserName').innerText = loggedInUser.name + (userRole === 'admin' ? (currentLang==='ar'?" (مسؤول)":" (Admin)") : "");
-            document.getElementById('dashUserEmail').innerText = loggedInUser.email;
-            document.getElementById('dashUserPic').innerText = "👤";
-        }
-
-        /* ---------------- INTRO SCREEN PARTICLES ---------------- */
-        const canvas = document.getElementById('particleCanvas');
-        const ctx = canvas.getContext('2d');
-        let width, height, particles;
-        let animationFrameId;
-        let introActive = true;
-
-        function initParticles() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            particles = [];
-            const particleCount = window.innerWidth < 768 ? 40 : 80;
-            for (let i = 0; i < particleCount; i++) {
-                particles.push({ x: Math.random() * width, y: Math.random() * height, vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, size: Math.random() * 2 + 1 });
-            }
-        }
-
-        function animateParticles() {
-            if (!introActive) return;
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = 'rgba(252, 194, 0, 0.6)'; ctx.strokeStyle = 'rgba(252, 194, 0, 0.15)';
-            for (let i = 0; i < particles.length; i++) {
-                let p = particles[i];
-                p.x += p.vx; p.y += p.vy;
-                if (p.x < 0 || p.x > width) p.vx *= -1;
-                if (p.y < 0 || p.y > height) p.vy *= -1;
-                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
-                for (let j = i + 1; j < particles.length; j++) {
-                    let p2 = particles[j];
-                    let dist = Math.sqrt((p.x - p2.x)**2 + (p.y - p2.y)**2);
-                    if (dist < 120) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
-                }
-            }
-            animationFrameId = requestAnimationFrame(animateParticles);
-        }
-
-        window.addEventListener('resize', () => { if(introActive) initParticles(); });
-
-        /* ---------------- ON LOAD SESSION CHECK ---------------- */
-        applyLanguage();
-
-        const sessionStr = localStorage.getItem('noonSlpUserSession');
-        if (sessionStr) {
-            const sessionData = JSON.parse(sessionStr);
-            loggedInUser = { name: sessionData.name, email: sessionData.email, picture: "👤" };
-            userRole = sessionData.role;
-
-            applyRBAC();
-
-            document.getElementById('introOverlay').style.display = 'none';
-            introActive = false;
-        } else {
-            initParticles(); animateParticles();
-        }
-
-        /* ---------------- CORE DASHBOARD LOGIC ---------------- */
-        function updateHeroDate() {
-            const d = new Date();
-            const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-            const str = String(d.getDate()).padStart(2, '0') + " " + months[d.getMonth()] + " " + d.getFullYear();
-            const badge = document.getElementById('heroDateBadge');
-            if(badge) badge.innerText = str;
-        }
-        updateHeroDate();
-
-        function switchView(viewId, element) {
-            document.querySelectorAll('.app-view').forEach(v => v.id === 'view-' + viewId ? v.classList.add('active-view') : v.classList.remove('active-view'));
-            document.querySelectorAll('.nav-item').forEach(item => item === element ? item.classList.add('active') : item.classList.remove('active'));
-        }
-
-        function toggleFullscreen() {
-            const fsBtnText = document.getElementById('fsBtnLabel');
-            const fsIcon = document.getElementById('fsIcon');
-            const fsSettingsStatus = document.getElementById('fsSettingsStatus');
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => { 
-                    fsBtnText.innerText = t("Exit Fullscreen"); 
-                    fsIcon.innerText = "📉"; 
-                    if(fsSettingsStatus) { fsSettingsStatus.innerText = "FULLSCREEN"; fsSettingsStatus.className = "settings-status-badge status-windowed"; fsSettingsStatus.style.color = "var(--accent-color)"; }
-                }).catch(() => alert("Fullscreen error."));
-            } else { 
-                document.exitFullscreen().then(() => { 
-                    fsBtnText.innerText = t("Fullscreen"); 
-                    fsIcon.innerText = "🖥️"; 
-                    if(fsSettingsStatus) { fsSettingsStatus.innerText = "WINDOWED"; fsSettingsStatus.className = "settings-status-badge status-windowed"; fsSettingsStatus.style.color = "var(--text-muted)"; }
-                }); 
-            }
-        }
-
-        /* ---------------- EDIT DRIVER / DATABASE LOGIC ---------------- */
-        let pendingAdminAction = null;
-
-        function openDriverProfileModal(name, iqama, plate, date, phone) {
-            document.getElementById('modalDataName').innerText = name;
-            document.getElementById('modalDataIqama').innerText = iqama;
-            document.getElementById('modalDataDate').innerText = date;
-            document.getElementById('modalDataMobile').innerText = phone || '--';
-            let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
-            let segments = plate ? plate.split(' ') : ['--'];
-            segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
-            document.getElementById('driverProfileModal').classList.add('modal-active');
-        }
-        function closeDriverProfileModal() { document.getElementById('driverProfileModal').classList.remove('modal-active'); }
-
-        function openEditDriverModal(name, iqama, plate, mobile) {
-            document.getElementById('editOldDriverName').value = name;
-            document.getElementById('editDriverName').value = name;
-            document.getElementById('editIqama').value = iqama === '--' ? '' : iqama;
-            document.getElementById('editPlate').value = plate === '--' ? '' : plate;
-            document.getElementById('editMobile').value = mobile === '--' ? '' : mobile;
-            document.getElementById('editDriverModal').classList.add('modal-active');
-        }
-
-        function closeEditDriverModal() {
-            document.getElementById('editDriverModal').classList.remove('modal-active');
-        }
-
-        function confirmEditDriver() {
-            pendingAdminAction = {
-                type: 'edit',
-                oldName: document.getElementById('editOldDriverName').value,
-                driverName: document.getElementById('editDriverName').value.trim(),
-                iqamaNumber: document.getElementById('editIqama').value.trim(),
-                plateNumber: document.getElementById('editPlate').value.trim(),
-                mobileNumber: document.getElementById('editMobile').value.trim()
-            };
-            document.getElementById('confirmModalTitle').innerText = t("Confirm Action");
-            document.getElementById('confirmModalText').innerText = t("Are you sure you want to save these changes?");
-            document.getElementById('confirmActionModal').classList.add('modal-active');
-        }
-
-        function confirmDeleteDriver() {
-            pendingAdminAction = {
-                type: 'delete',
-                driverName: document.getElementById('editOldDriverName').value
-            };
-            document.getElementById('confirmModalTitle').innerText = t("Delete Driver");
-            document.getElementById('confirmModalText').innerText = t("Are you sure you want to permanently delete this driver and all their history?");
-            document.getElementById('confirmActionModal').classList.add('modal-active');
-        }
-
-        function closeConfirmModal() {
-            document.getElementById('confirmActionModal').classList.remove('modal-active');
-            pendingAdminAction = null;
-        }
-
-        async function executeAdminAction() {
-            if (!pendingAdminAction) return;
-            
-            const btn = document.getElementById('btnConfirmAction');
-            btn.innerText = t("Processing...");
-            btn.disabled = true;
-
-            let payload = {};
-            if (pendingAdminAction.type === 'edit') {
-                payload = { action: 'editDriver', ...pendingAdminAction };
-                
-                // Optimistic Update locally
-                globalLogsCache.forEach(log => {
-                    if(log.driverName === payload.oldName) {
-                        log.driverName = payload.driverName;
-                        log.iqamaNumber = payload.iqamaNumber;
-                        log.plateNumber = payload.plateNumber;
-                        log.mobileNumber = payload.mobileNumber;
-                    }
+            let dates = Object.keys(byDate).slice(-7); 
+            let datesData = dates.map(k => byDate[k]);
+            if(!analyticsCharts.traffic) {
+                analyticsCharts.traffic = new Chart(document.getElementById('chartTrafficTime'), {
+                    type: 'doughnut',
+                    data: { labels: dates.map(d=>t(d)), datasets: [{ data: datesData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
-            } else if (pendingAdminAction.type === 'delete') {
-                payload = { action: 'deleteDriver', driverName: pendingAdminAction.driverName };
-                
-                // Optimistic Update locally
-                globalLogsCache = globalLogsCache.filter(log => log.driverName !== payload.driverName);
+            } else {
+                analyticsCharts.traffic.data.labels = dates.map(d=>t(d));
+                analyticsCharts.traffic.data.datasets[0].data = datesData;
+                analyticsCharts.traffic.update();
             }
+            renderTextList('listTrafficTime', dates, datesData, 'Trucks');
 
-            try {
-                fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(e=>console.error(e));
-                
-                window.handleLogsResponse(globalLogsCache); 
-                closeConfirmModal();
-                closeEditDriverModal();
-                setTimeout(fetchLogs, 3000);
-            } catch (e) {
-                alert(e.message);
-            } finally {
-                btn.innerText = t("Confirm");
-                btn.disabled = false;
-            }
-        }
-
-        function setDriverMode(mode, element) {
-            element.parentNode.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active')); element.classList.add('active');
-            document.getElementById('driverLookupGroup').style.display = mode === "existing" ? "block" : "none";
-            document.querySelectorAll('.new-driver-field').forEach(f => { f.style.display = mode === "existing" ? "none" : "block"; f.querySelector('input').required = mode !== "existing"; });
-        }
-
-        document.getElementById('dispatchSelect').addEventListener('change', function() {
-            const container = document.getElementById('sealNumberContainer');
-            const input = document.getElementById('sealNumber');
-            if (this.value === 'Receiving') { container.style.display = 'block'; input.required = true; } 
-            else { container.style.display = 'none'; input.required = false; input.value = ''; }
-        });
-
-        const driverSearchBoxEl = document.getElementById('driverSearchBox');
-        const suggestionsListEl = document.getElementById('driverSuggestionsList');
-
-        driverSearchBoxEl.addEventListener('input', function(e) {
-            let value = e.target.value.toUpperCase().trim();
-            suggestionsListEl.innerHTML = '';
-            if (value.length < 1 || driversRegistryList.length === 0) { suggestionsListEl.classList.remove('open'); return; }
-
-            let matches = driversRegistryList.filter(d => d.name.toUpperCase().includes(value) || (d.plate || '').toUpperCase().includes(value)).slice(0, 8);
-            if (matches.length === 0) { suggestionsListEl.classList.remove('open'); return; }
-
-            matches.forEach(d => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.innerHTML = `${d.name}<small>Plate: ${d.plate || '--'} · Iqama: ${d.id || '--'}</small>`;
-                item.addEventListener('click', () => {
-                    driverSearchBoxEl.value = d.name;
-                    document.getElementById('driverName').value = d.name;
-                    document.getElementById('plateNumber').value = d.plate !== '--' ? d.plate : '';
-                    document.getElementById('iqamaNumber').value = d.id !== '--' ? d.id : '';
-                    document.getElementById('mobileNumber').value = d.phone !== '--' ? d.phone : '';
-                    suggestionsListEl.classList.remove('open');
+            let movKeys = Object.keys(byMovement);
+            let movData = movKeys.map(k => byMovement[k]);
+            if(!analyticsCharts.movement) {
+                analyticsCharts.movement = new Chart(document.getElementById('chartMovementDist'), {
+                    type: 'doughnut',
+                    data: { labels: movKeys.map(k=>t(k)), datasets: [{ data: movData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
                 });
-                suggestionsListEl.appendChild(item);
-            });
-            suggestionsListEl.classList.add('open');
-        });
-
-        document.addEventListener('click', function(e) { if (!e.target.closest('.search-input-wrapper')) suggestionsListEl.classList.remove('open'); });
-
-        function convertArabicNumeralsToDigits(str) {
-            const map = { '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9' };
-            return str.replace(/[٠-٩]/g, match => map[match]);
-        }
-
-        function isLikelyHeic(file) {
-            const type = (file.type || '').toLowerCase(); const name = (file.name || '').toLowerCase();
-            return type.includes('heic') || type.includes('heif') || name.endsWith('.heic') || name.endsWith('.heif');
-        }
-
-        function loadImageRobust(file) {
-            return new Promise((resolve, reject) => {
-                if (isLikelyHeic(file)) { reject(new Error('HEIC_UNSUPPORTED')); return; }
-                const img = new Image(); let triedFallback = false;
-                function fallbackToDataUrl() {
-                    if (triedFallback) { reject(new Error('image failed to load')); return; }
-                    triedFallback = true; const reader = new FileReader();
-                    reader.onload = () => { img.onerror = () => reject(new Error('image failed to load')); img.onload = () => resolve(img); img.src = reader.result; };
-                    reader.onerror = () => reject(new Error('could not read the selected file')); reader.readAsDataURL(file);
-                }
-                img.onload = () => resolve(img); img.onerror = fallbackToDataUrl;
-                try { img.src = URL.createObjectURL(file); } catch (e) { fallbackToDataUrl(); }
-            });
-        }
-
-        async function preprocessImageForOcr(file, scanType) {
-            const img = await loadImageRobust(file);
-            let sx = 0, sy = 0, sw = img.width, sh = img.height;
-            if (scanType === 'PLATE') { sw = img.width * 0.7; sh = img.height * 0.42; sx = (img.width - sw) / 2; sy = img.height * 0.52; }
-            const targetWidth = scanType === 'PLATE' ? 1100 : 1400; const scale = sw < targetWidth ? targetWidth / sw : 1;
-            const canvas = document.createElement('canvas'); canvas.width = Math.round(sw * scale); canvas.height = Math.round(sh * scale);
-            const ctx = canvas.getContext('2d'); ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height); const d = imageData.data; const contrast = 50; const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-            for (let i = 0; i < d.length; i += 4) {
-                let gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-                gray = factor * (gray - 128) + 128; gray = Math.min(255, Math.max(0, gray)); d[i] = d[i + 1] = d[i + 2] = gray;
+            } else {
+                analyticsCharts.movement.data.labels = movKeys.map(k=>t(k));
+                analyticsCharts.movement.data.datasets[0].data = movData;
+                analyticsCharts.movement.update();
             }
-            ctx.putImageData(imageData, 0, 0);
-            return new Promise((resolve, reject) => { canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('canvas toBlob failed')), 'image/jpeg', 0.85); });
-        }
+            renderTextList('listMovementDist', movKeys, movData, 'Logs');
 
-        function blobToBase64(blob) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader(); reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = () => reject(new Error('failed to read blob')); reader.readAsDataURL(blob);
-            });
-        }
-
-        let cameraStream = null, cameraTargetStatusId = null, cameraTargetScanType = null;
-
-        async function openCamera(statusLabelId, scanType) {
-            cameraTargetStatusId = statusLabelId; cameraTargetScanType = scanType;
-            const overlay = document.getElementById('cameraOverlay'), video = document.getElementById('cameraVideo'); overlay.classList.add('open');
-            try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 960 }, height: { ideal: 720 } } }); video.srcObject = cameraStream; } 
-            catch (err) { alert('Could not access camera: ' + err.message); closeCamera(); }
-        }
-
-        function closeCamera() {
-            document.getElementById('cameraOverlay').classList.remove('open');
-            if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-        }
-
-        function captureCameraFrame() {
-            const video = document.getElementById('cameraVideo'), canvas = document.getElementById('cameraCanvas');
-            canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-            canvas.getContext('2d').drawImage(video, 0, 0);
-            canvas.toBlob(blob => {
-                const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
-                closeCamera(); runLocalOcrEngine(file, cameraTargetStatusId, cameraTargetScanType);
-            }, 'image/jpeg', 0.85);
-        }
-
-        function handleFileSelected(inputEl, statusLabelId, scanType) {
-            const file = inputEl.files[0]; if (!file) return; runLocalOcrEngine(file, statusLabelId, scanType);
-        }
-
-        async function runLocalOcrEngine(file, statusLabelId, scanType) {
-            const status = document.getElementById(statusLabelId);
-            status.innerHTML = `🌀 ${t("Preparing image...")}`; status.style.color = "var(--accent-color)";
-            try {
-                const processedBlob = await preprocessImageForOcr(file, scanType);
-                const base64Data = await blobToBase64(processedBlob);
-                status.innerHTML = `🌀 ${t("Reading with Google OCR...")}`;
-                const response = await fetch(OCR_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ scanType: scanType, imageObj: base64Data }) });
-                if (!response.ok) throw new Error('Network error: ' + response.status);
-                const result = await response.json();
-                if (!result.success) throw new Error(result.error || 'OCR backend returned an error');
-
-                let cleanText = convertArabicNumeralsToDigits(result.text || "").toUpperCase();
-                let matched = false;
-
-                if (scanType === "IQAMA") {
-                    let idMatch = cleanText.match(/\b[12]\d{9}\b/);
-                    if (idMatch) { document.getElementById('iqamaNumber').value = idMatch[0]; matched = true; }
-                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-                    let nameMatch = lines.find(line => /^[A-Z][A-Z\s.']{7,45}$/.test(line) && !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NATIONALITY|GENDER|EXPIRY|BIRTH|OCCUPATION|EMPLOYER|RELIGION/.test(line));
-                    if (nameMatch) { document.getElementById('driverName').value = nameMatch; matched = true; }
-                }
-                else if (scanType === "PLATE") {
-                    let digitsMatch = cleanText.match(/\b\d{3,4}\b/), lettersMatch = cleanText.match(/\b[A-Z]{3}\b/);
-                    if (digitsMatch && lettersMatch) { document.getElementById('plateNumber').value = `${digitsMatch[0]} ${lettersMatch[0]}`; matched = true; }
-                }
-                else if (scanType === "OFFICER") {
-                    let badgeMatch = cleanText.match(/LP\d+/i) || cleanText.match(/[A-Z]{2}\d{4}\b/i);
-                    if (badgeMatch) { document.getElementById('securityNameId').value = badgeMatch[0]; matched = true; }
-                    let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
-                    let nameMatch = lines.find(line => /^[A-Z][A-Z\s.']{2,25}$/i.test(line) && !/LP|ASSOCIATE|EVERY|DOORBELL|DAY|AL\s+ABEER|SAUDI|SECURITY|GATEWAY/i.test(line));
-                    if (nameMatch) { document.getElementById('securityNameField').value = nameMatch; matched = true; } 
-                    else if (badgeMatch) { document.getElementById('securityNameField').value = "Officer #" + badgeMatch[0]; }
-                }
-
-                if (matched) { status.innerHTML = `✅ ${t("Extracted — please double-check the fields")}`; status.style.color = "var(--success-color)"; } 
-                else { status.innerHTML = `⚠️ ${t("Couldn't confidently read this image — enter details manually")}`; status.style.color = "#ef4444"; }
-
-            } catch (err) {
-                if (err.message === 'HEIC_UNSUPPORTED') { status.innerHTML = `⚠️ ${t("iPhone HEIC photos aren't supported — use 📸 Camera above")}`; } 
-                else { status.innerHTML = `❌ ${t("OCR failed — enter details manually")}`; }
-                status.style.color = "#ef4444";
+            let topHours = getSortedKeys(byHour, 7);
+            let hoursData = topHours.map(k => byHour[k]);
+            if(!analyticsCharts.hours) {
+                analyticsCharts.hours = new Chart(document.getElementById('chartPeakHours'), {
+                    type: 'doughnut',
+                    data: { labels: topHours.map(k=>t(k)), datasets: [{ data: hoursData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+                });
+            } else {
+                analyticsCharts.hours.data.labels = topHours.map(k=>t(k));
+                analyticsCharts.hours.data.datasets[0].data = hoursData;
+                analyticsCharts.hours.update();
             }
-        }
+            renderTextList('listPeakHours', topHours, hoursData, 'Check-ins');
 
-        /* ---------------- SIGN OUT MODAL LOGIC & OPTIMISTIC UPDATES ---------------- */
-        let currentSignOutContext = null;
-
-        function promptSignOut(driverName, plateNumber, securityName, dockNumber, dispatchType) {
-            currentSignOutContext = { driverName, plateNumber, securityName, dockNumber, dispatchType };
-            document.getElementById('signOutModalSubtext').innerText = `${t("Completing SLP cycle...")} ${plateNumber || ''}`;
-            document.getElementById('signOutSeal').value = '';
-            document.getElementById('signOutModal').classList.add('modal-active');
-        }
-
-        function closeSignOutModal() {
-            document.getElementById('signOutModal').classList.remove('modal-active');
-            currentSignOutContext = null;
-        }
-
-        document.getElementById('btnConfirmSignOut').addEventListener('click', async () => {
-            const sealVal = document.getElementById('signOutSeal').value.trim();
-            if (!sealVal) { alert('Please attach a departure seal number.'); return; }
-            if(!currentSignOutContext) return;
-            
-            const { driverName, plateNumber, securityName, dockNumber } = currentSignOutContext;
-            const btn = document.getElementById('btnConfirmSignOut');
-            btn.innerText = t("Processing..."); btn.disabled = true;
-
-            try {
-                const payload = { driverName, plateNumber, securityName, dockNumber, direction: "Outbound", sealNumber: sealVal, actionByEmail: loggedInUser.email, actionByName: loggedInUser.name };
-                
-                fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-                    .catch(e => console.error("Background save issue:", e));
-                
-                globalLogsCache.push({ ...payload, timestamp: new Date().toISOString() });
-                window.handleLogsResponse(globalLogsCache);
-                
-                closeSignOutModal();
-                setTimeout(fetchLogs, 3000);
-            } finally {
-                btn.innerText = t("CONFIRM SIGN OUT");
-                btn.disabled = false;
+            let dockKeys = getSortedKeys(byDock, 5);
+            let dockData = dockKeys.map(k => byDock[k]);
+            if(!analyticsCharts.docks) {
+                analyticsCharts.docks = new Chart(document.getElementById('chartDockUtil'), {
+                    type: 'doughnut',
+                    data: { labels: dockKeys.map(k=>t(k)), datasets: [{ data: dockData, backgroundColor: chartColorPalette, borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+                });
+            } else {
+                analyticsCharts.docks.data.labels = dockKeys.map(k=>t(k));
+                analyticsCharts.docks.data.datasets[0].data = dockData;
+                analyticsCharts.docks.update();
             }
-        });
-
-        /* ---------------- Driver Cards Rendering ---------------- */
-        function compileDriversRegistryCards(data) {
-            const container = document.getElementById('driversRegistryContainer'); container.innerHTML = '';
-            let uniqueDriversMap = {};
-            data.forEach(item => {
-                if(!item.driverName || item.driverName.trim() === "") return;
-                if(!uniqueDriversMap[item.driverName]) {
-                    uniqueDriversMap[item.driverName] = { 
-                        name: item.driverName, 
-                        plate: item.plateNumber || "--", 
-                        registered: item.timestamp, 
-                        id: item.iqamaNumber || "--",
-                        phone: item.mobileNumber || "--"
-                    };
-                }
-            });
-            let list = Object.values(uniqueDriversMap);
-            driversRegistryList = list; 
-            document.getElementById('metric-drivers-count').innerText = list.length;
-            if(list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:3rem; font-size:0.8rem;">${t("No historical logs parsed inside database.")}</div>`; return; }
-
-            list.forEach(driver => {
-                let dObj = safeDate(driver.registered);
-                let dateFormatted = isNaN(dObj.getTime()) ? '--' : `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][dObj.getMonth()]} ${dObj.getDate()}, ${dObj.getFullYear()}`;
-                
-                // PENCIL ICON IS NOW WIRED TO openEditDriverModal
-                container.innerHTML += `
-                    <div class="driver-registry-card" data-search-blob="${driver.name.toLowerCase()} ${(driver.plate || '').toLowerCase()}">
-                        <div class="card-management-actions"><button class="btn-icon-manage" onclick="openEditDriverModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${driver.phone}')">✏️</button></div>
-                        <div class="driver-card-header"><div class="driver-avatar-img">👤</div><div class="driver-meta"><h3>${driver.name}</h3><div class="driver-badges"><span class="tag-badge verified">Verified</span><span class="tag-badge carrier">SLP</span></div></div></div>
-                        <div class="driver-card-info-grid"><div class="info-block"><p>🆔 IQAMA ID</p><data>${driver.id}</data></div><div class="info-block"><p>📅 ${t("Registered Date")}</p><data>${dateFormatted}</data></div><div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 ${t("Mobile Number")}</p><data>${driver.phone}</data></div></div>
-                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${dateFormatted}', '${driver.phone}')">${t("View Records")}</button>
-                    </div>`;
-            });
+            renderTextList('listDockUtil', dockKeys, dockData, 'Uses');
         }
 
-        function filterRegistryCards() {
-            let query = document.getElementById('driverRegistrySearch').value.toLowerCase();
-            document.querySelectorAll('.driver-registry-card').forEach(card => { card.style.display = card.getAttribute('data-search-blob').includes(query) ? 'flex' : 'none'; });
-        }
-
-        /* ---------------- Tables Rendering ---------------- */
-        function renderHistoryTable(list) {
-            const historyBody = document.getElementById('historyLogTableBody');
-            historyBody.innerHTML = '';
-            if (list.length === 0) {
-                historyBody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic; font-size:0.8rem; text-transform:uppercase;">${t("No historical logs parsed inside database.")}</td></tr>`;
-                return;
-            }
-            list.forEach(r => {
-                let dirSafe = r.direction ? r.direction : '';
-                let entryReasonSafe = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason : 'OUTBOUND';
-                let displayDir = r.isInside ? dirSafe.split(' - ')[0].toUpperCase() : entryReasonSafe.split(' - ')[0].toUpperCase();
-                let cssClass = getBadgeClass(displayDir, !r.isInside && displayDir==='OUTBOUND');
-                
-                historyBody.innerHTML += `<tr><td><strong>${r.driverName}</strong><br><span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">ID: ${r.iqamaNumber || '--'}</span></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="${cssClass}">${t(displayDir)}</span></td><td><strong>${r.dockNumber}</strong></td><td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td><td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.8rem; color:var(--text-muted);">${r.isInside?`<span style="color:var(--accent-color); font-weight:700;">Inside</span>`:formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.isInside?null:r.timestamp)}</td><td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || 'Guard'}</td></tr>`;
-            });
-        }
-
-        function filterHistoryListByRange(range, fromStr, toStr) {
-            const now = new Date();
-            return globalHistoryListCache.filter(r => {
-                const refDate = safeDate(r.checkInTime || r.timestamp);
-                if (isNaN(refDate.getTime())) return range === 'all';
-                if (range === 'today') return refDate.toDateString() === now.toDateString();
-                if (range === '7days') { const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 7); return refDate >= sevenDaysAgo && refDate <= now; }
-                if (range === 'custom') {
-                    if (!fromStr || !toStr) return true;
-                    const from = new Date(fromStr); const to = new Date(toStr); to.setHours(23,59,59,999);
-                    return refDate >= from && refDate <= to;
-                }
-                return true; 
-            });
-        }
-
-        function setHistoryDateFilter(range, btnEl) {
-            currentHistoryDateRange = range;
-            document.querySelectorAll('.filter-tabs-container .tab-filter-item').forEach(b => b.classList.remove('active'));
-            btnEl.classList.add('active');
-            const customRow = document.getElementById('customDateRow');
-            if (range === 'custom') { customRow.classList.add('open'); return; }
-            customRow.classList.remove('open');
-            renderHistoryTable(filterHistoryListByRange(range));
-        }
-
-        function applyCustomDateFilter() {
-            const from = document.getElementById('customDateFrom').value;
-            const to = document.getElementById('customDateTo').value;
-            if (!from || !to) { alert('Pick both a start and end date.'); return; }
-            renderHistoryTable(filterHistoryListByRange('custom', from, to));
-        }
-
-        /* ---------------- DATA PROCESSING ENGINE ---------------- */
         window.handleLogsResponse = function(data) {
             let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; 
             globalLogsCache = chronData;
@@ -1705,7 +948,10 @@
             let busiestHour = Object.keys(trafficByHour).length > 0 ? Object.keys(trafficByHour).reduce((a, b) => trafficByHour[a] > trafficByHour[b] ? a : b) : "--";
             document.getElementById('statPeakHour').innerText = busiestHour;
 
-            updateAnalyticsCharts(trafficByDate, trafficByHour, movementDist, dockUtil);
+            // Paint Analytics
+            if (userRole === 'admin') {
+                updateAnalyticsCharts(trafficByDate, trafficByHour, movementDist, dockUtil);
+            }
 
             let activeList = Object.values(activeYardMap);
             document.getElementById('metric-active-now').innerText = activeList.length;
