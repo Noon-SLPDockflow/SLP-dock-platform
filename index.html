@@ -111,8 +111,11 @@
         .metric-card-slate .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 8px; font-weight: 600; }
         .metric-accent-line { position: absolute; top: 15px; right: 15px; width: 30px; height: 3px; background-color: var(--accent-color); border-radius: 2px; }
 
-        .dashboard-mid-split { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-        @media (max-width: 1100px) { .dashboard-mid-split { grid-template-columns: 1fr; } }
+        /* Dynamic Grid based on Roles */
+        .dashboard-mid-split { display: grid; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .dashboard-mid-split.admin-mode { grid-template-columns: 2fr 1fr; }
+        .dashboard-mid-split.guard-mode { grid-template-columns: 1fr; }
+        @media (max-width: 1100px) { .dashboard-mid-split.admin-mode { grid-template-columns: 1fr; } }
 
         /* ADVANCED ANALYTICS GRID & LISTS */
         .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
@@ -122,12 +125,13 @@
         .chart-container { position: relative; height: 220px; width: 100%; flex-shrink: 0; }
         
         .analytic-text-list { list-style: none; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); }
-        .analytic-text-list li { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+        .analytic-text-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); gap: 1rem; }
         .analytic-text-list li:last-child { border-bottom: none; }
-        .analytic-text-list li span { font-weight: 600; }
-        .analytic-text-list li strong { color: #fff; }
+        .analytic-text-list li span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); }
+        .analytic-text-list li strong { color: #fff; white-space: nowrap; flex-shrink: 0; font-size: 0.85rem; }
         .analytic-text-list li.hidden-item { display: none; }
         .analytic-text-list.expanded li.hidden-item { display: flex; }
+        
         .btn-expand { background: transparent; color: var(--accent-color); border: 1px solid var(--accent-color); padding: 0.35rem 0.6rem; font-size: 0.7rem; border-radius: 4px; cursor: pointer; margin-top: 0.75rem; width: 100%; transition: 0.2s; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;}
         .btn-expand:hover { background: var(--accent-color); color: #000; }
 
@@ -307,6 +311,9 @@
             <li class="nav-item active" onclick="switchView('dashboard', this)">
                 <span class="nav-icon">📊</span><span class="nav-text">Dashboard</span>
             </li>
+            
+            <!-- NEW ANALYTICS HUB IS NOW MERGED WITH DASHBOARD -->
+            
             <li class="nav-item" onclick="switchView('checkin', this)">
                 <span class="nav-icon">🚛</span><span class="nav-text">Check-in Truck</span>
             </li>
@@ -358,6 +365,7 @@
             </button>
         </div>
 
+        <!-- MAIN DASHBOARD -->
         <div id="view-dashboard" class="app-view active-view">
             
             <div class="dashboard-hero">
@@ -371,42 +379,26 @@
                 </div>
             </div>
 
-            <div class="metrics-bar-four">
+            <div class="metrics-bar-four" id="dashboardTopMetrics">
                 <div class="metric-card-slate"><div class="card-icon">⏱️</div><div class="num" id="metric-active-now">0</div><div class="label">Active Now</div><div class="metric-accent-line"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">✅</div><div class="num" id="metric-completed-today">0</div><div class="label">Completed Today</div><div class="metric-accent-line" style="background-color: var(--success-color);"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">🚛</div><div class="num" id="metric-total-checkins">0</div><div class="label">Total Check-Ins</div><div class="metric-accent-line" style="background-color: #79c0ff;"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">🪪</div><div class="num" id="metric-drivers-count">0</div><div class="label">Drivers Database</div><div class="metric-accent-line" style="background-color: #d2a8ff;"></div></div>
             </div>
             
-            <div class="dashboard-mid-split">
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 250px;">
-                    <div class="card-header-flex"><h2>Live Floor Analytics</h2></div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-                        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
-                            <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">🔥 Most Utilized Dock</p>
-                            <div id="statTopDock" style="font-size: 1.5rem; font-weight: 800; color: #fff;">--</div>
-                            <div id="statTopDockSub" style="font-size: 0.7rem; color: var(--accent-color); font-weight: 600; margin-top: 4px;">No data</div>
-                        </div>
-                        <div style="background: rgba(0,0,0,0.3); padding: 1.25rem 1rem; border-radius: 8px; border: 1px solid var(--border-color); position: relative; overflow: hidden;">
-                            <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.25rem;">📊 Primary Movement</p>
-                            <div id="statTopPurpose" style="font-size: 1.25rem; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">--</div>
-                            <div id="statTopPurposeSub" style="font-size: 0.7rem; color: #79c0ff; font-weight: 600; margin-top: 4px;">No data</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <p style="font-size: 0.7rem; color: #fff; font-weight: 700; margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px;">🚛 Currently Occupied Docks</p>
-                        <div id="occupiedDocksContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); min-height: 60px; align-items: center;">
-                            <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">All Docks Available</span>
-                        </div>
+            <div class="dashboard-mid-split admin-mode" id="dashMidSplit">
+                
+                <div class="card" id="occupiedDocksCard" style="display: flex; flex-direction: column; min-height: 200px;">
+                    <div class="card-header-flex"><h2>Currently Occupied Docks</h2></div>
+                    <div id="occupiedDocksContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1); flex-grow: 1; align-items: flex-start; align-content: flex-start;">
+                        <span style="color: var(--text-muted); font-size: 0.8rem; font-style: italic;">All Docks Available</span>
                     </div>
                 </div>
 
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div class="card" id="activeUserCard" style="display: flex; flex-direction: column; justify-content: space-between;">
                     <div class="card-header-flex"><h2>Active User</h2></div>
                     <div style="display:flex; align-items:center; gap: 1rem; margin-top: 1rem;">
-                        <div class="driver-avatar-img" id="dashUserPic" style="width: 55px; height: 55px; background:var(--accent-color); color:#000; font-weight:800; font-size:1.5rem; border:none;">?</div>
+                        <div class="driver-avatar-img" id="dashUserPic" style="width: 55px; height: 55px; background:var(--accent-color); color:#000; font-weight:800; font-size:1.5rem; border:none; flex-shrink: 0;">?</div>
                         <div style="overflow: hidden;">
                             <h4 id="dashUserName" style="color:#fff; font-size:1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest User</h4>
                             <p id="dashUserEmail" style="font-size:0.8rem; color:var(--text-muted); margin-top:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Not signed in</p>
@@ -419,35 +411,37 @@
                 </div>
             </div>
 
-            <!-- ANALYTICS HUB SECITON -->
-            <div class="form-section-divider" style="margin: 3.5rem 0 2rem 0; width: 100%; max-width: 100%;">Deep-Dive Analytics Hub</div>
-            
-            <div class="metrics-bar-four" style="grid-template-columns: repeat(3, 1fr);">
-                <div class="metric-card-slate"><div class="card-icon">📈</div><div class="num" id="statTotalOps">0</div><div class="label">Total Historical Operations</div><div class="metric-accent-line"></div></div>
-                <div class="metric-card-slate"><div class="card-icon">⏱️</div><div class="num" id="statAvgTurnaround">--</div><div class="label">Avg. Turnaround Time</div><div class="metric-accent-line" style="background-color: #388bfd;"></div></div>
-                <div class="metric-card-slate"><div class="card-icon">⚡</div><div class="num" id="statPeakHour">--</div><div class="label">Busiest Operating Hour</div><div class="metric-accent-line" style="background-color: #a371f7;"></div></div>
-            </div>
+            <!-- ANALYTICS SECTION NOW MERGED INTO DASHBOARD (ADMIN ONLY) -->
+            <div id="analyticsSectionContainer" style="display: none;">
+                <div class="form-section-divider" style="margin: 3.5rem 0 2rem 0; width: 100%; max-width: 100%;">Deep-Dive Analytics Hub</div>
+                
+                <div class="metrics-bar-four" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="metric-card-slate"><div class="card-icon">📈</div><div class="num" id="statTotalOps">0</div><div class="label">Total Historical Operations</div><div class="metric-accent-line"></div></div>
+                    <div class="metric-card-slate"><div class="card-icon">⏱️</div><div class="num" id="statAvgTurnaround">--</div><div class="label">Avg. Turnaround Time</div><div class="metric-accent-line" style="background-color: #388bfd;"></div></div>
+                    <div class="metric-card-slate"><div class="card-icon">⚡</div><div class="num" id="statPeakHour">--</div><div class="label">Busiest Operating Hour</div><div class="metric-accent-line" style="background-color: #a371f7;"></div></div>
+                </div>
 
-            <div class="analytics-grid">
-                <div class="analytics-card">
-                    <h3>Vehicle Processing Growth (7 Days)</h3>
-                    <div class="chart-container"><canvas id="chartTrafficTime"></canvas></div>
-                    <div id="listTrafficTime"></div>
-                </div>
-                <div class="analytics-card">
-                    <h3>Movement Cohorts</h3>
-                    <div class="chart-container"><canvas id="chartMovementDist"></canvas></div>
-                    <div id="listMovementDist"></div>
-                </div>
-                <div class="analytics-card">
-                    <h3>Peak Operating Hours</h3>
-                    <div class="chart-container"><canvas id="chartPeakHours"></canvas></div>
-                    <div id="listPeakHours"></div>
-                </div>
-                <div class="analytics-card">
-                    <h3>Dock Utilization Ranking</h3>
-                    <div class="chart-container"><canvas id="chartDockUtil"></canvas></div>
-                    <div id="listDockUtil"></div>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Vehicle Processing Growth (7 Days)</h3>
+                        <div class="chart-container"><canvas id="chartTrafficTime"></canvas></div>
+                        <div id="listTrafficTime"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Movement Cohorts</h3>
+                        <div class="chart-container"><canvas id="chartMovementDist"></canvas></div>
+                        <div id="listMovementDist"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Peak Operating Hours</h3>
+                        <div class="chart-container"><canvas id="chartPeakHours"></canvas></div>
+                        <div id="listPeakHours"></div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>Dock Utilization Ranking</h3>
+                        <div class="chart-container"><canvas id="chartDockUtil"></canvas></div>
+                        <div id="listDockUtil"></div>
+                    </div>
                 </div>
             </div>
 
@@ -726,14 +720,27 @@
         });
 
         function applyRBAC() {
+            const midSplit = document.getElementById('dashMidSplit');
             if (userRole === 'guard') {
                 document.getElementById('nav-drivers').style.display = 'none';
                 document.getElementById('nav-settings').style.display = 'none';
                 document.getElementById('btnExportExcel').style.display = 'none';
+                document.getElementById('analyticsSectionContainer').style.display = 'none';
+                
+                // Hide active user card & adjust grid
+                document.getElementById('activeUserCard').style.display = 'none';
+                midSplit.classList.remove('admin-mode');
+                midSplit.classList.add('guard-mode');
             } else {
                 document.getElementById('nav-drivers').style.display = 'flex';
                 document.getElementById('nav-settings').style.display = 'flex';
                 document.getElementById('btnExportExcel').style.display = 'block';
+                document.getElementById('analyticsSectionContainer').style.display = 'block';
+                
+                // Show active user card & adjust grid
+                document.getElementById('activeUserCard').style.display = 'flex';
+                midSplit.classList.remove('guard-mode');
+                midSplit.classList.add('admin-mode');
             }
 
             document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
@@ -843,7 +850,6 @@
             else { container.style.display = 'none'; input.required = false; input.value = ''; }
         });
 
-        /* ---------------- Existing-driver autocomplete ---------------- */
         const driverSearchBoxEl = document.getElementById('driverSearchBox');
         const suggestionsListEl = document.getElementById('driverSuggestionsList');
 
@@ -1189,10 +1195,8 @@
             let entries = Object.entries(dataObj);
             
             if (reverseSort) {
-                // Keep historical order but reverse to show most recent at top
                 entries.reverse();
             } else {
-                // Sort by value descending
                 entries.sort((a, b) => b[1] - a[1]);
             }
 
@@ -1296,13 +1300,6 @@
             let activeYardMap = {}; 
             let historicalPairs = [];
             
-            // Analytics Containers
-            let dockCounts = {};
-            let dirCounts = {};
-            let topDock = "--", topDockCount = 0;
-            let topDir = "--", topDirCount = 0;
-
-            // Advanced Analytics Containers
             let trafficByDate = {};
             let trafficByHour = {};
             let movementDist = {};
@@ -1310,10 +1307,7 @@
             let totalTurnaroundMins = 0;
             let completedCount = 0;
 
-            // Process all chronological data
             chronData.forEach(row => {
-                
-                // Analytics - Check-in Timestamps
                 if (row.direction !== "Outbound") {
                     let d = new Date(row.timestamp);
                     if (!isNaN(d.getTime())) {
@@ -1324,20 +1318,6 @@
                     }
                 }
 
-                // Dashboard Live Analytics
-                if (row.dockNumber) {
-                    let dk = row.dockNumber.toUpperCase().trim();
-                    dockCounts[dk] = (dockCounts[dk] || 0) + 1;
-                    if (dockCounts[dk] > topDockCount) { topDockCount = dockCounts[dk]; topDock = row.dockNumber; }
-                }
-                if (row.direction && row.direction !== "Outbound") {
-                    let rawDir = row.direction.trim();
-                    let dir = rawDir.split(' - ')[0];
-                    dirCounts[dir] = (dirCounts[dir] || 0) + 1;
-                    if (dirCounts[dir] > topDirCount) { topDirCount = dirCounts[dir]; topDir = dir; }
-                }
-
-                // Core Match Logic
                 let p = (row.plateNumber || "").toString().trim().toUpperCase();
                 let dName = (row.driverName || "").toString().trim().toUpperCase();
                 let trackingKey = p + "|||" + dName;
@@ -1362,7 +1342,6 @@
                 }
             });
 
-            // Process Completed Pairs for Advanced Analytics
             historicalPairs.forEach(r => {
                 if(r.checkInTime && r.timestamp) {
                     let diff = new Date(r.timestamp) - new Date(r.checkInTime);
@@ -1374,13 +1353,6 @@
                 if(r.dockNumber) { dockUtil[r.dockNumber.toUpperCase()] = (dockUtil[r.dockNumber.toUpperCase()] || 0) + 1; }
             });
 
-            // Update Basic Dashboard UI
-            document.getElementById('statTopDock').innerText = topDockCount > 0 ? `${topDock}` : "--";
-            document.getElementById('statTopDockSub').innerText = topDockCount > 0 ? `${topDockCount} Operations recorded` : "Awaiting data";
-            document.getElementById('statTopPurpose').innerText = topDirCount > 0 ? `${topDir}` : "--";
-            document.getElementById('statTopPurposeSub').innerText = topDirCount > 0 ? `${topDirCount} Movements recorded` : "Awaiting data";
-
-            // Update Advanced Analytics KPI Cards
             let avgTurnaround = completedCount > 0 ? Math.round(totalTurnaroundMins / completedCount) : 0;
             let avgH = Math.floor(avgTurnaround / 60);
             let avgM = avgTurnaround % 60;
@@ -1388,7 +1360,6 @@
             let busiestHour = Object.keys(trafficByHour).length > 0 ? Object.keys(trafficByHour).reduce((a, b) => trafficByHour[a] > trafficByHour[b] ? a : b) : "--";
             document.getElementById('statPeakHour').innerText = busiestHour;
 
-            // Paint Advanced Charts
             updateAnalyticsCharts(trafficByDate, trafficByHour, movementDist, dockUtil);
 
             let activeList = Object.values(activeYardMap);
@@ -1470,7 +1441,7 @@
                 
                 switchView('dashboard', document.querySelectorAll('.nav-item')[0]); 
                 
-                setTimeout(fetchLogs, 3500);
+                setTimeout(fetchLogs, 3500); 
             } catch (err) {
                 alert("Error saving log: " + err.message);
                 btn.innerText = "Check In Truck"; btn.disabled = false;
