@@ -58,9 +58,50 @@
             width: 260px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; padding: 1.5rem 1rem; position: fixed; top: 0; bottom: 0; left: 0; z-index: 100; transition: all 0.3s ease;
         }
+        .sidebar.hidden {
+            transform: translateX(-100%);
+        }
         .brand-section { display: flex; align-items: center; justify-content: flex-start; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .brand-text h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
         .brand-text p { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
+        
+        /* Sidebar Toggle Buttons */
+        .sidebar-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-left: auto;
+            transition: color 0.2s;
+            display: block;
+        }
+        .sidebar-close-btn:hover { color: var(--accent-color); }
+        
+        .btn-floating-toggle {
+            position: fixed; 
+            top: 1.5rem; 
+            left: 1.5rem; 
+            z-index: 1000; 
+            background: var(--sidebar-bg); 
+            border: 1px solid var(--border-color); 
+            color: var(--text-main); 
+            padding: 0.6rem 0.85rem; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            display: none; /* Shown via JS */
+            align-items: center; 
+            gap: 0.5rem; 
+            font-weight: 700; 
+            font-size: 0.8rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+            transition: all 0.2s;
+        }
+        .btn-floating-toggle:hover {
+            border-color: var(--accent-color);
+            background: var(--card-bg);
+        }
+
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; border-left: 3px solid transparent; }
         .nav-item:hover { background-color: var(--nav-hover); color: #fff; }
@@ -70,12 +111,16 @@
         .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
         .system-health { background: rgba(46, 160, 67, 0.05); border: 1px dashed rgba(46, 160, 67, 0.3); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.5rem; }
         .health-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color); }
+        
         .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 3rem; width: calc(100% - 260px); transition: all 0.3s ease; }
+        .main-content.expanded { margin-left: 0 !important; width: 100% !important; }
         
         @media (max-width: 900px) {
             .sidebar { width: 75px; padding: 1.5rem 0.5rem; align-items: center; }
+            .sidebar.hidden { transform: translateX(-100%); }
             .brand-text, .system-health, .nav-text { display: none; }
-            .brand-section { padding-bottom: 1.5rem; justify-content: center; width: 100%; border-bottom: none; }
+            .brand-section { padding-bottom: 1.5rem; justify-content: center; width: 100%; border-bottom: none; flex-direction: column; gap: 1rem; }
+            .sidebar-close-btn { margin-left: 0; font-size: 1.4rem; }
             .nav-item { justify-content: center; padding: 0.85rem 0; width: 100%; border-radius: 8px; border-left: none; border-bottom: 3px solid transparent; }
             .nav-item.active { border-left: none; border-bottom: 3px solid var(--accent-color); }
             .nav-icon { font-size: 1.4rem; margin: 0; }
@@ -338,6 +383,11 @@
 </head>
 <body>
 
+    <!-- FLOATING TOGGLE BUTTON (SHOWN WHEN SIDEBAR IS HIDDEN) -->
+    <button id="floatingOpenBtn" class="btn-floating-toggle" onclick="toggleSidebar()" title="Open Sidebar">
+        <span style="color:var(--accent-color); font-size:1.2rem;">☰</span> Menu
+    </button>
+
     <!-- CUSTOM INTRO SCREEN OVERLAY -->
     <div id="introOverlay" class="intro-overlay">
         <canvas id="particleCanvas"></canvas>
@@ -369,12 +419,13 @@
     </div>
 
     <!-- MAIN APPLICATION -->
-    <div class="sidebar">
+    <div class="sidebar" id="appSidebar">
         <div class="brand-section">
             <div class="brand-text">
                 <h2>Noon <span style="color:var(--accent-color);">SLP</span></h2>
                 <p>Dock Security Platform</p>
             </div>
+            <button class="sidebar-close-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
         </div>
         <ul class="nav-links">
             <li class="nav-item active" onclick="switchView('dashboard', this)">
@@ -394,7 +445,6 @@
             <li class="nav-item" id="nav-drivers" onclick="switchView('drivers', this)">
                 <span class="nav-icon">🪪</span><span class="nav-text">Drivers Database</span>
             </li>
-            <!-- REPLACED SETTINGS WITH ACTIVE USERS -->
             <li class="nav-item" id="nav-active-users" onclick="switchView('active-users', this)">
                 <span class="nav-icon">🟢</span><span class="nav-text">Active Users</span>
             </li>
@@ -423,7 +473,7 @@
         </div>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" id="mainContentArea">
         <div id="view-dashboard" class="app-view active-view">
             
             <div class="dashboard-hero">
@@ -730,10 +780,29 @@
         // Active User & Role Details 
         let loggedInUser = { name: "Guest User", email: "Not signed in", picture: "" };
         let userRole = 'guard'; // Default role is 'guard'. Admin unlocks special features.
+        let isSidebarHidden = false; // Toggle tracker
 
         function logoutUser() {
             localStorage.removeItem('noonSlpUserSession');
             location.reload();
+        }
+
+        /* ---------------- SIDEBAR TOGGLE LOGIC ---------------- */
+        function toggleSidebar() {
+            isSidebarHidden = !isSidebarHidden;
+            const sidebar = document.getElementById('appSidebar');
+            const mainContent = document.getElementById('mainContentArea');
+            const floatingBtn = document.getElementById('floatingOpenBtn');
+
+            if (isSidebarHidden) {
+                sidebar.classList.add('hidden');
+                mainContent.classList.add('expanded');
+                floatingBtn.style.display = 'flex';
+            } else {
+                sidebar.classList.remove('hidden');
+                mainContent.classList.remove('expanded');
+                floatingBtn.style.display = 'none';
+            }
         }
 
         /* ---------------- CUSTOM LOGIN & ADMIN TOGGLE LOGIC ---------------- */
