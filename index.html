@@ -101,8 +101,7 @@
         .metric-card-slate .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 8px; font-weight: 600; }
         .metric-accent-line { position: absolute; top: 15px; right: 15px; width: 30px; height: 3px; background-color: var(--accent-color); border-radius: 2px; }
 
-        .dashboard-mid-split { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
-        @media (max-width: 1100px) { .dashboard-mid-split { grid-template-columns: 1fr; } }
+        .dashboard-mid-split { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem; }
 
         /* ACTIVE DOCKS BADGES */
         .dock-badge-active {
@@ -395,8 +394,9 @@
             <li class="nav-item" id="nav-drivers" onclick="switchView('drivers', this)">
                 <span class="nav-icon">🪪</span><span class="nav-text">Drivers Database</span>
             </li>
-            <li class="nav-item" id="nav-settings" onclick="switchView('settings', this)">
-                <span class="nav-icon">⚙️</span><span class="nav-text">Settings</span>
+            <!-- REPLACED SETTINGS WITH ACTIVE USERS -->
+            <li class="nav-item" id="nav-active-users" onclick="switchView('active-users', this)">
+                <span class="nav-icon">🟢</span><span class="nav-text">Active Users</span>
             </li>
         </ul>
         <div class="sidebar-footer">
@@ -443,6 +443,8 @@
                 <div class="metric-card-slate"><div class="card-icon">🚛</div><div class="num" id="metric-total-checkins">0</div><div class="label">Total Check-Ins</div><div class="metric-accent-line" style="background-color: #79c0ff;"></div></div>
                 <div class="metric-card-slate"><div class="card-icon">🪪</div><div class="num" id="metric-drivers-count">0</div><div class="label">Drivers Database</div><div class="metric-accent-line" style="background-color: #d2a8ff;"></div></div>
             </div>
+
+            <!-- DASHBOARD MIDDLE SECTION (FULL WIDTH DOCKS) -->
             <div class="dashboard-mid-split">
                 
                 <!-- CURRENTLY OCCUPIED DOCKS -->
@@ -456,20 +458,6 @@
                     </div>
                 </div>
 
-                <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                    <div class="card-header-flex"><h2>Active User</h2></div>
-                    <div style="display:flex; align-items:center; gap: 1rem; margin-top: 1rem;">
-                        <div class="driver-avatar-img" id="dashUserPic" style="width: 55px; height: 55px; background:var(--accent-color); color:#000; font-weight:800; font-size:1.5rem; border:none;">?</div>
-                        <div style="overflow: hidden;">
-                            <h4 id="dashUserName" style="color:#fff; font-size:1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest User</h4>
-                            <p id="dashUserEmail" style="font-size:0.8rem; color:var(--text-muted); margin-top:4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Not signed in</p>
-                        </div>
-                    </div>
-                    <div style="margin-top: 2rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 0.85rem; border-radius: 6px; font-size: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span>⏱️</span>
-                        <div><span style="color: var(--text-muted)">System Uptime:</span> <strong style="color:#fff;">98.5%</strong></div>
-                    </div>
-                </div>
             </div>
 
             <!-- DEEP-DIVE ANALYTICS HUB -->
@@ -670,9 +658,14 @@
             <div class="drivers-grid" id="driversRegistryContainer"></div>
         </div>
 
-        <div id="view-settings" class="app-view">
-            <header class="view-header-row"><div class="view-header-title"><h1>Control Panel Settings</h1></div></header>
-            <div class="card"><h2>Hardware Configurations</h2><p style="color: var(--text-muted); margin-top: 0.5rem; font-size:0.85rem;">OCR Engine Mode: Dynamic Client-Side Recognition Engine.</p></div>
+        <!-- NEW ACTIVE USERS VIEW -->
+        <div id="view-active-users" class="app-view">
+            <header class="view-header-row"><div class="view-header-title"><h1>Active Users</h1><p>Live personnel currently online</p></div></header>
+            <div class="card" style="max-width: 800px;">
+                <ul id="activeUsersList" style="list-style:none; display:flex; flex-direction:column; gap:1rem;">
+                    <!-- Populated dynamically via JS based on recent activity logs -->
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -795,20 +788,17 @@
             // Apply Role-Based Access Control (RBAC) to the UI
             if (userRole === 'guard') {
                 document.getElementById('nav-drivers').style.display = 'none';
-                document.getElementById('nav-settings').style.display = 'none';
+                document.getElementById('nav-active-users').style.display = 'none';
                 document.getElementById('btnExportExcel').style.display = 'none';
             } else {
                 document.getElementById('nav-drivers').style.display = 'flex';
-                document.getElementById('nav-settings').style.display = 'flex';
+                document.getElementById('nav-active-users').style.display = 'flex';
                 document.getElementById('btnExportExcel').style.display = 'block';
             }
 
             document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
             document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
             document.getElementById('sidebarUserPic').innerText = "👤";
-            document.getElementById('dashUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
-            document.getElementById('dashUserEmail').innerText = loggedInUser.email;
-            document.getElementById('dashUserPic').innerText = "👤";
 
             const statusBox = document.getElementById('authStatus');
             const authText = document.getElementById('authText');
@@ -879,20 +869,17 @@
             // Apply RBAC
             if (userRole === 'guard') {
                 document.getElementById('nav-drivers').style.display = 'none';
-                document.getElementById('nav-settings').style.display = 'none';
+                document.getElementById('nav-active-users').style.display = 'none';
                 document.getElementById('btnExportExcel').style.display = 'none';
             } else {
                 document.getElementById('nav-drivers').style.display = 'flex';
-                document.getElementById('nav-settings').style.display = 'flex';
+                document.getElementById('nav-active-users').style.display = 'flex';
                 document.getElementById('btnExportExcel').style.display = 'block';
             }
 
             document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
             document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
             document.getElementById('sidebarUserPic').innerText = "👤";
-            document.getElementById('dashUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
-            document.getElementById('dashUserEmail').innerText = loggedInUser.email;
-            document.getElementById('dashUserPic').innerText = "👤";
 
             // Hide overlay instantly
             document.getElementById('introOverlay').style.display = 'none';
@@ -1317,6 +1304,56 @@
             document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
         }
 
+        /* ---------------- ACTIVE USERS LOGIC ---------------- */
+        function updateActiveUsersList(data) {
+            const listEl = document.getElementById('activeUsersList');
+            if(!listEl) return;
+            listEl.innerHTML = '';
+            
+            // Maintain a dictionary of users
+            let users = {};
+            
+            // Current User is always online
+            users[loggedInUser.email] = { 
+                name: loggedInUser.name, 
+                email: loggedInUser.email, 
+                status: 'Online Now', 
+                color: 'var(--success-color)' 
+            };
+            
+            // Extract recent users from logs (e.g., last 2 hours)
+            const now = new Date();
+            data.forEach(r => {
+                let logTime = new Date(r.timestamp);
+                if ((now - logTime) < 2 * 60 * 60 * 1000 && r.actionByEmail) {
+                    if(r.actionByEmail !== loggedInUser.email) {
+                        users[r.actionByEmail] = { 
+                            name: r.actionByName || 'Guard', 
+                            email: r.actionByEmail, 
+                            status: 'Recently Active', 
+                            color: 'var(--accent-color)' 
+                        };
+                    }
+                }
+            });
+            
+            Object.values(users).forEach(u => {
+                listEl.innerHTML += `
+                    <li style="display:flex; align-items:center; gap:1rem; padding: 1rem; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:8px;">
+                        <div class="driver-avatar-img" style="background:var(--accent-color); color:#000; font-weight:800; width:45px; height:45px;">👤</div>
+                        <div style="flex-grow:1;">
+                            <h4 style="color:#fff; font-size:1rem; margin-bottom: 2px;">${u.name}</h4>
+                            <p style="color:var(--text-muted); font-size:0.75rem;">${u.email}</p>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.5rem; font-size:0.75rem; font-weight:700; color:${u.color}; text-transform: uppercase;">
+                            <span style="width:8px; height:8px; border-radius:50%; background:${u.color}; box-shadow: 0 0 8px ${u.color};"></span>
+                            ${u.status}
+                        </div>
+                    </li>
+                `;
+            });
+        }
+
         /* ---------------- PAIRING ENGINE (BULLETPROOF UPDATES) ---------------- */
         window.handleLogsResponse = function(data) {
             let chronData = data ? [...data].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)) : []; 
@@ -1328,6 +1365,8 @@
             if(liveBody) liveBody.innerHTML = '';
 
             compileDriversRegistryCards(chronData);
+            updateActiveUsersList(chronData); // Populate Live Users
+            
             if(chronData.length === 0) { renderHistoryTable([]); return; }
             document.getElementById('metric-total-checkins').innerText = chronData.length;
 
