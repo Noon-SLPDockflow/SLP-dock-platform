@@ -132,6 +132,8 @@
         .analytic-text-list { list-style: none; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted); padding: 0; width: 100%; }
         .analytic-text-list li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.05); gap: 1rem; width: 100%; }
         .analytic-text-list li:last-child { border-bottom: none; }
+        .analytic-text-list li span { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-muted); flex-grow: 1; text-align: start;}
+        .analytic-text-list li strong { color: #fff; white-space: nowrap; flex-shrink: 0; font-size: 0.85rem; text-align: end; }
         .analytic-text-list li.hidden-item { display: none; }
         .analytic-text-list.expanded li.hidden-item { display: flex; }
         
@@ -266,6 +268,30 @@
         .camera-controls button { padding: 0.8rem 1.5rem; border-radius: 6px; border: none; font-weight: 800; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
         .btn-capture { background: var(--accent-color); color: #000; }
         .btn-cancel-cam { background: var(--danger-color); color: #fff; }
+
+        /* SETTINGS PAGE REDESIGN */
+        .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-top: 1rem; }
+        @media (max-width: 800px) { .settings-grid { grid-template-columns: minmax(0, 1fr); } }
+        .settings-card { background: #12161f; border-radius: 8px; border: 1px solid var(--border-color); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1rem; }
+        .settings-title-group { display: flex; align-items: center; gap: 1rem; }
+        .settings-icon-box { background: rgba(255,255,255,0.05); color: var(--accent-color); width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+        .settings-title-text h3 { font-size: 0.85rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; }
+        .settings-title-text p { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+        .settings-status-badge { padding: 0.25rem 0.6rem; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-blocked { background: rgba(248,81,73,0.1); color: var(--danger-color); }
+        .status-windowed { background: rgba(255,255,255,0.05); color: var(--text-muted); }
+        .settings-desc { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+        .settings-btn-primary { background: var(--accent-color); color: #000; width: 100%; border: none; padding: 0.8rem; border-radius: 6px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+        .settings-btn-primary:hover { opacity: 0.9; }
+        .settings-btn-secondary { background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-muted); width: 100%; padding: 0.8rem; border-radius: 6px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
+        .settings-btn-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .settings-alert-box { background: rgba(248,81,73,0.05); border: 1px solid rgba(248,81,73,0.2); border-radius: 6px; padding: 1rem; }
+        .settings-alert-box h4 { color: var(--danger-color); font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .settings-alert-box p { color: var(--text-muted); font-size: 0.75rem; line-height: 1.5; }
+        .theme-toggle-group { display: flex; gap: 0.5rem; background: rgba(0,0,0,0.4); padding: 0.35rem; border-radius: 8px; border: 1px solid var(--border-color); }
+        .theme-btn { flex: 1; padding: 0.6rem; border: none; background: transparent; color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; border-radius: 6px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem;}
+        .theme-btn.active { background: var(--card-bg); color: var(--accent-color); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -341,16 +367,20 @@
                         <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-translate>Not signed in</p>
                     </div>
                 </div>
-                <!-- LOGOUT BUTTON -->
-                <div onclick="logoutUser()" style="cursor: pointer; color: var(--danger-color); font-size: 1.1rem; padding-inline-start: 5px;" title="Sign Out">🚪</div>
             </div>
 
             <div class="system-health">
                 <div><span data-translate>System Health</span><div style="font-weight:700; color:var(--success-color); margin-top:2px;" data-translate>Operational</div></div>
                 <div class="health-dot"></div>
             </div>
-            <div class="nav-item" onclick="toggleFullscreen()">
+            
+            <div class="nav-item" onclick="toggleFullscreen()" style="margin-bottom: 4px;">
                 <span class="nav-icon" id="fsIcon">🖥️</span><span class="nav-text" id="fsBtnLabel" data-translate>Fullscreen</span>
+            </div>
+            
+            <!-- NEW LOGOUT PLACEMENT -->
+            <div class="nav-item" onclick="logoutUser()" style="color: var(--danger-color);">
+                <span class="nav-icon">🚪</span><span class="nav-text" data-translate>Log out</span>
             </div>
         </div>
     </div>
@@ -579,8 +609,82 @@
         </div>
 
         <div id="view-settings" class="app-view">
-            <header class="view-header-row"><div class="view-header-title"><h1 data-translate>Control Panel Settings</h1></div></header>
-            <div class="card"><h2 data-translate>Hardware Configurations</h2><p style="color: var(--text-muted); margin-top: 0.5rem; font-size:0.85rem;" data-translate>OCR Engine Mode: Dynamic Client-Side Recognition Engine.</p></div>
+            <header class="view-header-row"><div class="view-header-title"><h1 data-translate>Settings</h1><p data-translate>Manage system preferences and permissions</p></div></header>
+            
+            <div class="settings-grid">
+                
+                <div class="settings-card">
+                    <div class="settings-header">
+                        <div class="settings-title-group">
+                            <div class="settings-icon-box">📷</div>
+                            <div class="settings-title-text">
+                                <h3 data-translate>CAMERA ACCESS</h3>
+                                <p data-translate>REQUIRED FOR SCANNING</p>
+                            </div>
+                        </div>
+                        <div class="settings-status-badge status-blocked" data-translate>BLOCKED</div>
+                    </div>
+                    <p class="settings-desc" data-translate>To scan truck numbers and driver IDs, the browser needs permission to use your camera. If you previously denied access, you may need to reset it in your browser settings.</p>
+                    <button class="settings-btn-primary" onclick="alert('Please click the lock icon next to your URL bar to allow camera access.')">⟳ <span data-translate>FORCE PERMISSION PROMPT</span></button>
+                    <button class="settings-btn-secondary" onclick="location.reload()">↻ <span data-translate>REFRESH STATUS</span></button>
+                    <div class="settings-alert-box">
+                        <h4 data-translate>STILL BLOCKED?</h4>
+                        <p data-translate>Click the lock icon in your browser's address bar next to the URL and toggle 'Camera' to ON. Then refresh the page.</p>
+                    </div>
+                </div>
+
+                <div class="settings-card" style="justify-content: flex-start;">
+                    <div class="settings-header">
+                        <div class="settings-title-group">
+                            <div class="settings-icon-box">⛶</div>
+                            <div class="settings-title-text">
+                                <h3 data-translate>INTERFACE MODE</h3>
+                                <p data-translate>EXPERIMENTAL APP MODE</p>
+                            </div>
+                        </div>
+                        <div class="settings-status-badge status-windowed" id="fsSettingsStatus" data-translate>WINDOWED</div>
+                    </div>
+                    <p class="settings-desc" data-translate>Enable fullscreen mode for a more immersive dashboard experience. This hides browser toolbars and is recommended for tablet use.</p>
+                    <button class="settings-btn-primary" onclick="toggleFullscreen()" style="margin-top: auto;">⛶ <span data-translate>ENTER FULLSCREEN MODE</span></button>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-header">
+                        <div class="settings-title-group">
+                            <div class="settings-icon-box">📍</div>
+                            <div class="settings-title-text">
+                                <h3 data-translate>LOCATION ACCESS</h3>
+                                <p data-translate>REQUIRED FOR REGIONAL TRACKING</p>
+                            </div>
+                        </div>
+                        <div class="settings-status-badge status-blocked" data-translate>BLOCKED</div>
+                    </div>
+                    <p class="settings-desc" data-translate>To accurately track check-ins and show regional data, the system needs your location permission.</p>
+                    <button class="settings-btn-primary" onclick="alert('Location access must be enabled in browser settings.')">📍 <span data-translate>FORCE PERMISSION PROMPT</span></button>
+                    <button class="settings-btn-secondary" onclick="location.reload()">↻ <span data-translate>REFRESH STATUS</span></button>
+                    <div class="settings-alert-box">
+                        <h4 data-translate>STILL BLOCKED?</h4>
+                        <p data-translate>Check your browser's location settings or clear the permission block in your address bar.</p>
+                    </div>
+                </div>
+
+                <div class="settings-card" style="justify-content: flex-start;">
+                    <div class="settings-header">
+                        <div class="settings-title-group">
+                            <div class="settings-icon-box">🌙</div>
+                            <div class="settings-title-text">
+                                <h3 data-translate>THEME</h3>
+                                <p data-translate>CUSTOMIZE LOOK AND FEEL</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="theme-toggle-group">
+                        <button class="theme-btn" onclick="alert('Light theme is currently disabled for security protocol compliance.')">☀️ <span data-translate>LIGHT</span></button>
+                        <button class="theme-btn active">🌙 <span data-translate>DARK</span></button>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
@@ -809,13 +913,35 @@
             "BT Minutes": "رجيع مينيتس",
             "Liquidation": "إعادة بيع التالف",
             "Unknown": "غير معروف",
-            // Correcting the exact strings from CSS uppercase
             "DRIVERS DATABASE": "قاعدة بيانات السائقين",
             "TOTAL CHECK-INS": "إجمالي الدخول",
             "COMPLETED TODAY": "اكتمل اليوم",
             "ACTIVE NOW": "نشط الآن",
             "CURRENTLY OCCUPIED DOCKS": "الأرصفة المشغولة حالياً",
-            "ACTIVE USER": "المستخدم النشط"
+            "ACTIVE USER": "المستخدم النشط",
+            "Log out": "تسجيل الخروج",
+            "Manage system preferences and permissions": "إدارة تفضيلات النظام والصلاحيات",
+            "CAMERA ACCESS": "الوصول للكاميرا",
+            "REQUIRED FOR SCANNING": "مطلوب للمسح الضوئي",
+            "BLOCKED": "محظور",
+            "To scan truck numbers and driver IDs, the browser needs permission to use your camera. If you previously denied access, you may need to reset it in your browser settings.": "لمسح أرقام الشاحنات وهويات السائقين، يحتاج المتصفح إلى إذن لاستخدام الكاميرا. إذا رفضت الوصول مسبقاً، قد تحتاج إلى إعادة تعيينه في إعدادات المتصفح.",
+            "FORCE PERMISSION PROMPT": "فرض طلب الإذن",
+            "REFRESH STATUS": "تحديث الحالة",
+            "STILL BLOCKED?": "لا يزال محظوراً؟",
+            "Click the lock icon in your browser's address bar next to the URL and toggle 'Camera' to ON. Then refresh the page.": "انقر على أيقونة القفل في شريط عنوان المتصفح بجوار الرابط وقم بتبديل 'الكاميرا' إلى التشغيل. ثم قم بتحديث الصفحة.",
+            "LOCATION ACCESS": "الوصول للموقع",
+            "REQUIRED FOR REGIONAL TRACKING": "مطلوب للتتبع الإقليمي",
+            "To accurately track check-ins and show regional data, the system needs your location permission.": "لتتبع عمليات الدخول بدقة وإظهار البيانات الإقليمية، يحتاج النظام إلى إذن الموقع الخاص بك.",
+            "Check your browser's location settings or clear the permission block in your address bar.": "تحقق من إعدادات موقع المتصفح أو امسح حظر الإذن في شريط العنوان.",
+            "INTERFACE MODE": "وضع الواجهة",
+            "EXPERIMENTAL APP MODE": "وضع التطبيق التجريبي",
+            "WINDOWED": "في نافذة",
+            "Enable fullscreen mode for a more immersive dashboard experience. This hides browser toolbars and is recommended for tablet use.": "تمكين وضع ملء الشاشة لتجربة لوحة قيادة أكثر تفاعلية. يخفي هذا أشرطة أدوات المتصفح ويوصى به لاستخدام الأجهزة اللوحية.",
+            "ENTER FULLSCREEN MODE": "الدخول في وضع ملء الشاشة",
+            "THEME": "المظهر",
+            "CUSTOMIZE LOOK AND FEEL": "تخصيص المظهر والانطباع",
+            "LIGHT": "فاتح",
+            "DARK": "داكن"
         };
 
         function t(text) {
@@ -839,7 +965,6 @@
 
             document.querySelectorAll('[data-translate]').forEach(el => {
                 if(!el.hasAttribute('data-en-text')) {
-                    // We grab textContent so CSS text-transform doesn't mess with dictionary keys
                     el.setAttribute('data-en-text', el.textContent.trim());
                 }
                 let enText = el.getAttribute('data-en-text');
@@ -859,14 +984,15 @@
             }
         }
 
-        function logoutUser() {
-            localStorage.removeItem('noonSlpUserSession');
-            location.reload();
-        }
-        
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('collapsed');
-            document.querySelector('.main-content').classList.toggle('expanded');
+        /* ---------------- SAFE DATE PARSER (TABLET FIX) ---------------- */
+        function safeDate(dStr) {
+            if(!dStr) return new Date();
+            let d = new Date(dStr);
+            if(isNaN(d.getTime())) {
+                // Aggressive fallback for older iOS Safari WebViews
+                d = new Date(String(dStr).replace(/-/g, '/').replace('T', ' ').split('.')[0]);
+            }
+            return d;
         }
 
         /* ---------------- CUSTOM LOGIN & ADMIN TOGGLE LOGIC ---------------- */
@@ -949,10 +1075,8 @@
 
             document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? (currentLang==='ar'?" (مسؤول)":" (Admin)") : "");
             document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
-            document.getElementById('sidebarUserPic').innerText = "👤";
             document.getElementById('dashUserName').innerText = loggedInUser.name + (userRole === 'admin' ? (currentLang==='ar'?" (مسؤول)":" (Admin)") : "");
             document.getElementById('dashUserEmail').innerText = loggedInUser.email;
-            document.getElementById('dashUserPic').innerText = "👤";
         }
 
         /* ---------------- INTRO SCREEN PARTICLES ---------------- */
@@ -1028,9 +1152,20 @@
         function toggleFullscreen() {
             const fsBtnText = document.getElementById('fsBtnLabel');
             const fsIcon = document.getElementById('fsIcon');
+            const fsSettingsStatus = document.getElementById('fsSettingsStatus');
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().then(() => { fsBtnText.innerText = t("Exit Fullscreen"); fsIcon.innerText = "📉"; }).catch(() => alert("Fullscreen error."));
-            } else { document.exitFullscreen().then(() => { fsBtnText.innerText = t("Fullscreen"); fsIcon.innerText = "🖥️"; }); }
+                document.documentElement.requestFullscreen().then(() => { 
+                    fsBtnText.innerText = t("Exit Fullscreen"); 
+                    fsIcon.innerText = "📉"; 
+                    if(fsSettingsStatus) { fsSettingsStatus.innerText = "FULLSCREEN"; fsSettingsStatus.className = "settings-status-badge status-windowed"; fsSettingsStatus.style.color = "var(--accent-color)"; }
+                }).catch(() => alert("Fullscreen error."));
+            } else { 
+                document.exitFullscreen().then(() => { 
+                    fsBtnText.innerText = t("Fullscreen"); 
+                    fsIcon.innerText = "🖥️"; 
+                    if(fsSettingsStatus) { fsSettingsStatus.innerText = "WINDOWED"; fsSettingsStatus.className = "settings-status-badge status-windowed"; fsSettingsStatus.style.color = "var(--text-muted)"; }
+                }); 
+            }
         }
 
         function openDriverProfileModal(name, iqama, plate, date, phone) {
@@ -1251,17 +1386,19 @@
         });
 
         /* ---------------- Formatting Tools ---------------- */
-        function fmtDate(s) {
-            if(!s) return "--"; let d = new Date(s); if(isNaN(d.getTime())) return s;
-            return `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-        }
         function formatTimeText(s) {
-            if(!s) return "--"; let d = new Date(s); if(isNaN(d.getTime())) return s;
+            if(!s) return "--"; 
+            let d = safeDate(s); 
+            if(isNaN(d.getTime())) return s;
             return `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]} ${d.getDate()}, ${d.getHours()%12||12}:${String(d.getMinutes()).padStart(2,'0')} ${d.getHours()>=12?'PM':'AM'}`;
         }
         function calcDuration(t1, t2) {
-            if(!t1) return "--"; let diff = (t2 ? new Date(t2) : new Date()) - new Date(t1);
-            if(diff < 0 || isNaN(diff)) return "0h 0m";
+            if(!t1) return "--"; 
+            let d1 = safeDate(t1);
+            let d2 = t2 ? safeDate(t2) : new Date();
+            let diff = d2 - d1;
+            if(isNaN(diff)) return "0h 0m";
+            if(diff < 0) diff = 0; // Fixes tablet sync issues
             let mins = Math.floor(diff / 60000); return `${Math.floor(mins/60)}h ${mins%60}m`;
         }
         function generatePlateBumperUI(plateStr) {
@@ -1299,7 +1436,9 @@
             if(list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:3rem; font-size:0.8rem;">${t("No historical logs parsed inside database.")}</div>`; return; }
 
             list.forEach(driver => {
-                let dateFormatted = fmtDate(driver.registered);
+                let dObj = safeDate(driver.registered);
+                let dateFormatted = isNaN(dObj.getTime()) ? '--' : `${["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][dObj.getMonth()]} ${dObj.getDate()}, ${dObj.getFullYear()}`;
+                
                 container.innerHTML += `
                     <div class="driver-registry-card" data-search-blob="${driver.name.toLowerCase()} ${(driver.plate || '').toLowerCase()}">
                         <div class="card-management-actions"><button class="btn-icon-manage">✏️</button></div>
@@ -1336,7 +1475,7 @@
         function filterHistoryListByRange(range, fromStr, toStr) {
             const now = new Date();
             return globalHistoryListCache.filter(r => {
-                const refDate = new Date(r.checkInTime || r.timestamp);
+                const refDate = safeDate(r.checkInTime || r.timestamp);
                 if (isNaN(refDate.getTime())) return range === 'all';
                 if (range === 'today') return refDate.toDateString() === now.toDateString();
                 if (range === '7days') { const sevenDaysAgo = new Date(now); sevenDaysAgo.setDate(now.getDate() - 7); return refDate >= sevenDaysAgo && refDate <= now; }
@@ -1424,10 +1563,8 @@
         function updateAnalyticsCharts(byDate, byHour, byMovement, byDock) {
             const getSortedKeys = (obj, limit) => Object.keys(obj).sort((a,b) => obj[b] - obj[a]).slice(0, limit);
             
-            // 1. Traffic Over Time
             let dates = Object.keys(byDate).slice(-7); 
             let datesData = dates.map(k => byDate[k]);
-            
             if(!analyticsCharts.traffic) {
                 analyticsCharts.traffic = new Chart(document.getElementById('chartTrafficTime'), {
                     type: 'doughnut',
@@ -1441,7 +1578,6 @@
             }
             renderTextList('listTrafficTime', dates, datesData, 'Trucks');
 
-            // 2. Movement Dist
             let movKeys = Object.keys(byMovement);
             let movData = movKeys.map(k => byMovement[k]);
             if(!analyticsCharts.movement) {
@@ -1457,10 +1593,8 @@
             }
             renderTextList('listMovementDist', movKeys, movData, 'Logs');
 
-            // 3. Peak Hours
             let topHours = getSortedKeys(byHour, 7);
             let hoursData = topHours.map(k => byHour[k]);
-            
             if(!analyticsCharts.hours) {
                 analyticsCharts.hours = new Chart(document.getElementById('chartPeakHours'), {
                     type: 'doughnut',
@@ -1474,7 +1608,6 @@
             }
             renderTextList('listPeakHours', topHours, hoursData, 'Check-ins');
 
-            // 4. Dock Utilization
             let dockKeys = getSortedKeys(byDock, 5);
             let dockData = dockKeys.map(k => byDock[k]);
             if(!analyticsCharts.docks) {
@@ -1518,9 +1651,8 @@
             const monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
 
             chronData.forEach(row => {
-                
                 if (row.direction !== "Outbound") {
-                    let d = new Date(row.timestamp);
+                    let d = safeDate(row.timestamp);
                     if (!isNaN(d.getTime())) {
                         let m = d.getMonth();
                         let dateStr = currentLang === 'ar' ? `${d.getDate()} ${monthsAr[m]}` : `${monthsEn[m]} ${d.getDate()}`;
@@ -1556,7 +1688,7 @@
 
             historicalPairs.forEach(r => {
                 if(r.checkInTime && r.timestamp) {
-                    let diff = new Date(r.timestamp) - new Date(r.checkInTime);
+                    let diff = safeDate(r.timestamp) - safeDate(r.checkInTime);
                     if(diff > 0) { totalTurnaroundMins += (diff / 60000); completedCount++; }
                 }
                 let dir = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason.split(' - ')[0].trim() : (r.direction ? r.direction.split(' - ')[0].trim() : 'Other');
