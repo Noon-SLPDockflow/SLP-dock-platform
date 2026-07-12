@@ -481,7 +481,7 @@
             </li>
         </ul>
         <div class="sidebar-footer">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="display:flex; align-items:center; gap: 0.75rem; overflow: hidden;">
                     <div class="driver-avatar-img" id="sidebarUserPic" style="width: 32px; height: 32px; background:var(--accent-color); color:#000; font-weight:800; font-size:0.8rem; border:none; flex-shrink: 0;">?</div>
                     <div style="overflow: hidden;">
@@ -489,8 +489,6 @@
                         <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-i18n="Not signed in">Not signed in</p>
                     </div>
                 </div>
-                <!-- LOGOUT BUTTON -->
-                <div onclick="logoutUser()" style="cursor: pointer; color: var(--danger-color); font-size: 1.1rem; padding-left: 5px;" title="Sign Out">🚪</div>
             </div>
 
             <div class="system-health">
@@ -499,6 +497,9 @@
             </div>
             <div class="nav-item" onclick="toggleFullscreen()">
                 <span class="nav-icon" id="fsIcon">🖥️</span><span class="nav-text" id="fsBtnLabel" data-i18n="Fullscreen">Fullscreen</span>
+            </div>
+            <div class="nav-item" onclick="logoutUser()">
+                <span class="nav-icon">🚪</span><span class="nav-text" style="color: var(--danger-color); font-weight: 700;" data-i18n="SIGN OUT">SIGN OUT</span>
             </div>
         </div>
     </div>
