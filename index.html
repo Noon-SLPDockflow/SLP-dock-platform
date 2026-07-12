@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,7 @@
             --nav-hover: rgba(252, 194, 0, 0.1);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-
+        
         body {
             background-color: var(--bg-color);
             background-image: linear-gradient(rgba(11, 14, 20, 0.92), rgba(11, 14, 20, 0.92)), url('background.jpg.jpeg');
@@ -65,43 +65,17 @@
         .brand-section { display: flex; align-items: center; justify-content: flex-start; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .brand-text h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
         .brand-text p { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
-
+        
         /* Sidebar Toggle Buttons */
-        .sidebar-close-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 1.25rem;
-            cursor: pointer;
-            margin-left: auto;
-            transition: color 0.2s;
-            display: block;
-        }
+        .sidebar-close-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer; margin-left: auto; transition: color 0.2s; display: block; }
         .sidebar-close-btn:hover { color: var(--accent-color); }
-
+        
         .btn-floating-toggle {
-            position: fixed; 
-            top: 1.5rem; 
-            left: 1.5rem; 
-            z-index: 1000; 
-            background: var(--sidebar-bg); 
-            border: 1px solid var(--border-color); 
-            color: var(--text-main); 
-            padding: 0.6rem 0.85rem; 
-            border-radius: 6px; 
-            cursor: pointer; 
-            display: none; /* Shown via JS */
-            align-items: center; 
-            gap: 0.5rem; 
-            font-weight: 700; 
-            font-size: 0.8rem; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
-            transition: all 0.2s;
+            position: fixed; top: 1.5rem; left: 1.5rem; z-index: 1000; background: var(--sidebar-bg); border: 1px solid var(--border-color); 
+            color: var(--text-main); padding: 0.6rem 0.85rem; border-radius: 6px; cursor: pointer; display: none; align-items: center; gap: 0.5rem; 
+            font-weight: 700; font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: all 0.2s;
         }
-        .btn-floating-toggle:hover {
-            border-color: var(--accent-color);
-            background: var(--card-bg);
-        }
+        .btn-floating-toggle:hover { border-color: var(--accent-color); background: var(--card-bg); }
 
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; border-left: 3px solid transparent; }
@@ -112,7 +86,7 @@
         .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
         .system-health { background: rgba(46, 160, 67, 0.05); border: 1px dashed rgba(46, 160, 67, 0.3); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.5rem; }
         .health-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color); }
-
+        
         .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 3rem; width: calc(100% - 260px); transition: all 0.3s ease; }
         .main-content.expanded { margin-left: 0 !important; width: 100% !important; }
 
@@ -132,8 +106,9 @@
         html[dir="rtl"] .btn-modal-cancel { margin-right: 0 !important; margin-left: 1rem !important; }
         html[dir="rtl"] #floatingOpenBtn { left: auto; right: 1.5rem; }
         html[dir="rtl"] #langToggleBtn { right: auto; left: 1.5rem; }
+        html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
         /* ------------------------------------------------------------ */
-
+        
         @media (max-width: 900px) {
             .sidebar { width: 75px; padding: 1.5rem 0.5rem; align-items: center; }
             .sidebar.hidden { transform: translateX(-100%); }
@@ -144,7 +119,7 @@
             .nav-item.active { border-left: none; border-bottom: 3px solid var(--accent-color); }
             .nav-icon { font-size: 1.4rem; margin: 0; }
             .main-content { margin-left: 75px; width: calc(100% - 75px); padding: 1.5rem 1rem; }
-
+            
             html[dir="rtl"] .main-content { margin-right: 75px; margin-left: 0; }
             html[dir="rtl"] .sidebar { transform: translateX(0); }
             html[dir="rtl"] .sidebar.hidden { transform: translateX(100%); }
@@ -404,7 +379,7 @@
             </li>
         </ul>
         <div class="sidebar-footer">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="display:flex; align-items:center; gap: 0.75rem; overflow: hidden;">
                     <div class="driver-avatar-img" id="sidebarUserPic" style="width: 32px; height: 32px; background:var(--accent-color); color:#000; font-weight:800; font-size:0.8rem; border:none; flex-shrink: 0;">?</div>
                     <div style="overflow: hidden;">
@@ -665,7 +640,7 @@
         <div class="modal-window">
             <div class="modal-header-container"><h2 id="modalTitleName" data-i18n="Driver Details">Driver Details</h2><button class="btn-modal-close" onclick="closeDriverProfileModal()">✕</button></div>
             <div class="modal-body-content">
-                <div class="modal-media-viewport"></div>
+                <div class="modal-media-viewport" id="modalMediaViewport"></div>
                 <div class="modal-data-blocks-grid">
                     <div class="modal-slate-cell"><span data-i18n="Full Legal Name">Full Legal Name</span><p id="modalDataName">--</p></div>
                     <div class="modal-slate-cell"><span data-i18n="Iqama/National ID">Iqama/National ID</span><p id="modalDataIqama">--</p></div>
@@ -737,6 +712,7 @@
         let driversRegistryList = [];
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
+        let temporaryCapturedImage = null;
         
         // Active User & Role Details 
         let loggedInUser = { name: "Guest User", email: "Not signed in", picture: "" };
@@ -1123,8 +1099,20 @@
             let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
             let segments = plate ? plate.split(' ') : ['--'];
             segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
+            
+            // Load custom image if available
+            const viewport = document.getElementById('modalMediaViewport');
+            const savedImage = localStorage.getItem('SLP_IMG_' + name.trim().toUpperCase());
+            if (savedImage) {
+                viewport.style.backgroundImage = `url('${savedImage}')`;
+            } else {
+                // Default placeholder
+                viewport.style.backgroundImage = `url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800')`;
+            }
+
             document.getElementById('driverProfileModal').classList.add('modal-active');
         }
+        
         function closeDriverProfileModal() { document.getElementById('driverProfileModal').classList.remove('modal-active'); }
 
         /* --- DRIVER EDIT MODAL LOGIC --- */
@@ -1147,6 +1135,19 @@
             const newIqama = document.getElementById('editIqama').value;
             const newPlate = document.getElementById('editPlate').value;
             const newPhone = document.getElementById('editPhone').value;
+            
+            // Migrate stored image if name changes
+            const oldKey = oldName.trim().toUpperCase();
+            const newKey = newName.trim().toUpperCase();
+            if (oldKey !== newKey) {
+                const existingImg = localStorage.getItem('SLP_IMG_' + oldKey);
+                if (existingImg) {
+                    try {
+                        localStorage.setItem('SLP_IMG_' + newKey, existingImg);
+                        localStorage.removeItem('SLP_IMG_' + oldKey);
+                    } catch(e) { console.warn("Storage full."); }
+                }
+            }
             
             // Optimistically update all occurrences of this driver in the local cache
             globalLogsCache.forEach(log => {
@@ -1171,6 +1172,7 @@
                 document.getElementById('scanBoxIqama').style.display = 'none';
                 document.querySelector('.scanners-triple-row').style.gridTemplateColumns = '1fr';
                 document.querySelectorAll('.new-driver-field').forEach(f => { f.style.display = "none"; f.querySelector('input').required = false; });
+                temporaryCapturedImage = null; // Clear image when switching to existing
             } else {
                 document.getElementById('driverLookupGroup').style.display = "none";
                 document.getElementById('scanBoxDriver').style.display = 'block';
@@ -1377,6 +1379,12 @@
             try {
                 const processedBlob = await preprocessImageForOcr(file, scanType);
                 const base64Data = await blobToBase64(processedBlob);
+                
+                // CAPTURE IMAGE FOR MODAL
+                if (statusLabelId === 'driverPhotoStatus' || (!temporaryCapturedImage && statusLabelId === 'iqamaStatus')) {
+                    temporaryCapturedImage = 'data:image/jpeg;base64,' + base64Data;
+                }
+
                 status.innerHTML = "🌀 " + tr("Reading with Google OCR...");
                 const response = await fetch(OCR_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ scanType: scanType, imageObj: base64Data }) });
                 if (!response.ok) throw new Error('Network error: ' + response.status);
@@ -1906,6 +1914,14 @@
                     actionByEmail: loggedInUser.email,
                     actionByName: loggedInUser.name
                 };
+                
+                // Save image to local storage tied to driver name
+                if (temporaryCapturedImage) {
+                    try {
+                        localStorage.setItem('SLP_IMG_' + payload.driverName.trim().toUpperCase(), temporaryCapturedImage);
+                    } catch(e) { console.warn("Local storage full, cannot save image."); }
+                    temporaryCapturedImage = null;
+                }
                 
                 // Fire post request in background
                 fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
