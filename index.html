@@ -132,6 +132,7 @@
         html[dir="rtl"] .btn-modal-cancel { margin-right: 0 !important; margin-left: 1rem !important; }
         html[dir="rtl"] #floatingOpenBtn { left: auto; right: 1.5rem; }
         html[dir="rtl"] #langToggleBtn { right: auto; left: 1.5rem; }
+        html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
         /* ------------------------------------------------------------ */
 
         @media (max-width: 900px) {
@@ -153,12 +154,12 @@
         .app-view { display: none; } .app-view.active-view { display: block; }
 
         .dashboard-hero { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4rem 1.5rem 3rem 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; position: relative; backdrop-filter: blur(10px); }
-        .hero-badges-wrapper { position: absolute; top: 1.5rem; display: flex; gap: 1rem; }
-        .hero-badge { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.35rem 0.85rem; border-radius: 4px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; color: var(--text-muted); font-family: monospace; text-transform: uppercase; }
+        .hero-badges-wrapper { position: absolute; top: 1.5rem; left: 1.5rem; display: flex; gap: 1rem; }
+        .hero-badge { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-color); font-family: monospace; text-transform: uppercase; }
         .hero-title-box { margin-top: 1rem; text-align: center; }
         .hero-title-box h1 { font-size: 3.5rem; font-weight: 900; color: #fff; letter-spacing: 1px; margin-bottom: 0.25rem; text-shadow: 0 0 50px rgba(252, 194, 0, 0.2); }
         .hero-title-box p { font-size: 1.25rem; color: var(--accent-color); font-weight: 700; text-transform: uppercase; letter-spacing: 4px; }
-        @media (max-width: 768px) { .hero-title-box h1 { font-size: 2.2rem; } .hero-title-box p { font-size: 0.9rem; letter-spacing: 2px; } }
+        @media (max-width: 768px) { .hero-title-box h1 { font-size: 2.2rem; } .hero-title-box p { font-size: 0.9rem; letter-spacing: 2px; } .hero-badges-wrapper { position: relative; top: auto; left: auto; right: auto; margin-bottom: 2rem; justify-content: center; } }
 
         .metrics-bar-four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
         @media (max-width: 1200px) { .metrics-bar-four { grid-template-columns: repeat(2, 1fr); } }
@@ -179,13 +180,13 @@
         .analytics-hub-title { background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); color: #79c0ff; padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; margin-bottom: 1.5rem; }
         .analytics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
         @media (max-width: 1100px) { .analytics-grid { grid-template-columns: 1fr; } }
-        
+
         .chart-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; backdrop-filter: blur(10px); display: flex; flex-direction: column; }
         .chart-card h3 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2rem; }
         .donut-container { position: relative; width: 180px; height: 180px; margin: 0 auto 2rem auto; }
         .donut-chart { width: 100%; height: 100%; border-radius: 50%; transition: background 0.5s ease; }
         .donut-hole { position: absolute; top: 22%; left: 22%; width: 56%; height: 56%; background-color: var(--card-solid); border-radius: 50%; }
-        
+
         .chart-legend { list-style: none; margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 1rem; }
         .chart-legend li { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.02); }
         .chart-legend li:last-child { border-bottom: none; padding-bottom: 0; }
@@ -200,7 +201,7 @@
         .view-header-title h1 { font-size: 1.75rem; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
         .view-header-title p { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; font-weight: 600; }
         .counter-badge-orange { display: inline-block; background: rgba(252, 194, 0, 0.15); color: var(--accent-color); border: 1px solid rgba(252, 194, 0, 0.3); font-size: 0.7rem; font-weight: bold; padding: 0.25rem 0.6rem; border-radius: 4px; margin-top: 8px; }
-        
+
         .filter-tabs-container { display: flex; gap: 0.25rem; background: rgba(0,0,0,0.4); padding: 0.25rem; border-radius: 6px; border: 1px solid var(--border-color); }
         .tab-filter-item { background: transparent; border: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 700; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
         .tab-filter-item.active { background: var(--accent-color); color: #000; }
@@ -213,7 +214,7 @@
         td { padding: 1rem 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 0.85rem; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background-color: rgba(255,255,255,0.02); }
-        
+
         .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; }
         .badge.in { background: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.3); }
         .badge.out { background: rgba(248, 81, 73, 0.15); color: #ff7b72; border: 1px solid rgba(248, 81, 73, 0.3); }
@@ -233,27 +234,27 @@
         .scan-box-dashed span.label-text { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
         .camera-btn-inline { display: inline-flex; align-items: center; justify-content: center; margin-top: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--accent-color); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; padding: 0.35rem 0.75rem; border-radius: 4px; cursor: pointer; }
         .camera-btn-inline:hover { background: var(--accent-color); color: #000; }
-        
+
         .toggle-container { display: flex; justify-content: center; background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); border-radius: 6px; padding: 0.25rem; margin-bottom: 2rem; max-width: 320px; margin-left: auto; margin-right: auto; }
         .toggle-btn { flex: 1; background: transparent; border: none; color: var(--text-muted); padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
         .toggle-btn.active { background: var(--accent-color); color: #000; }
-        
+
         .form-grid-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 2rem; }
         @media (max-width: 768px) { .form-grid-columns { grid-template-columns: 1fr; } }
         .form-section-divider { grid-column: 1 / -1; background: rgba(56, 139, 253, 0.15); color: #79c0ff; border: 1px solid rgba(56, 139, 253, 0.3); padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-radius: 4px; margin-top: 1rem; margin-bottom: 0.5rem; letter-spacing: 0.5px; max-width: fit-content; }
-        
+
         .badge-style { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.5rem; font-weight: 700; letter-spacing: 0.5px; }
         .input-box-styled { width: 100%; background-color: #0d1117; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.85rem 1rem; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border 0.2s; }
         .input-box-styled:focus { border-color: var(--accent-color); background-color: #161b22; }
-        
+
         .header-search-box-container { position: relative; width: 280px; }
         .header-search-box-container span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
         .header-search-input { width: 100%; background: #0d1117; border: 1px solid var(--border-color); color: #fff; padding: 0.6rem 1rem 0.6rem 2.25rem; border-radius: 6px; font-size: 0.85rem; outline: none; }
         .header-search-input:focus { border-color: var(--accent-color); }
-        
+
         .plate-box-split { display: inline-flex; flex-direction: column; gap: 2px; }
         .plate-segment { border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; background: rgba(0,0,0,0.4); text-align: center; min-width: 50px; font-family: monospace; }
-        
+
         .submit-btn-global { width: 100%; background-color: var(--accent-color); color: #000; border: none; padding: 1rem; font-size: 0.95rem; font-weight: 800; border-radius: 6px; cursor: pointer; text-transform: uppercase; margin-top: 2.5rem; letter-spacing: 1px; transition: opacity 0.2s; }
         .submit-btn-global:hover { opacity: 0.9; }
 
@@ -402,7 +403,7 @@
             </li>
         </ul>
         <div class="sidebar-footer">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="display:flex; align-items:center; gap: 0.75rem; overflow: hidden;">
                     <div class="driver-avatar-img" id="sidebarUserPic" style="width: 32px; height: 32px; background:var(--accent-color); color:#000; font-weight:800; font-size:0.8rem; border:none; flex-shrink: 0;">?</div>
                     <div style="overflow: hidden;">
@@ -430,8 +431,8 @@
             
             <div class="dashboard-hero">
                 <div class="hero-badges-wrapper">
-                    <span class="hero-badge" data-i18n="SYSTEM ONLINE">SYSTEM ONLINE</span>
-                    <span class="hero-badge" id="heroDateBadge">--</span>
+                    <span class="hero-badge" id="heroTimeBadge" style="font-size: 1rem; color: var(--accent-color);">--:--</span>
+                    <span class="hero-badge" id="heroDateBadge" style="font-size: 1rem; color: var(--accent-color);">--</span>
                 </div>
                 <div class="hero-title-box">
                     <h2><span data-i18n="Noon">Noon</span> <span style="color:var(--accent-color);">SLP</span></h2>
@@ -878,7 +879,7 @@
                     el.innerText = tr(key);
                 }
             });
-            updateHeroDate();
+            updateHeroDateTime();
             if(window.handleLogsResponse && globalLogsCache) {
                 window.handleLogsResponse(globalLogsCache);
             }
@@ -1058,15 +1059,27 @@
         }
 
         /* ---------------- CORE DASHBOARD LOGIC ---------------- */
-        function updateHeroDate() {
+        function updateHeroDateTime() {
             const d = new Date();
             const monthsEn = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
             const monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
             const m = currentLang === 'ar' ? monthsAr[d.getMonth()] : monthsEn[d.getMonth()];
-            const str = String(d.getDate()).padStart(2, '0') + " " + m + " " + d.getFullYear();
-            const badge = document.getElementById('heroDateBadge');
-            if(badge) badge.innerText = str;
+            
+            const dateStr = String(d.getDate()).padStart(2, '0') + " " + m + " " + d.getFullYear();
+            const badgeD = document.getElementById('heroDateBadge');
+            if(badgeD) badgeD.innerText = dateStr;
+
+            let ampm = d.getHours() >= 12 ? (currentLang === 'ar' ? 'م' : 'PM') : (currentLang === 'ar' ? 'ص' : 'AM');
+            let hr = d.getHours() % 12 || 12;
+            let min = String(d.getMinutes()).padStart(2, '0');
+            let sec = String(d.getSeconds()).padStart(2, '0');
+            const timeStr = `${hr}:${min}:${sec} ${ampm}`;
+            
+            const badgeT = document.getElementById('heroTimeBadge');
+            if(badgeT) badgeT.innerText = timeStr;
         }
+        setInterval(updateHeroDateTime, 1000);
+        updateHeroDateTime();
 
         function switchView(viewId, element) {
             document.querySelectorAll('.app-view').forEach(v => v.id === 'view-' + viewId ? v.classList.add('active-view') : v.classList.remove('active-view'));
@@ -1362,16 +1375,18 @@
 
                 if (scanType === "IQAMA") {
                     let idMatch = cleanText.match(/\b[12]\d{9}\b/);
-                    if (idMatch) { document.getElementById('iqamaNumber').value = idMatch[0]; matched = true; }
+                    let idNum = idMatch ? idMatch[0] : "";
+                    if (idMatch) { document.getElementById('iqamaNumber').value = idNum; matched = true; }
                     
                     let lines = cleanText.split('\n').map(l => l.trim()).filter(Boolean);
                     let nameMatch = lines.find(line => {
-                        // Check for English Name (Iqama)
                         let isEnglishName = /^[A-Z][A-Z\s.']{7,45}$/.test(line) && !/KINGDOM|SAUDI|ARABIA|MINISTRY|INTERIOR|RESIDENCE|PERMIT|IDENTITY|NATIONALITY|GENDER|EXPIRY|BIRTH|OCCUPATION|EMPLOYER|RELIGION/.test(line);
                         
-                        // Check for Arabic Name (Saudi National ID)
                         let isArabicName = /^[\u0600-\u06FF\s]{10,60}$/.test(line) && !/المملكة|العربية|السعودية|وزارة|الداخلية|بطاقة|الهوية|الوطنية|الرقم|تاريخ|الانتهاء|مكان|الميلاد|جهة|الإصدار|نسخة|تاريخه|الحفظ/.test(line);
 
+                        if (idNum.startsWith('1')) return isArabicName;
+                        if (idNum.startsWith('2')) return isEnglishName;
+                        
                         return isEnglishName || isArabicName;
                     });
                     
