@@ -19,7 +19,7 @@
             --nav-hover: rgba(252, 194, 0, 0.1);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        
+
         body {
             background-color: var(--bg-color);
             background-image: linear-gradient(rgba(11, 14, 20, 0.92), rgba(11, 14, 20, 0.92)), url('background.jpg.jpeg');
@@ -65,17 +65,43 @@
         .brand-section { display: flex; align-items: center; justify-content: flex-start; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); margin-bottom: 1.5rem; }
         .brand-text h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
         .brand-text p { font-size: 0.65rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px;}
-        
+
         /* Sidebar Toggle Buttons */
-        .sidebar-close-btn { background: transparent; border: none; color: var(--text-muted); font-size: 1.25rem; cursor: pointer; margin-left: auto; transition: color 0.2s; display: block; }
-        .sidebar-close-btn:hover { color: var(--accent-color); }
-        
-        .btn-floating-toggle {
-            position: fixed; top: 1.5rem; left: 1.5rem; z-index: 1000; background: var(--sidebar-bg); border: 1px solid var(--border-color); 
-            color: var(--text-main); padding: 0.6rem 0.85rem; border-radius: 6px; cursor: pointer; display: none; align-items: center; gap: 0.5rem; 
-            font-weight: 700; font-size: 0.8rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); transition: all 0.2s;
+        .sidebar-close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+            margin-left: auto;
+            transition: color 0.2s;
+            display: block;
         }
-        .btn-floating-toggle:hover { border-color: var(--accent-color); background: var(--card-bg); }
+        .sidebar-close-btn:hover { color: var(--accent-color); }
+
+        .btn-floating-toggle {
+            position: fixed; 
+            top: 1.5rem; 
+            left: 1.5rem; 
+            z-index: 1000; 
+            background: var(--sidebar-bg); 
+            border: 1px solid var(--border-color); 
+            color: var(--text-main); 
+            padding: 0.6rem 0.85rem; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            display: none; /* Shown via JS */
+            align-items: center; 
+            gap: 0.5rem; 
+            font-weight: 700; 
+            font-size: 0.8rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+            transition: all 0.2s;
+        }
+        .btn-floating-toggle:hover {
+            border-color: var(--accent-color);
+            background: var(--card-bg);
+        }
 
         .nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; flex-grow: 1; }
         .nav-item { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1rem; color: var(--text-muted); text-decoration: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s ease; border-left: 3px solid transparent; }
@@ -86,7 +112,7 @@
         .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color); }
         .system-health { background: rgba(46, 160, 67, 0.05); border: 1px dashed rgba(46, 160, 67, 0.3); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.5rem; }
         .health-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color); }
-        
+
         .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 3rem; width: calc(100% - 260px); transition: all 0.3s ease; }
         .main-content.expanded { margin-left: 0 !important; width: 100% !important; }
 
@@ -107,7 +133,7 @@
         html[dir="rtl"] #floatingOpenBtn { left: auto; right: 1.5rem; }
         html[dir="rtl"] #langToggleBtn { right: auto; left: 1.5rem; }
         /* ------------------------------------------------------------ */
-        
+
         @media (max-width: 900px) {
             .sidebar { width: 75px; padding: 1.5rem 0.5rem; align-items: center; }
             .sidebar.hidden { transform: translateX(-100%); }
@@ -118,7 +144,7 @@
             .nav-item.active { border-left: none; border-bottom: 3px solid var(--accent-color); }
             .nav-icon { font-size: 1.4rem; margin: 0; }
             .main-content { margin-left: 75px; width: calc(100% - 75px); padding: 1.5rem 1rem; }
-            
+
             html[dir="rtl"] .main-content { margin-right: 75px; margin-left: 0; }
             html[dir="rtl"] .sidebar { transform: translateX(0); }
             html[dir="rtl"] .sidebar.hidden { transform: translateX(100%); }
@@ -277,10 +303,31 @@
         .camera-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; padding: 1rem; }
         .camera-overlay.open { display: flex; }
         .camera-overlay video, .camera-overlay canvas { max-width: 100%; max-height: 65vh; border-radius: 8px; border: 2px solid var(--accent-color); }
-        .camera-controls { display: flex; gap: 1rem; }
+        .camera-controls { display: flex; gap: 1rem; z-index: 2010; }
         .camera-controls button { padding: 0.8rem 1.5rem; border-radius: 6px; border: none; font-weight: 800; text-transform: uppercase; cursor: pointer; font-size: 0.8rem; }
         .btn-capture { background: var(--accent-color); color: #000; }
         .btn-cancel-cam { background: var(--danger-color); color: #fff; }
+        
+        /* NEW TAP TO FOCUS RING */
+        .focus-ring {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            pointer-events: none;
+            display: none;
+            z-index: 2005;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            animation: focusPulse 0.5s ease-out;
+        }
+        @keyframes focusPulse {
+            0% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
         .custom-date-row { display: none; gap: 0.5rem; align-items: center; margin-top: 0.75rem; }
         .custom-date-row.open { display: flex; }
         .custom-date-row input[type="date"] { background: #0d1117; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 0.75rem; border-radius: 4px; font-size: 0.8rem; outline:none;}
@@ -656,7 +703,9 @@
         </div>
     </div>
 
+    <!-- CAMERA OVERLAY WITH TAP-TO-FOCUS RING -->
     <div class="camera-overlay" id="cameraOverlay">
+        <div id="focusRing" class="focus-ring"></div>
         <video id="cameraVideo" autoplay playsinline muted></video>
         <canvas id="cameraCanvas" style="display:none;"></canvas>
         <div class="camera-controls">
@@ -1226,14 +1275,59 @@
             cameraTargetStatusId = statusLabelId; cameraTargetScanType = scanType;
             const overlay = document.getElementById('cameraOverlay'), video = document.getElementById('cameraVideo');
             overlay.classList.add('open');
-            try { cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 960 }, height: { ideal: 720 } } }); video.srcObject = cameraStream; } 
-            catch (err) { alert('Could not access camera: ' + err.message); closeCamera(); }
+            
+            try { 
+                cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'environment', 
+                        width: { ideal: 1920 }, // High resolution for better OCR
+                        height: { ideal: 1080 } 
+                    } 
+                }); 
+                video.srcObject = cameraStream; 
+                
+                // Attempt to apply continuous autofocus if the hardware supports it
+                try {
+                    const track = cameraStream.getVideoTracks()[0];
+                    const capabilities = track.getCapabilities();
+                    if (capabilities.focusMode) {
+                        await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
+                    }
+                } catch(e) { console.warn("Focus control not supported"); }
+
+            } catch (err) { 
+                alert('Could not access camera: ' + err.message); 
+                closeCamera(); 
+            }
         }
 
         function closeCamera() {
             document.getElementById('cameraOverlay').classList.remove('open');
             if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
         }
+
+        // Tap-to-Focus visual ring implementation
+        document.getElementById('cameraVideo').addEventListener('click', async (e) => {
+            const ring = document.getElementById('focusRing');
+            ring.style.left = e.clientX + 'px';
+            ring.style.top = e.clientY + 'px';
+            ring.style.display = 'block';
+            
+            // Restart the animation for rapid tapping
+            ring.style.animation = 'none';
+            void ring.offsetWidth; 
+            ring.style.animation = 'focusPulse 0.6s ease-out';
+            
+            setTimeout(() => { ring.style.display = 'none'; }, 600);
+
+            if (cameraStream) {
+                const track = cameraStream.getVideoTracks()[0];
+                try {
+                    // Applying an advanced constraint forces many mobile browsers to re-evaluate hardware autofocus
+                    await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] });
+                } catch(err) { console.log("Manual focus constraint failed"); }
+            }
+        });
 
         function captureCameraFrame() {
             const video = document.getElementById('cameraVideo'), canvas = document.getElementById('cameraCanvas');
