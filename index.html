@@ -507,7 +507,6 @@
                 <div style="display:flex; align-items:center; gap: 0.75rem; overflow: hidden;">
                     <div class="driver-avatar-img" id="sidebarUserPic" style="width: 32px; height: 32px; background:var(--accent-color); color:#000; font-weight:800; font-size:0.8rem; border:none; flex-shrink: 0;">?</div>
                     <div style="overflow: hidden;">
-                        <!-- REMOVED data-i18n from below elements so they stop saying "Guest User" on language toggle -->
                         <h4 id="sidebarUserName" style="color:#fff; font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest User</h4>
                         <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Not signed in</p>
                     </div>
@@ -799,25 +798,26 @@
                 <div class="modal-data-blocks-grid">
                     <div class="modal-slate-cell"><span data-i18n="Full Legal Name">Full Legal Name</span><p id="modalDataName">--</p></div>
                     <div class="modal-slate-cell"><span data-i18n="Iqama/National ID">Iqama/National ID</span><p id="modalDataIqama">--</p></div>
-                    <div class="modal-slate-cell"><span data-i18n="Primary Vehicle Plate">Primary Vehicle Plate</span><div class="modal-plate-capsules" id="modalDataPlate"><div class="modal-plate-tag">--</div></div></div>
+                    <div class="modal-slate-cell" id="modalDataPlateCell"><span data-i18n="Primary Vehicle Plate">Primary Vehicle Plate</span><div class="modal-plate-capsules" id="modalDataPlate"><div class="modal-plate-tag">--</div></div></div>
                     <div class="modal-slate-cell"><span data-i18n="Mobile Number">Mobile Number</span><p id="modalDataMobile">--</p></div>
                     <div class="modal-slate-cell"><span data-i18n="Registered Date">Registered Date</span><p id="modalDataDate">--</p></div>
-                    <div class="modal-slate-cell"><span data-i18n="ID Token Reference">ID Token Reference</span><p style="font-family: monospace; font-size: 0.85rem; color: var(--accent-color);">d-k4v21l788</p></div>
+                    <div class="modal-slate-cell"><span data-i18n="ID Token Reference">ID Token Reference</span><p id="modalDataToken" style="font-family: monospace; font-size: 0.85rem; color: var(--accent-color);">d-k4v21l788</p></div>
                 </div>
             </div>
             <div class="modal-footer-container"><button class="btn-modal-cancel" onclick="closeDriverProfileModal()" data-i18n="Close Window">Close Window</button></div>
         </div>
     </div>
 
-    <!-- EDIT DRIVER MODAL -->
+    <!-- EDIT DRIVER / GUARD MODAL -->
     <div class="modal-overlay" id="editDriverModal">
         <div class="modal-window" style="max-width: 500px;">
-            <div class="modal-header-container"><h2 data-i18n="Edit Driver Record">Edit Driver Record</h2><button class="btn-modal-close" onclick="closeEditDriverModal()">✕</button></div>
+            <div class="modal-header-container"><h2 id="editModalTitle" data-i18n="Edit Driver Record">Edit Driver Record</h2><button class="btn-modal-close" onclick="closeEditDriverModal()">✕</button></div>
             <div class="modal-body-content">
                 <input type="hidden" id="editOriginalName">
-                <div class="form-group"><label class="badge-style" data-i18n="Driver Name *">Driver Name</label><input type="text" id="editName" class="input-box-styled"></div>
-                <div class="form-group"><label class="badge-style" data-i18n="Iqama Number *">Iqama Number</label><input type="text" id="editIqama" class="input-box-styled"></div>
-                <div class="form-group"><label class="badge-style" data-i18n="Truck Plate Number *">Plate Number</label><input type="text" id="editPlate" class="input-box-styled"></div>
+                <input type="hidden" id="editRecordType" value="driver">
+                <div class="form-group"><label id="editLabelName" class="badge-style" data-i18n="Driver Name *">Driver Name</label><input type="text" id="editName" class="input-box-styled"></div>
+                <div class="form-group"><label id="editLabelId" class="badge-style" data-i18n="Iqama Number *">Iqama Number</label><input type="text" id="editIqama" class="input-box-styled"></div>
+                <div class="form-group" id="editPlateGroup"><label class="badge-style" data-i18n="Truck Plate Number *">Plate Number</label><input type="text" id="editPlate" class="input-box-styled"></div>
                 <div class="form-group"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="editPhone" class="input-box-styled"></div>
             </div>
             <div class="modal-footer-container">
@@ -1331,22 +1331,37 @@
             }, 100);
         }
 
-        function openDriverProfileModal(name, iqama, plate, date, phone) {
+        function openDriverProfileModal(name, iqama, plate, date, phone, isGuard = false) {
             document.getElementById('modalDataName').innerText = name;
             document.getElementById('modalDataIqama').innerText = iqama;
             document.getElementById('modalDataDate').innerText = date;
             document.getElementById('modalDataMobile').innerText = phone || '--';
-            let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
-            let segments = plate ? plate.split(' ') : ['--'];
-            segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
+            
+            let titleEl = document.getElementById('modalTitleName');
+            let plateCell = document.getElementById('modalDataPlateCell');
+            let tokenEl = document.getElementById('modalDataToken');
+
+            if (isGuard) {
+                titleEl.innerText = tr("Security Guard Details") || "Security Guard Details";
+                plateCell.style.display = 'none';
+                tokenEl.innerText = "s-" + Math.random().toString(36).substr(2, 9);
+            } else {
+                titleEl.innerText = tr("Driver Details");
+                plateCell.style.display = 'block';
+                tokenEl.innerText = "d-k4v21l788";
+                
+                let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
+                let segments = plate ? plate.split(' ') : ['--'];
+                segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
+            }
             
             // Load custom image if available
             const viewport = document.getElementById('modalMediaViewport');
-            const savedImage = localStorage.getItem('SLP_IMG_' + name.trim().toUpperCase());
+            const lookupKey = isGuard ? 'SLP_GUARD_IMG_' : 'SLP_IMG_';
+            const savedImage = localStorage.getItem(lookupKey + name.trim().toUpperCase());
             if (savedImage) {
                 viewport.style.backgroundImage = `url('${savedImage}')`;
             } else {
-                // Default placeholder
                 viewport.style.backgroundImage = `url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800')`;
             }
 
@@ -1355,13 +1370,35 @@
         
         function closeDriverProfileModal() { document.getElementById('driverProfileModal').classList.remove('modal-active'); }
 
-        /* --- DRIVER EDIT MODAL LOGIC --- */
-        function openEditDriverModal(name, iqama, plate, phone) {
+        /* --- DRIVER & GUARD EDIT MODAL LOGIC --- */
+        function openEditDriverModal(name, iqama, plate, phone, isGuard = false) {
             document.getElementById('editOriginalName').value = name;
             document.getElementById('editName').value = name;
             document.getElementById('editIqama').value = iqama;
-            document.getElementById('editPlate').value = plate;
             document.getElementById('editPhone').value = phone;
+            
+            let titleEl = document.getElementById('editModalTitle');
+            let labelName = document.getElementById('editLabelName');
+            let labelId = document.getElementById('editLabelId');
+            let plateGroup = document.getElementById('editPlateGroup');
+            let typeInput = document.getElementById('editRecordType');
+
+            if (isGuard) {
+                titleEl.innerText = tr("Edit Guard Record") || "Edit Guard Record";
+                labelName.innerText = tr("Security Name *");
+                labelId.innerText = tr("Security ID *");
+                plateGroup.style.display = 'none';
+                typeInput.value = "guard";
+                document.getElementById('editPlate').value = '';
+            } else {
+                titleEl.innerText = tr("Edit Driver Record");
+                labelName.innerText = tr("Driver Name *");
+                labelId.innerText = tr("Iqama Number *");
+                plateGroup.style.display = 'block';
+                typeInput.value = "driver";
+                document.getElementById('editPlate').value = plate;
+            }
+
             document.getElementById('editDriverModal').classList.add('modal-active');
         }
 
@@ -1375,27 +1412,36 @@
             const newIqama = document.getElementById('editIqama').value;
             const newPlate = document.getElementById('editPlate').value;
             const newPhone = document.getElementById('editPhone').value;
+            const recordType = document.getElementById('editRecordType').value;
             
-            // Migrate stored image if name changes
             const oldKey = oldName.trim().toUpperCase();
             const newKey = newName.trim().toUpperCase();
+            const lookupKey = (recordType === 'guard') ? 'SLP_GUARD_IMG_' : 'SLP_IMG_';
+
             if (oldKey !== newKey) {
-                const existingImg = localStorage.getItem('SLP_IMG_' + oldKey);
+                const existingImg = localStorage.getItem(lookupKey + oldKey);
                 if (existingImg) {
                     try {
-                        localStorage.setItem('SLP_IMG_' + newKey, existingImg);
-                        localStorage.removeItem('SLP_IMG_' + oldKey);
+                        localStorage.setItem(lookupKey + newKey, existingImg);
+                        localStorage.removeItem(lookupKey + oldKey);
                     } catch(e) { console.warn("Storage full."); }
                 }
             }
             
-            // Optimistically update all occurrences of this driver in the local cache
+            // Optimistically update caches based on context
             globalLogsCache.forEach(log => {
-                if (log.driverName === oldName) {
-                    log.driverName = newName;
-                    log.iqamaNumber = newIqama;
-                    log.plateNumber = newPlate;
-                    log.mobileNumber = newPhone;
+                if (recordType === 'guard') {
+                    if (log.securityName === oldName) {
+                        log.securityName = newName;
+                        log.securityId = newIqama;
+                    }
+                } else {
+                    if (log.driverName === oldName) {
+                        log.driverName = newName;
+                        log.iqamaNumber = newIqama;
+                        log.plateNumber = newPlate;
+                        log.mobileNumber = newPhone;
+                    }
                 }
             });
             
@@ -1404,9 +1450,17 @@
         }
 
         function deleteDriver() {
-            const driverName = document.getElementById('editOriginalName').value;
-            if (confirm(tr("Are you sure you want to delete this driver?"))) {
-                globalLogsCache = globalLogsCache.filter(log => log.driverName !== driverName);
+            const oldName = document.getElementById('editOriginalName').value;
+            const recordType = document.getElementById('editRecordType').value;
+            
+            const confirmMsg = (recordType === 'guard') ? "Are you sure you want to delete this guard?" : "Are you sure you want to delete this driver?";
+            
+            if (confirm(tr(confirmMsg) || confirmMsg)) {
+                if (recordType === 'guard') {
+                    globalLogsCache = globalLogsCache.filter(log => log.securityName !== oldName);
+                } else {
+                    globalLogsCache = globalLogsCache.filter(log => log.driverName !== oldName);
+                }
                 window.handleLogsResponse(globalLogsCache);
                 closeEditDriverModal();
             }
@@ -1998,10 +2052,10 @@
                 let dateFormatted = fmtDate(driver.registered);
                 container.innerHTML += `
                     <div class="driver-registry-card" data-search-blob="${driver.name.toLowerCase()} ${(driver.plate || '').toLowerCase()}">
-                        <div class="card-management-actions"><button class="btn-icon-manage" onclick="openEditDriverModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${driver.phone}')">✏️</button></div>
+                        <div class="card-management-actions"><button class="btn-icon-manage" onclick="openEditDriverModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${driver.phone}', false)">✏️</button></div>
                         <div class="driver-card-header"><div class="driver-avatar-img">👤</div><div class="driver-meta"><h3>${driver.name}</h3><div class="driver-badges"><span class="tag-badge verified">${tr('Verified')}</span><span class="tag-badge carrier">${tr('SLP')}</span></div></div></div>
                         <div class="driver-card-info-grid"><div class="info-block"><p>🆔 ${tr('Iqama/National ID')}</p><data>${driver.id}</data></div><div class="info-block"><p>📅 ${tr('Registered Date')}</p><data>${dateFormatted}</data></div><div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 ${tr('Mobile Number')}</p><data>${driver.phone}</data></div></div>
-                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${dateFormatted}', '${driver.phone}')">${tr('View Records')}</button>
+                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name.replace(/'/g, "\\'")}', '${driver.id}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${dateFormatted}', '${driver.phone}', false)">${tr('View Records')}</button>
                     </div>`;
             });
         }
@@ -2024,7 +2078,8 @@
                     uniqueMap[item.securityName] = {
                         name: item.securityName,
                         id: item.securityId || "--",
-                        registered: item.timestamp
+                        registered: item.timestamp,
+                        phone: item.mobileNumber || "--" // Auto fallback tracking if available
                     };
                 }
             });
@@ -2041,17 +2096,25 @@
                 let dateFormatted = fmtDate(guard.registered);
                 container.innerHTML += `
                     <div class="driver-registry-card security-card" data-search-blob="${guard.name.toLowerCase()} ${(guard.id || '').toLowerCase()}">
+                        <div class="card-management-actions">
+                            <button class="btn-icon-manage" onclick="openEditDriverModal('${guard.name.replace(/'/g, "\\'")}', '${guard.id}', '', '${guard.phone}', true)">✏️</button>
+                        </div>
                         <div class="driver-card-header">
                             <div class="driver-avatar-img" style="background: rgba(56, 139, 253, 0.15); color: #79c0ff; border-color: rgba(56, 139, 253, 0.3);">🛡️</div>
                             <div class="driver-meta">
                                 <h3>${guard.name}</h3>
-                                <div class="driver-badges"><span class="tag-badge carrier">${tr('Guard')}</span></div>
+                                <div class="driver-badges">
+                                    <span class="tag-badge verified">${tr('Verified')}</span>
+                                    <span class="tag-badge carrier" style="background: rgba(163, 113, 247, 0.15); color: #d2a8ff; border: 1px solid rgba(163, 113, 247, 0.3);">${tr('Guard')}</span>
+                                </div>
                             </div>
                         </div>
                         <div class="driver-card-info-grid">
                             <div class="info-block"><p>🆔 ${tr('Security ID *').replace(' *', '')}</p><data>${guard.id}</data></div>
                             <div class="info-block"><p>📅 ${tr('Registered Date')}</p><data>${dateFormatted}</data></div>
+                            <div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 ${tr('Mobile Number')}</p><data>${guard.phone}</data></div>
                         </div>
+                        <button class="btn-card-action" onclick="openDriverProfileModal('${guard.name.replace(/'/g, "\\'")}', '${guard.id}', '', '${dateFormatted}', '${guard.phone}', true)">${tr('View Records')}</button>
                     </div>`;
             });
         }
