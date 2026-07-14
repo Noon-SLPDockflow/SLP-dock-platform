@@ -79,7 +79,7 @@
         }
         .sidebar-close-btn:hover { color: var(--accent-color); }
 
-        .btn-floating-toggle {
+        #floatingOpenBtn {
             position: fixed; 
             top: 1.5rem; 
             left: 1.5rem; 
@@ -90,7 +90,7 @@
             padding: 0.6rem 0.85rem; 
             border-radius: 6px; 
             cursor: pointer; 
-            display: none; /* Shown via JS */
+            display: none; 
             align-items: center; 
             gap: 0.5rem; 
             font-weight: 700; 
@@ -98,7 +98,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
             transition: all 0.2s;
         }
-        .btn-floating-toggle:hover {
+        #floatingOpenBtn:hover {
             border-color: var(--accent-color);
             background: var(--card-bg);
         }
@@ -131,8 +131,10 @@
         html[dir="rtl"] .card-management-actions { right: auto; left: 1.5rem; }
         html[dir="rtl"] th, html[dir="rtl"] td { text-align: right; }
         html[dir="rtl"] .btn-modal-cancel { margin-right: 0 !important; margin-left: 1rem !important; }
-        html[dir="rtl"] #floatingOpenBtn { left: auto; right: 1.5rem; }
-        html[dir="rtl"] #langToggleBtn { right: auto; left: 1.5rem; }
+        
+        /* Fixed RTL Floating Menu Button */
+        html[dir="rtl"] #floatingOpenBtn { left: auto !important; right: 1.5rem !important; }
+        
         html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
         
         /* RTL Overrides for Navigation Arrows */
@@ -189,6 +191,7 @@
 
         .dashboard-hero { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4rem 1.5rem 3rem 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; position: relative; backdrop-filter: blur(10px); }
         .hero-badges-wrapper { position: absolute; top: 1.5rem; left: 1.5rem; display: flex; gap: 1rem; }
+        html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
         .hero-badge { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-color); font-family: monospace; text-transform: uppercase; }
         .hero-title-box { margin-top: 1rem; text-align: center; }
         .hero-title-box h1 { font-size: 3.5rem; font-weight: 900; color: #fff; letter-spacing: 1px; margin-bottom: 0.25rem; text-shadow: 0 0 50px rgba(252, 194, 0, 0.2); }
@@ -417,12 +420,10 @@
 </head>
 <body>
 
-    <!-- TOGGLE BUTTONS FOR SIDEBAR AND ARABIC -->
-    <button id="floatingOpenBtn" class="btn-floating-toggle" style="top: 1.5rem; left: 1.5rem;" onclick="toggleSidebar()" title="Menu">
+    <!-- FLOATING MENU BUTTON (ONLY VISIBLE WHEN SIDEBAR IS HIDDEN) -->
+    <button id="floatingOpenBtn" onclick="toggleSidebar()" title="Menu">
         <span style="color:var(--accent-color); font-size:1.2rem;">☰</span> <span data-i18n="Menu">Menu</span>
     </button>
-    
-    <button id="langToggleBtn" class="btn-floating-toggle" style="display: flex; top: 1.5rem; right: 1.5rem; left: auto; z-index: 1000;" onclick="toggleLang()">🌐 EN / AR</button>
 
     <!-- CUSTOM INTRO SCREEN OVERLAY -->
     <div id="introOverlay" class="intro-overlay">
@@ -497,6 +498,12 @@
                 <div><span data-i18n="System Health">System Health</span><div data-i18n="Operational" style="font-weight:700; color:var(--success-color); margin-top:2px;">Operational</div></div>
                 <div class="health-dot"></div>
             </div>
+            
+            <!-- TRANSLATION TOGGLE MOVED TO SIDEBAR -->
+            <div class="nav-item" onclick="toggleLang()">
+                <span class="nav-icon">🌐</span><span class="nav-text" data-i18n="Language: EN / AR">Language: EN / AR</span>
+            </div>
+            
             <div class="nav-item" onclick="toggleFullscreen()">
                 <span class="nav-icon" id="fsIcon">🖥️</span><span class="nav-text" id="fsBtnLabel" data-i18n="Fullscreen">Fullscreen</span>
             </div>
@@ -854,6 +861,7 @@
             "Fullscreen": "ملء الشاشة",
             "Exit Fullscreen": "إنهاء ملء الشاشة",
             "Menu": "القائمة",
+            "Language: EN / AR": "اللغة: عربي / EN",
             "SYSTEM ONLINE": "النظام متصل",
             "Active Now": "نشط الآن",
             "Completed Today": "اكتمل اليوم",
