@@ -497,14 +497,19 @@
             <li class="nav-item" id="nav-drivers" onclick="switchView('drivers', this)">
                 <span class="nav-icon">🪪</span><span class="nav-text" data-i18n="Drivers Database">Drivers Database</span>
             </li>
+            <!-- NEW SECURITY GUARD NAV LINK -->
+            <li class="nav-item" id="nav-security" onclick="switchView('security', this)">
+                <span class="nav-icon">🛡️</span><span class="nav-text" data-i18n="Security Guard Database">Security Guard Database</span>
+            </li>
         </ul>
         <div class="sidebar-footer">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
                 <div style="display:flex; align-items:center; gap: 0.75rem; overflow: hidden;">
                     <div class="driver-avatar-img" id="sidebarUserPic" style="width: 32px; height: 32px; background:var(--accent-color); color:#000; font-weight:800; font-size:0.8rem; border:none; flex-shrink: 0;">?</div>
                     <div style="overflow: hidden;">
-                        <h4 id="sidebarUserName" style="color:#fff; font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-i18n="Guest User">Guest User</h4>
-                        <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" data-i18n="Not signed in">Not signed in</p>
+                        <!-- REMOVED data-i18n from below elements so they stop saying "Guest User" on language toggle -->
+                        <h4 id="sidebarUserName" style="color:#fff; font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest User</h4>
+                        <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Not signed in</p>
                     </div>
                 </div>
             </div>
@@ -514,7 +519,6 @@
                 <div class="health-dot"></div>
             </div>
             
-            <!-- TRANSLATION TOGGLE MOVED TO SIDEBAR -->
             <div class="nav-item" onclick="toggleLang()">
                 <span class="nav-icon">🌐</span><span class="nav-text" data-i18n="Language: EN / AR">Language: EN / AR</span>
             </div>
@@ -768,6 +772,22 @@
             </div>
             <div class="drivers-grid" id="driversRegistryContainer"></div>
         </div>
+
+        <!-- NEW SECURITY GUARD DATABASE VIEW -->
+        <div id="view-security" class="app-view">
+            <div class="view-header-row">
+                <div class="view-header-title">
+                    <h1 data-i18n="Security Guard Database">Security Guard Database</h1>
+                    <p data-i18n="Centralized registry of security personnel.">Centralized registry of security personnel.</p>
+                </div>
+                <div class="header-search-box-container" style="width: 320px;">
+                    <span>🔍</span>
+                    <input type="text" id="securityRegistrySearch" class="header-search-input" data-i18n="Search guards..." placeholder="Search name or ID..." oninput="filterSecurityCards()">
+                </div>
+            </div>
+            <div class="drivers-grid" id="securityRegistryContainer"></div>
+        </div>
+
     </div>
 
     <!-- DRIVER PROFILE MODAL -->
@@ -853,6 +873,7 @@
         
         let globalLogsCache = [];
         let driversRegistryList = [];
+        let securityRegistryList = []; // NEW SECURITY LIST
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
         let temporaryCapturedImage = null;
@@ -869,6 +890,11 @@
             "Active Trucks": "الشاحنات النشطة",
             "History Log": "سجل الحركة",
             "Drivers Database": "قاعدة بيانات السائقين",
+            // NEW SECURITY TRANSLATIONS
+            "Security Guard Database": "قاعدة بيانات حراس الأمن",
+            "Centralized registry of security personnel.": "سجل مركزي لموظفي الأمن.",
+            "Search guards...": "البحث عن حراس...",
+            
             "Noon": "نون",
             "Dock Security Platform": "منصة أمن الأرصفة",
             "Guest User": "مستخدم ضيف",
@@ -1020,6 +1046,23 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             updateUIStrings();
+            
+            // Auto-fill listeners for Security database 
+            document.getElementById('securityNameField').addEventListener('input', function() {
+                if(!securityRegistryList) return;
+                let match = securityRegistryList.find(g => g.name.toLowerCase() === this.value.toLowerCase().trim());
+                if (match && match.id !== '--') {
+                    document.getElementById('securityNameId').value = match.id;
+                }
+            });
+
+            document.getElementById('securityNameId').addEventListener('input', function() {
+                if(!securityRegistryList) return;
+                let match = securityRegistryList.find(g => g.id.toLowerCase() === this.value.toLowerCase().trim());
+                if (match && match.name !== '--') {
+                    document.getElementById('securityNameField').value = match.name;
+                }
+            });
         });
 
         // 12-Hour Auto Logout Check
@@ -1114,9 +1157,11 @@
             // Apply Role-Based Access Control (RBAC) to the UI
             if (userRole === 'guard') {
                 if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'none';
+                if(document.getElementById('nav-security')) document.getElementById('nav-security').style.display = 'none';
                 if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'none';
             } else {
                 if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'flex';
+                if(document.getElementById('nav-security')) document.getElementById('nav-security').style.display = 'flex';
                 if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'block';
             }
 
@@ -1199,9 +1244,11 @@
 
                 if (userRole === 'guard') {
                     if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'none';
+                    if(document.getElementById('nav-security')) document.getElementById('nav-security').style.display = 'none';
                     if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'none';
                 } else {
                     if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'flex';
+                    if(document.getElementById('nav-security')) document.getElementById('nav-security').style.display = 'flex';
                     if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'block';
                 }
 
@@ -1961,7 +2008,59 @@
 
         function filterRegistryCards() {
             let query = document.getElementById('driverRegistrySearch').value.toLowerCase();
-            document.querySelectorAll('.driver-registry-card').forEach(card => { card.style.display = card.getAttribute('data-search-blob').includes(query) ? 'flex' : 'none'; });
+            document.querySelectorAll('.driver-registry-card:not(.security-card)').forEach(card => { card.style.display = card.getAttribute('data-search-blob').includes(query) ? 'flex' : 'none'; });
+        }
+
+        /* ---------------- Security Cards Rendering ---------------- */
+        function compileSecurityRegistryCards(data) {
+            const container = document.getElementById('securityRegistryContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            let uniqueMap = {};
+            data.forEach(item => {
+                if (!item.securityName || item.securityName.trim() === "" || item.securityName === "Unknown") return;
+                if (!uniqueMap[item.securityName]) {
+                    uniqueMap[item.securityName] = {
+                        name: item.securityName,
+                        id: item.securityId || "--",
+                        registered: item.timestamp
+                    };
+                }
+            });
+            
+            let list = Object.values(uniqueMap);
+            securityRegistryList = list;
+
+            if (list.length === 0) {
+                container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:3rem; font-size:0.8rem;">${tr('No personnel maps cataloged.')}</div>`;
+                return;
+            }
+
+            list.forEach(guard => {
+                let dateFormatted = fmtDate(guard.registered);
+                container.innerHTML += `
+                    <div class="driver-registry-card security-card" data-search-blob="${guard.name.toLowerCase()} ${(guard.id || '').toLowerCase()}">
+                        <div class="driver-card-header">
+                            <div class="driver-avatar-img" style="background: rgba(56, 139, 253, 0.15); color: #79c0ff; border-color: rgba(56, 139, 253, 0.3);">🛡️</div>
+                            <div class="driver-meta">
+                                <h3>${guard.name}</h3>
+                                <div class="driver-badges"><span class="tag-badge carrier">${tr('Guard')}</span></div>
+                            </div>
+                        </div>
+                        <div class="driver-card-info-grid">
+                            <div class="info-block"><p>🆔 ${tr('Security ID *').replace(' *', '')}</p><data>${guard.id}</data></div>
+                            <div class="info-block"><p>📅 ${tr('Registered Date')}</p><data>${dateFormatted}</data></div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function filterSecurityCards() {
+            let query = document.getElementById('securityRegistrySearch').value.toLowerCase();
+            document.querySelectorAll('.security-card').forEach(card => {
+                card.style.display = card.getAttribute('data-search-blob').includes(query) ? 'flex' : 'none';
+            });
         }
 
         /* ---------------- Tables Rendering & Filters ---------------- */
@@ -2074,6 +2173,7 @@
             if(activeBody) activeBody.innerHTML = '';
 
             compileDriversRegistryCards(chronData);
+            compileSecurityRegistryCards(chronData); // COMPILING THE NEW SECURITY DATABASE
             
             if(chronData.length === 0) { renderHistoryTable([]); return; }
             document.getElementById('metric-total-checkins').innerText = chronData.length;
@@ -2289,14 +2389,14 @@
         }
         
         function swipeNext() {
-            const views = ['dashboard', 'checkin', 'active-trucks', 'history', 'drivers'];
+            const views = ['dashboard', 'checkin', 'active-trucks', 'history', 'drivers', 'security'];
             let activeView = document.querySelector('.app-view.active-view');
             if(!activeView) return;
             let currentId = activeView.id.replace('view-', '');
             let currentIndex = views.indexOf(currentId);
             
             let nextIndex = currentIndex + 1;
-            let maxIndex = (userRole === 'admin') ? 4 : 3;
+            let maxIndex = (userRole === 'admin') ? 5 : 3;
             
             if (nextIndex <= maxIndex) {
                 let navItems = document.querySelectorAll('.nav-links .nav-item');
@@ -2305,7 +2405,7 @@
         }
         
         function swipePrev() {
-            const views = ['dashboard', 'checkin', 'active-trucks', 'history', 'drivers'];
+            const views = ['dashboard', 'checkin', 'active-trucks', 'history', 'drivers', 'security'];
             let activeView = document.querySelector('.app-view.active-view');
             if(!activeView) return;
             let currentId = activeView.id.replace('view-', '');
