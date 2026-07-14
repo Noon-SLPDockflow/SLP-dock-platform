@@ -1001,7 +1001,12 @@
             const emailInput = document.getElementById('loginEmail').value.trim();
 
             if(!nameInput || !emailInput) {
-                alert("Please enter your Full Name and Noon ID/Email to authorize access.");
+                alert("Please enter your Full Name and Noon Email to authorize access.");
+                return;
+            }
+
+            if(!emailInput.toLowerCase().endsWith('noon.com')) {
+                alert("Access Denied. Only valid noon.com accounts are permitted.");
                 return;
             }
 
