@@ -136,6 +136,7 @@
         html[dir="rtl"] #floatingOpenBtn { left: auto !important; right: 1.5rem !important; }
         
         html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
+        html[dir="rtl"] .dropdown-arrow-icon { right: auto !important; left: 12px !important; }
         
         /* RTL Overrides for Navigation Arrows */
         html[dir="rtl"] .nav-prev-btn { left: auto; right: calc(260px + 10px); transform: translateY(-50%) rotate(180deg); }
@@ -379,10 +380,13 @@
 
         .suggestions-dropdown { position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: #161b22; border: 1px solid var(--border-color); border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 50; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
         .suggestions-dropdown.open { display: block; }
-        .suggestion-item { padding: 0.75rem 1rem; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid var(--border-color); }
+        .suggestion-item { padding: 0.75rem 1rem; cursor: pointer; font-size: 0.85rem; border-bottom: 1px solid var(--border-color); color: #fff; }
         .suggestion-item:last-child { border-bottom: none; }
         .suggestion-item:hover { background: rgba(252, 194, 0, 0.1); }
         .suggestion-item small { display: block; color: var(--text-muted); font-size: 0.7rem; margin-top: 4px; }
+
+        .dropdown-arrow-icon { position:absolute; right:12px; top:42px; color:var(--text-muted); font-size:0.8rem; pointer-events:none; }
+        html[dir="rtl"] .dropdown-arrow-icon { right: auto; left: 12px; }
 
         .camera-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; padding: 1rem; }
         .camera-overlay.open { display: flex; }
@@ -497,7 +501,6 @@
             <li class="nav-item" id="nav-drivers" onclick="switchView('drivers', this)">
                 <span class="nav-icon">🪪</span><span class="nav-text" data-i18n="Drivers Database">Drivers Database</span>
             </li>
-            <!-- NEW SECURITY GUARD NAV LINK -->
             <li class="nav-item" id="nav-security" onclick="switchView('security', this)">
                 <span class="nav-icon">🛡️</span><span class="nav-text" data-i18n="Security Guard Database">Security Guard Database</span>
             </li>
@@ -662,8 +665,6 @@
                             
                             <!-- DATALISTS FOR AUTOCOMPLETE -->
                             <datalist id="dl-docks"></datalist>
-                            <datalist id="dl-sec-names"></datalist>
-                            <datalist id="dl-sec-ids"></datalist>
 
                             <div class="form-group search-input-wrapper" id="driverLookupGroup" style="display: none; grid-column: 1 / -1; position: relative;">
                                 <label class="badge-style" data-i18n="Search Driver By Name or Plate... *">Search Driver By Name or Plate... *</label>
@@ -678,8 +679,17 @@
                             
                             <div class="form-section-divider" data-i18n="Security & Facility Details">Security & Facility Details</div>
                             
-                            <div class="form-group"><label class="badge-style" data-i18n="Security Name *">Security Name *</label><input type="text" id="securityNameField" class="input-box-styled" list="dl-sec-names" required data-i18n="Security Name *" placeholder="Enter verification guard identity" autocomplete="off"></div>
-                            <div class="form-group"><label class="badge-style" data-i18n="Security ID *">Security ID *</label><input type="text" id="securityNameId" class="input-box-styled" list="dl-sec-ids" required data-i18n="Security ID *" placeholder="Enter staff token number" autocomplete="off"></div>
+                            <div class="form-group" id="securityDropdownWrapper" style="position: relative;">
+                                <label class="badge-style" data-i18n="Security Name *">Security Name *</label>
+                                <input type="text" id="securityNameField" class="input-box-styled" required data-i18n="Security Name *" placeholder="Enter verification guard identity" autocomplete="off">
+                                <span class="dropdown-arrow-icon">▼</span>
+                                <div id="securitySuggestionsList" class="suggestions-dropdown"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="badge-style" data-i18n="Security ID *">Security ID *</label>
+                                <input type="text" id="securityNameId" class="input-box-styled" required data-i18n="Security ID *" placeholder="Enter staff token number (e.g. LP0023)" autocomplete="off">
+                            </div>
                             
                             <div class="form-group"><label class="badge-style" data-i18n="Dock Number *">Dock Number *</label>
                                 <input type="text" id="dockNumber" class="input-box-styled" list="dl-docks" required data-i18n="Dock Number *" placeholder="e.g. 25 or Dock 4" autocomplete="off">
@@ -772,7 +782,7 @@
             <div class="drivers-grid" id="driversRegistryContainer"></div>
         </div>
 
-        <!-- NEW SECURITY GUARD DATABASE VIEW -->
+        <!-- SECURITY GUARD DATABASE VIEW -->
         <div id="view-security" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title">
@@ -789,7 +799,7 @@
 
     </div>
 
-    <!-- DRIVER PROFILE MODAL -->
+    <!-- DRIVER/GUARD PROFILE MODAL -->
     <div class="modal-overlay" id="driverProfileModal">
         <div class="modal-window">
             <div class="modal-header-container"><h2 id="modalTitleName" data-i18n="Driver Details">Driver Details</h2><button class="btn-modal-close" onclick="closeDriverProfileModal()">✕</button></div>
@@ -797,11 +807,10 @@
                 <div class="modal-media-viewport" id="modalMediaViewport"></div>
                 <div class="modal-data-blocks-grid">
                     <div class="modal-slate-cell"><span data-i18n="Full Legal Name">Full Legal Name</span><p id="modalDataName">--</p></div>
-                    <div class="modal-slate-cell"><span data-i18n="Iqama/National ID">Iqama/National ID</span><p id="modalDataIqama">--</p></div>
+                    <div class="modal-slate-cell"><span id="modalLabelIqama" data-i18n="Iqama/National ID">Iqama/National ID</span><p id="modalDataIqama">--</p></div>
                     <div class="modal-slate-cell" id="modalDataPlateCell"><span data-i18n="Primary Vehicle Plate">Primary Vehicle Plate</span><div class="modal-plate-capsules" id="modalDataPlate"><div class="modal-plate-tag">--</div></div></div>
                     <div class="modal-slate-cell"><span data-i18n="Mobile Number">Mobile Number</span><p id="modalDataMobile">--</p></div>
                     <div class="modal-slate-cell"><span data-i18n="Registered Date">Registered Date</span><p id="modalDataDate">--</p></div>
-                    <div class="modal-slate-cell"><span data-i18n="ID Token Reference">ID Token Reference</span><p id="modalDataToken" style="font-family: monospace; font-size: 0.85rem; color: var(--accent-color);">d-k4v21l788</p></div>
                 </div>
             </div>
             <div class="modal-footer-container"><button class="btn-modal-cancel" onclick="closeDriverProfileModal()" data-i18n="Close Window">Close Window</button></div>
@@ -873,7 +882,7 @@
         
         let globalLogsCache = [];
         let driversRegistryList = [];
-        let securityRegistryList = []; // NEW SECURITY LIST
+        let securityRegistryList = []; 
         let globalHistoryListCache = [];
         let currentHistoryDateRange = 'all';
         let temporaryCapturedImage = null;
@@ -890,10 +899,10 @@
             "Active Trucks": "الشاحنات النشطة",
             "History Log": "سجل الحركة",
             "Drivers Database": "قاعدة بيانات السائقين",
-            // NEW SECURITY TRANSLATIONS
             "Security Guard Database": "قاعدة بيانات حراس الأمن",
             "Centralized registry of security personnel.": "سجل مركزي لموظفي الأمن.",
             "Search guards...": "البحث عن حراس...",
+            "Noon ID": "هوية نون",
             
             "Noon": "نون",
             "Dock Security Platform": "منصة أمن الأرصفة",
@@ -979,15 +988,17 @@
             "Search name, id, number...": "البحث بالاسم، الهوية، الرقم...",
             "No personnel maps cataloged.": "لا توجد سجلات للموظفين.",
             "Driver Details": "تفاصيل السائق",
+            "Security Guard Details": "تفاصيل حارس الأمن",
             "Full Legal Name": "الاسم القانوني الكامل",
             "Iqama/National ID": "الإقامة / الهوية الوطنية",
             "Primary Vehicle Plate": "لوحة المركبة الأساسية",
             "Registered Date": "تاريخ التسجيل",
-            "ID Token Reference": "مرجع رمز الهوية",
             "Close Window": "إغلاق النافذة",
             "Edit Driver Record": "تعديل سجل السائق",
+            "Edit Guard Record": "تعديل سجل الحارس",
             "Delete": "حذف",
             "Are you sure you want to delete this driver?": "هل أنت متأكد أنك تريد حذف هذا السائق؟",
+            "Are you sure you want to delete this guard?": "هل أنت متأكد أنك تريد حذف هذا الحارس؟",
             "Cancel": "إلغاء",
             "Save Updates": "حفظ التحديثات",
             "Authorize Departure": "تصريح المغادرة",
@@ -1048,14 +1059,6 @@
             updateUIStrings();
             
             // Auto-fill listeners for Security database 
-            document.getElementById('securityNameField').addEventListener('input', function() {
-                if(!securityRegistryList) return;
-                let match = securityRegistryList.find(g => g.name.toLowerCase() === this.value.toLowerCase().trim());
-                if (match && match.id !== '--') {
-                    document.getElementById('securityNameId').value = match.id;
-                }
-            });
-
             document.getElementById('securityNameId').addEventListener('input', function() {
                 if(!securityRegistryList) return;
                 let match = securityRegistryList.find(g => g.id.toLowerCase() === this.value.toLowerCase().trim());
@@ -1339,16 +1342,16 @@
             
             let titleEl = document.getElementById('modalTitleName');
             let plateCell = document.getElementById('modalDataPlateCell');
-            let tokenEl = document.getElementById('modalDataToken');
+            let iqamaLabel = document.getElementById('modalLabelIqama');
 
             if (isGuard) {
-                titleEl.innerText = tr("Security Guard Details") || "Security Guard Details";
+                titleEl.innerText = tr("Security Guard Details");
+                iqamaLabel.innerText = tr("Noon ID");
                 plateCell.style.display = 'none';
-                tokenEl.innerText = "s-" + Math.random().toString(36).substr(2, 9);
             } else {
                 titleEl.innerText = tr("Driver Details");
+                iqamaLabel.innerText = tr("Iqama/National ID");
                 plateCell.style.display = 'block';
-                tokenEl.innerText = "d-k4v21l788";
                 
                 let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
                 let segments = plate ? plate.split(' ') : ['--'];
@@ -1384,7 +1387,7 @@
             let typeInput = document.getElementById('editRecordType');
 
             if (isGuard) {
-                titleEl.innerText = tr("Edit Guard Record") || "Edit Guard Record";
+                titleEl.innerText = tr("Edit Guard Record");
                 labelName.innerText = tr("Security Name *");
                 labelId.innerText = tr("Security ID *");
                 plateGroup.style.display = 'none';
@@ -1500,17 +1503,17 @@
 
         /* ---------------- Existing-driver autocomplete ---------------- */
         const driverSearchBoxEl = document.getElementById('driverSearchBox');
-        const suggestionsListEl = document.getElementById('driverSuggestionsList');
+        const driverSuggestionsListEl = document.getElementById('driverSuggestionsList');
 
         function renderDriverSuggestions(value) {
-            suggestionsListEl.innerHTML = '';
-            if (driversRegistryList.length === 0) { suggestionsListEl.classList.remove('open'); return; }
+            driverSuggestionsListEl.innerHTML = '';
+            if (driversRegistryList.length === 0) { driverSuggestionsListEl.classList.remove('open'); return; }
 
             let matches = driversRegistryList.filter(d => 
                 d.name.toUpperCase().includes(value) || (d.plate || '').toUpperCase().includes(value)
             ).slice(0, 8);
 
-            if (matches.length === 0) { suggestionsListEl.classList.remove('open'); return; }
+            if (matches.length === 0) { driverSuggestionsListEl.classList.remove('open'); return; }
 
             matches.forEach(d => {
                 const item = document.createElement('div');
@@ -1522,11 +1525,11 @@
                     document.getElementById('plateNumber').value = d.plate !== '--' ? d.plate : '';
                     document.getElementById('iqamaNumber').value = d.id !== '--' ? d.id : '';
                     document.getElementById('mobileNumber').value = d.phone !== '--' ? d.phone : '';
-                    suggestionsListEl.classList.remove('open');
+                    driverSuggestionsListEl.classList.remove('open');
                 });
-                suggestionsListEl.appendChild(item);
+                driverSuggestionsListEl.appendChild(item);
             });
-            suggestionsListEl.classList.add('open');
+            driverSuggestionsListEl.classList.add('open');
         }
 
         driverSearchBoxEl.addEventListener('focus', function() {
@@ -1537,8 +1540,54 @@
             renderDriverSuggestions(this.value.toUpperCase().trim());
         });
 
+        /* ---------------- Custom Security Dropdown ---------------- */
+        const secSearchBoxEl = document.getElementById('securityNameField');
+        const secSuggestionsListEl = document.getElementById('securitySuggestionsList');
+
+        function renderSecuritySuggestions(value) {
+            secSuggestionsListEl.innerHTML = '';
+            if (securityRegistryList.length === 0) { secSuggestionsListEl.classList.remove('open'); return; }
+
+            let matches = securityRegistryList;
+            if (value) {
+                matches = securityRegistryList.filter(g => g.name.toUpperCase().includes(value));
+            }
+            matches = matches.slice(0, 20); // Prevent gigantic unscrollable lists
+
+            if (matches.length === 0) { secSuggestionsListEl.classList.remove('open'); return; }
+
+            matches.forEach(g => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.innerHTML = `${g.name}`; 
+                item.addEventListener('click', () => {
+                    secSearchBoxEl.value = g.name;
+                    document.getElementById('securityNameId').value = g.id !== '--' ? g.id : '';
+                    secSuggestionsListEl.classList.remove('open');
+                });
+                secSuggestionsListEl.appendChild(item);
+            });
+            secSuggestionsListEl.classList.add('open');
+        }
+
+        secSearchBoxEl.addEventListener('focus', function() {
+            renderSecuritySuggestions(this.value.toUpperCase().trim());
+        });
+        secSearchBoxEl.addEventListener('click', function() {
+            renderSecuritySuggestions(this.value.toUpperCase().trim());
+        });
+        secSearchBoxEl.addEventListener('input', function() {
+            renderSecuritySuggestions(this.value.toUpperCase().trim());
+        });
+
+        // Global click listener to close custom dropdowns
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-input-wrapper')) suggestionsListEl.classList.remove('open');
+            if (!e.target.closest('.search-input-wrapper')) {
+                driverSuggestionsListEl.classList.remove('open');
+            }
+            if (!e.target.closest('#securityDropdownWrapper')) {
+                secSuggestionsListEl.classList.remove('open');
+            }
         });
 
         function convertArabicNumeralsToDigits(str) {
@@ -2012,23 +2061,11 @@
 
         function populateDatalists(data) {
             let docks = new Set();
-            let secNames = new Set();
-            let secIds = new Set();
-
             data.forEach(r => {
                 if(r.dockNumber) docks.add(r.dockNumber);
-                if(r.securityName) secNames.add(r.securityName);
-                if(r.securityId) secIds.add(r.securityId);
             });
-
             const dlDocks = document.getElementById('dl-docks');
             if(dlDocks) dlDocks.innerHTML = [...docks].sort().map(v => `<option value="${v}">`).join('');
-            
-            const dlSecNames = document.getElementById('dl-sec-names');
-            if(dlSecNames) dlSecNames.innerHTML = [...secNames].sort().map(v => `<option value="${v}">`).join('');
-
-            const dlSecIds = document.getElementById('dl-sec-ids');
-            if(dlSecIds && secIds.size > 0) dlSecIds.innerHTML = [...secIds].sort().map(v => `<option value="${v}">`).join('');
         }
 
         /* ---------------- Driver Cards Rendering ---------------- */
@@ -2110,7 +2147,7 @@
                             </div>
                         </div>
                         <div class="driver-card-info-grid">
-                            <div class="info-block"><p>🆔 ${tr('Security ID *').replace(' *', '')}</p><data>${guard.id}</data></div>
+                            <div class="info-block"><p>🆔 ${tr('Noon ID')}</p><data>${guard.id}</data></div>
                             <div class="info-block"><p>📅 ${tr('Registered Date')}</p><data>${dateFormatted}</data></div>
                             <div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 ${tr('Mobile Number')}</p><data>${guard.phone}</data></div>
                         </div>
@@ -2374,6 +2411,7 @@
                     direction: document.getElementById('direction').value,
                     dispatchType: document.getElementById('dispatchSelect').value,
                     sealNumber: document.getElementById('sealNumber').value,
+                    securityId: document.getElementById('securityNameId').value, // Add new ID to payload if your GAS script expects it
                     actionByEmail: loggedInUser.email,
                     actionByName: loggedInUser.name
                 };
