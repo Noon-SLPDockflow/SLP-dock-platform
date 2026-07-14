@@ -278,7 +278,7 @@
         
         .header-search-box-container { position: relative; width: 280px; }
         .header-search-box-container span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
-        .header-search-input { width: 100%; background: #0d1117; border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 0.6rem 1rem 0.6rem 2.25rem; border-radius: 6px; font-size: 0.85rem; outline: none; }
+        .header-search-input { width: 100%; background: #0b0e14; border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 0.6rem 1rem 0.6rem 2.25rem; border-radius: 6px; font-size: 0.85rem; outline: none; }
         .header-search-input:focus { border-color: var(--accent-color); }
         
         .plate-box-split { display: inline-flex; flex-direction: column; gap: 2px; }
@@ -320,7 +320,7 @@
         .modal-slate-cell p { font-size: 0.95rem; color: #fff; font-weight: 700; }
         .modal-plate-capsules { display: flex; gap: 0.35rem; margin-top: 4px; }
         .modal-plate-tag { background: #000; border: 1px solid var(--border-color); padding: 2px 8px; font-family: monospace; border-radius: 4px; font-size: 0.85rem; font-weight: 700; color: var(--accent-color); }
-        .modal-footer-container { padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; border-radius: 0 0 12px 12px; }
+        .modal-footer-container { padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border-color); display: flex; align-items: center; border-radius: 0 0 12px 12px; }
         .btn-modal-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.6rem 1.5rem; font-size: 0.75rem; font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
 
         .suggestions-dropdown { position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: #161b22; border: 1px solid var(--border-color); border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 50; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
@@ -943,6 +943,17 @@
             updateUIStrings();
         });
 
+        // 12-Hour Auto Logout Check
+        function checkSessionExpiry() {
+            const sessionStr = localStorage.getItem('noonSlpUserSession');
+            if (sessionStr) {
+                const sessionData = JSON.parse(sessionStr);
+                const twelveHours = 12 * 60 * 60 * 1000;
+                if (!sessionData.loginTime || (Date.now() - sessionData.loginTime > twelveHours)) {
+                    logoutUser();
+                }
+            }
+        }
 
         function logoutUser() {
             localStorage.removeItem('noonSlpUserSession');
@@ -1012,7 +1023,8 @@
             localStorage.setItem('noonSlpUserSession', JSON.stringify({
                 name: nameInput,
                 email: emailInput,
-                role: userRole
+                role: userRole,
+                loginTime: Date.now() // Timestap for auto-logout
             }));
 
             // Apply Role-Based Access Control (RBAC) to the UI
@@ -1090,23 +1102,32 @@
         const sessionStr = localStorage.getItem('noonSlpUserSession');
         if (sessionStr) {
             const sessionData = JSON.parse(sessionStr);
-            loggedInUser = { name: sessionData.name, email: sessionData.email, picture: "👤" };
-            userRole = sessionData.role;
-
-            if (userRole === 'guard') {
-                if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'none';
-                if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'none';
+            const twelveHours = 12 * 60 * 60 * 1000;
+            
+            if (!sessionData.loginTime || (Date.now() - sessionData.loginTime > twelveHours)) {
+                // Session Expired
+                localStorage.removeItem('noonSlpUserSession');
+                location.reload();
             } else {
-                if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'flex';
-                if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'block';
+                // Session Active
+                loggedInUser = { name: sessionData.name, email: sessionData.email, picture: "👤" };
+                userRole = sessionData.role;
+
+                if (userRole === 'guard') {
+                    if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'none';
+                    if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'none';
+                } else {
+                    if(document.getElementById('nav-drivers')) document.getElementById('nav-drivers').style.display = 'flex';
+                    if(document.getElementById('btnExportExcel')) document.getElementById('btnExportExcel').style.display = 'block';
+                }
+
+                document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
+                document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
+                document.getElementById('sidebarUserPic').innerText = "👤";
+
+                document.getElementById('introOverlay').style.display = 'none';
+                introActive = false;
             }
-
-            document.getElementById('sidebarUserName').innerText = loggedInUser.name + (userRole === 'admin' ? " (Admin)" : "");
-            document.getElementById('sidebarUserEmail').innerText = loggedInUser.email;
-            document.getElementById('sidebarUserPic').innerText = "👤";
-
-            document.getElementById('introOverlay').style.display = 'none';
-            introActive = false;
         } else {
             initParticles(); 
             animateParticles();
@@ -2067,8 +2088,80 @@
             }
         });
 
+        /* ---------------- SWIPE NAVIGATION LOGIC ---------------- */
+        let touchstartX = 0;
+        let touchstartY = 0;
+        let touchendX = 0;
+        let touchendY = 0;
+
+        const gestureZone = document.getElementById('mainContentArea');
+
+        gestureZone.addEventListener('touchstart', function(event) {
+            touchstartX = event.changedTouches[0].screenX;
+            touchstartY = event.changedTouches[0].screenY;
+        }, {passive: true});
+
+        gestureZone.addEventListener('touchend', function(event) {
+            touchendX = event.changedTouches[0].screenX;
+            touchendY = event.changedTouches[0].screenY;
+            handleGesture(event);
+        }, {passive: true});
+
+        function handleGesture(event) {
+            // Ignore swipe if the user is scrolling inside a table or a dropdown
+            if (event.target.closest('table') || event.target.closest('.suggestions-dropdown')) {
+                return; 
+            }
+
+            const horizontalThreshold = 50; 
+            const verticalThreshold = 50; 
+            
+            if (Math.abs(touchendY - touchstartY) > verticalThreshold) {
+                return; // Ignore vertical scrolling
+            }
+            
+            if (touchendX < touchstartX - horizontalThreshold) {
+                swipeNext(); // Swipe Left -> Next Tab
+            }
+            
+            if (touchendX > touchstartX + horizontalThreshold) {
+                swipePrev(); // Swipe Right -> Prev Tab
+            }
+        }
+        
+        function swipeNext() {
+            const views = ['dashboard', 'checkin', 'active-trucks', 'history', 'drivers'];
+            let activeView = document.querySelector('.app-view.active-view');
+            if(!activeView) return;
+            let currentId = activeView.id.replace('view-', '');
+            let currentIndex = views.indexOf(currentId);
+            
+            let nextIndex = currentIndex + 1;
+            let maxIndex = (userRole === 'admin') ? 4 : 3;
+            
+            if (nextIndex <= maxIndex) {
+                let navItems = document.querySelectorAll('.nav-links .nav-item');
+                switchView(views[nextIndex], navItems[nextIndex]);
+            }
+        }
+        
+        function swipePrev() {
+            const views = ['dashboard', 'checkin', 'active-trucks', 'history', 'drivers'];
+            let activeView = document.querySelector('.app-view.active-view');
+            if(!activeView) return;
+            let currentId = activeView.id.replace('view-', '');
+            let currentIndex = views.indexOf(currentId);
+            
+            let prevIndex = currentIndex - 1;
+            if (prevIndex >= 0) {
+                let navItems = document.querySelectorAll('.nav-links .nav-item');
+                switchView(views[prevIndex], navItems[prevIndex]);
+            }
+        }
+
         setInterval(fetchLogs, 15000);
-        if(!introActive) { fetchLogs(); }
+        setInterval(checkSessionExpiry, 60000); // Check expiry every minute
+        if(!introActive) { fetchLogs(); checkSessionExpiry(); }
     </script>
 </body>
 </html>
