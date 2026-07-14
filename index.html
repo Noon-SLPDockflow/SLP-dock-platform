@@ -113,11 +113,12 @@
         .system-health { background: rgba(46, 160, 67, 0.05); border: 1px dashed rgba(46, 160, 67, 0.3); border-radius: 8px; padding: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; margin-bottom: 0.5rem; }
         .health-dot { width: 8px; height: 8px; background-color: var(--success-color); border-radius: 50%; box-shadow: 0 0 8px var(--success-color); }
 
-        .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 3rem; width: calc(100% - 260px); transition: all 0.3s ease; }
+        .main-content { margin-left: 260px; flex-grow: 1; padding: 2.5rem 3rem; width: calc(100% - 260px); transition: all 0.3s ease; position: relative; }
         .main-content.expanded { margin-left: 0 !important; width: 100% !important; }
 
         /* ------------------ RTL SPECIFIC OVERRIDES ------------------ */
         html[dir="rtl"] .sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--border-color); }
+        html[dir="rtl"] .sidebar.hidden { transform: translateX(100%); }
         html[dir="rtl"] .main-content { margin-left: 0; margin-right: 260px; }
         html[dir="rtl"] .main-content.expanded { margin-right: 0 !important; }
         html[dir="rtl"] .nav-item { border-left: none; border-right: 3px solid transparent; }
@@ -133,7 +134,38 @@
         html[dir="rtl"] #floatingOpenBtn { left: auto; right: 1.5rem; }
         html[dir="rtl"] #langToggleBtn { right: auto; left: 1.5rem; }
         html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
+        
+        /* RTL Overrides for Navigation Arrows */
+        html[dir="rtl"] .nav-prev-btn { left: auto; right: calc(260px + 10px); transform: translateY(-50%) rotate(180deg); }
+        html[dir="rtl"] .main-content.expanded .nav-prev-btn { right: 10px; }
+        html[dir="rtl"] .nav-next-btn { right: auto; left: 10px; transform: translateY(-50%) rotate(180deg); }
         /* ------------------------------------------------------------ */
+
+        /* DESKTOP NAVIGATION BUTTONS */
+        .desktop-nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(18, 22, 31, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+            width: 40px;
+            height: 80px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 900;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.5;
+        }
+        .desktop-nav-btn:hover { background: var(--accent-color); color: #000; border-color: var(--accent-color); opacity: 1; }
+        .nav-prev-btn { left: calc(260px + 10px); transition: left 0.3s ease, right 0.3s ease; }
+        .nav-next-btn { right: 10px; }
+        .main-content.expanded .nav-prev-btn { left: 10px; }
 
         @media (max-width: 900px) {
             .sidebar { width: 75px; padding: 1.5rem 0.5rem; align-items: center; }
@@ -145,6 +177,8 @@
             .nav-item.active { border-left: none; border-bottom: 3px solid var(--accent-color); }
             .nav-icon { font-size: 1.4rem; margin: 0; }
             .main-content { margin-left: 75px; width: calc(100% - 75px); padding: 1.5rem 1rem; }
+            
+            .desktop-nav-btn { display: none !important; } /* Hide PC arrows on mobile/tablet */
 
             html[dir="rtl"] .main-content { margin-right: 75px; margin-left: 0; }
             html[dir="rtl"] .sidebar { transform: translateX(0); }
@@ -155,7 +189,6 @@
 
         .dashboard-hero { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 4rem 1.5rem 3rem 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center; position: relative; backdrop-filter: blur(10px); }
         .hero-badges-wrapper { position: absolute; top: 1.5rem; left: 1.5rem; display: flex; gap: 1rem; }
-        html[dir="rtl"] .hero-badges-wrapper { left: auto; right: 1.5rem; }
         .hero-badge { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-color); font-family: monospace; text-transform: uppercase; }
         .hero-title-box { margin-top: 1rem; text-align: center; }
         .hero-title-box h1 { font-size: 3.5rem; font-weight: 900; color: #fff; letter-spacing: 1px; margin-bottom: 0.25rem; text-shadow: 0 0 50px rgba(252, 194, 0, 0.2); }
@@ -179,10 +212,10 @@
             background: rgba(46, 160, 67, 0.1); 
             border: 1px solid rgba(46, 160, 67, 0.4); 
             color: var(--success-color); 
-            padding: 0.5rem 0.85rem; 
+            padding: 0.75rem 1.25rem; 
             border-radius: 6px; 
             font-weight: 800; 
-            font-size: 0.85rem; 
+            font-size: 1rem; 
             font-family: monospace; 
             display: inline-block; 
             cursor: pointer;
@@ -338,7 +371,7 @@
         .modal-slate-cell p { font-size: 0.95rem; color: #fff; font-weight: 700; }
         .modal-plate-capsules { display: flex; gap: 0.35rem; margin-top: 4px; }
         .modal-plate-tag { background: #000; border: 1px solid var(--border-color); padding: 2px 8px; font-family: monospace; border-radius: 4px; font-size: 0.85rem; font-weight: 700; color: var(--accent-color); }
-        .modal-footer-container { padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border-color); display: flex; align-items: center; border-radius: 0 0 12px 12px; }
+        .modal-footer-container { padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; border-radius: 0 0 12px 12px; }
         .btn-modal-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 0.6rem 1.5rem; font-size: 0.75rem; font-weight: 700; border-radius: 6px; cursor: pointer; text-transform: uppercase; }
 
         .suggestions-dropdown { position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px; background: #161b22; border: 1px solid var(--border-color); border-radius: 6px; max-height: 220px; overflow-y: auto; z-index: 50; display: none; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
@@ -474,6 +507,9 @@
     </div>
 
     <div class="main-content" id="mainContentArea">
+        <button class="desktop-nav-btn nav-prev-btn" onclick="swipePrev()" title="Previous Tab">❮</button>
+        <button class="desktop-nav-btn nav-next-btn" onclick="swipeNext()" title="Next Tab">❯</button>
+        
         <div id="view-dashboard" class="app-view active-view">
             
             <div class="dashboard-hero">
