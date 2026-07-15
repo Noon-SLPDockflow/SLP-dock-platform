@@ -319,7 +319,7 @@
         .modal-header-container h2 { font-size: 1.1rem; color: #fff; font-weight: 700; text-transform: uppercase; }
         .btn-modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
         .modal-body-content { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
-        .modal-media-viewport { width: 100%; height: 210px; border-radius: 6px; background: #161b22 url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800') center/cover no-repeat; border: 1px solid var(--border-color); }
+        .modal-media-viewport { width: 100%; height: 210px; border-radius: 6px; border: 1px solid var(--border-color); display:flex; align-items:center; justify-content:center; }
         .modal-data-blocks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .modal-slate-cell { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: 6px; }
         .modal-slate-cell span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px; }
@@ -1586,11 +1586,18 @@
             let titleEl = document.getElementById('modalTitleName');
             let plateCell = document.getElementById('modalDataPlateCell');
             let iqamaLabel = document.getElementById('modalLabelIqama');
+            const viewport = document.getElementById('modalMediaViewport');
+
+            // Fix image viewing size to prevent cropping
+            viewport.style.backgroundSize = "contain";
+            viewport.style.backgroundPosition = "center";
+            viewport.style.backgroundRepeat = "no-repeat";
 
             if (isGuard) {
                 titleEl.innerText = tr("Security Guard Details");
                 iqamaLabel.innerText = tr("Noon ID");
                 plateCell.style.display = 'none';
+                viewport.style.backgroundImage = `url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800')`;
             } else {
                 titleEl.innerText = tr("Driver Details");
                 iqamaLabel.innerText = tr("Iqama/National ID");
@@ -1599,19 +1606,29 @@
                 let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
                 let segments = plate ? plate.split(' ') : ['--'];
                 segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
-            }
+                
+                // Show loading placeholder initially
+                viewport.style.backgroundImage = `none`;
+                viewport.innerHTML = `<div id="photoLoader" style="color:var(--accent-color); text-align:center; padding-top:80px; font-weight:bold;">Loading Photo...</div>`;
 
-            const viewport = document.getElementById('modalMediaViewport');
-            const lookupKey = isGuard ? 'SLP_GUARD_IMG_' : 'SLP_IMG_';
-            const savedImage = localStorage.getItem(lookupKey + name.trim().toUpperCase());
-            
-            // Failsafe rendering for the image
-            if (savedImage && savedImage !== "null" && savedImage.startsWith('data:image')) {
-                viewport.style.backgroundImage = `url("${savedImage}")`;
-                viewport.style.backgroundSize = "cover";
-                viewport.style.backgroundPosition = "center";
-            } else {
-                viewport.style.backgroundImage = `url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800')`;
+                // Set up global callback to receive JSONP data
+                window.handlePhotoResponse = function(res) {
+                    const loader = document.getElementById('photoLoader');
+                    if(loader) loader.style.display = 'none';
+                    if (res && res.image && res.image !== "") {
+                        viewport.style.backgroundImage = `url("${res.image}")`;
+                    } else {
+                        // Fallback image if no photo found in database
+                        viewport.style.backgroundImage = `url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800')`;
+                    }
+                };
+
+                // Fetch directly from the Google Sheet "Photos" database via JSONP
+                const old = document.getElementById('jsonp-photo-fetcher'); if(old) old.remove();
+                const s = document.createElement('script');
+                s.id = 'jsonp-photo-fetcher';
+                s.src = API_URL + "?action=getPhoto&driverName=" + encodeURIComponent(name) + "&callback=handlePhotoResponse&prefix=handlePhotoResponse&_" + new Date().getTime();
+                document.body.appendChild(s);
             }
 
             document.getElementById('driverProfileModal').classList.add('modal-active');
@@ -1664,21 +1681,6 @@
             // Force N/A if left blank by user during an edit
             const newPhone = document.getElementById('editPhone').value.trim() || 'N/A';
             const recordType = document.getElementById('editRecordType').value;
-
-            // Persist Image Renames Locally
-            const oldKey = oldName.trim().toUpperCase();
-            const newKey = newName.trim().toUpperCase();
-            const lookupKey = (recordType === 'guard') ? 'SLP_GUARD_IMG_' : 'SLP_IMG_';
-
-            if (oldKey !== newKey) {
-                const existingImg = localStorage.getItem(lookupKey + oldKey);
-                if (existingImg) {
-                    try {
-                        localStorage.setItem(lookupKey + newKey, existingImg);
-                        localStorage.removeItem(lookupKey + oldKey);
-                    } catch(e) { console.warn("Storage full."); }
-                }
-            }
 
             // OVERRIDE ENGINE: Save this edit locally so it NEVER gets reverted by a server refresh
             let localOverrides = JSON.parse(localStorage.getItem('SLP_OVERRIDES')) || {};
@@ -1872,10 +1874,10 @@
             });
         }
 
-        // NEW: Compress the image for UI without gray scaling it
+        // NEW: Compress the image heavily for Google Sheets DB without gray scaling it
         async function compressImageForProfile(file) {
             const img = await loadImageRobust(file);
-            const maxDim = 500; // Small size for local storage limits
+            const maxDim = 350; // Compressed small enough to easily fit Google Sheets 50,000 char cell limit
             let w = img.width, h = img.height;
             if (w > h) { if (w > maxDim) { h *= maxDim/w; w = maxDim; } }
             else { if (h > maxDim) { w *= maxDim/h; h = maxDim; } }
@@ -1883,7 +1885,7 @@
             canvas.width = Math.round(w); canvas.height = Math.round(h);
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            return new Promise((resolve, reject) => { canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('canvas toBlob failed')), 'image/jpeg', 0.6); });
+            return new Promise((resolve, reject) => { canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('canvas toBlob failed')), 'image/jpeg', 0.5); });
         }
 
         async function preprocessImageForOcr(file, scanType) {
@@ -2998,10 +3000,11 @@
                     sealNumber: document.getElementById('sealNumber').value,
                     securityId: document.getElementById('securityNameId').value,
                     actionByEmail: loggedInUser.email,
-                    actionByName: loggedInUser.name
+                    actionByName: loggedInUser.name,
+                    driverPhoto: temporaryCapturedImage || "" // NEW: Send compressed photo payload!
                 };
 
-                // Save image to local storage tied to driver name
+                // Save image to local storage tied to driver name as a backup
                 if (temporaryCapturedImage) {
                     try {
                         localStorage.setItem('SLP_IMG_' + payload.driverName.trim().toUpperCase(), temporaryCapturedImage);
