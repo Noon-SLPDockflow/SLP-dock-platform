@@ -228,6 +228,23 @@
         .chart-legend li .legend-label-group { display: flex; align-items: center; gap: 8px; }
         .chart-legend li .legend-color-box { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
+        /* Accordion CSS for Grouped Tables */
+        .accordion-wrapper { margin-bottom: 1rem; }
+        .accordion-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
+            cursor: pointer; border-radius: 8px; transition: background 0.2s;
+        }
+        .accordion-header:hover { background: rgba(255,255,255,0.05); }
+        .accordion-title { font-weight: 800; font-size: 0.95rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .accordion-badge { background: var(--card-solid); padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; color: var(--accent-color); border: 1px solid var(--border-color); }
+        .accordion-content {
+            display: none; padding: 0; border: 1px solid var(--border-color); border-top: none;
+            border-radius: 0 0 8px 8px; background: rgba(0,0,0,0.15); overflow-x: auto;
+        }
+        .accordion-content.open { display: block; }
+        .accordion-wrapper.open .accordion-header { border-radius: 8px 8px 0 0; border-bottom: 1px dashed var(--border-color); background: rgba(255,255,255,0.02); }
+
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; backdrop-filter: blur(10px); }
         .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; }
         .card h2 { font-size: 0.95rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; font-weight: 700; }
@@ -605,13 +622,10 @@
                 </div>
             </div>
 
-            <!-- Filtered Log Table without Personal Details -->
-            <div class="card" style="margin-top: 2rem; overflow-x: auto; padding: 1.5rem; background: transparent; border: none;">
+            <!-- Filtered Log Table without Personal Details (Accordion Layout) -->
+            <div class="card" style="margin-top: 2rem; padding: 1.5rem; background: transparent; border: none;">
                 <h3 style="color: #fff; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 1rem;" data-i18n="Filtered Movement Logs">Filtered Movement Logs</h3>
-                <table id="analyticsLogTable">
-                    <thead><tr><th data-i18n="Driver">Driver</th><th data-i18n="Plate">Plate</th><th data-i18n="Direction">Direction</th><th data-i18n="Dock">Dock</th><th data-i18n="Seal Number">Seal Number</th><th data-i18n="Check In Truck">Check In Truck</th><th data-i18n="Check Out">Check Out</th><th data-i18n="Duration">Duration</th><th data-i18n="Security">Security</th></tr></thead>
-                    <tbody id="analyticsLogTableBody"><tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;" data-i18n="No records match this filter.">NO RECORDS MATCH THIS FILTER.</td></tr></tbody>
-                </table>
+                <div id="analyticsGroupedTables"></div>
             </div>
         </div>
 
@@ -872,6 +886,10 @@
         let currentAnalyticsDateRange = 'weekly';
         let temporaryCapturedImage = null;
 
+        // Global Sync Variables for Ops Approval
+        let syncedOpsPending = [];
+        let syncedOpsApproved = [];
+
         // Active User & Role Details 
         let loggedInUser = { name: "Guest User", email: "Not signed in", noonId: "", picture: "" };
         let userRole = 'guard'; // Default role is 'guard'. Admin unlocks special features.
@@ -1065,7 +1083,7 @@
             });
         });
 
-        // Toggle Accordion for Analytics View (Kept for compatibility if used elsewhere, but not in Analytics anymore)
+        // Toggle Accordion for Analytics View
         window.toggleAccordion = function(el) {
             const content = el.nextElementSibling;
             const wrapper = el.parentElement;
@@ -1231,14 +1249,31 @@
                 if(!nameInput || !emailInput) return alert("Please fill all fields to authorize access.");
                 if(!emailInput.toLowerCase().endsWith('noon.com')) return alert("Access Denied. Only valid noon.com accounts are permitted.");
 
-                let approved = JSON.parse(localStorage.getItem('SLP_OPS_APPROVED') || '[]');
-                if (approved.includes(emailInput.toLowerCase())) {
+                // Validate against globally synced approvals (Requires App Script to bounce data back)
+                if (syncedOpsApproved.includes(emailInput.toLowerCase())) {
                     executeLogin(nameInput, emailInput, '', 'ops');
                 } else {
-                    let pending = JSON.parse(localStorage.getItem('SLP_OPS_PENDING') || '[]');
-                    if (!pending.some(p => p.email === emailInput.toLowerCase())) {
-                        pending.push({ name: nameInput, email: emailInput.toLowerCase() });
-                        localStorage.setItem('SLP_OPS_PENDING', JSON.stringify(pending));
+                    if (!syncedOpsPending.some(p => p.email === emailInput.toLowerCase())) {
+                        
+                        // Push standard SYSTEM log through normal endpoint to use Google Sheets as a database
+                        const payload = { 
+                            driverName: "OPS_ACCESS_REQUEST", 
+                            securityName: nameInput, 
+                            actionByEmail: emailInput.toLowerCase(), 
+                            direction: "SYSTEM", 
+                            dockNumber: "0",
+                            iqamaNumber: "N/A",
+                            plateNumber: "N/A",
+                            mobileNumber: "N/A",
+                            dispatchType: "N/A",
+                            sealNumber: "N/A",
+                            securityId: "N/A",
+                            actionByName: nameInput
+                        };
+                        fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+                            .catch(e => console.log(e));
+
+                        syncedOpsPending.push({ name: nameInput, email: emailInput.toLowerCase() });
                     }
                     alert("Access request sent to Admin. Please wait for approval.");
                 }
@@ -1250,18 +1285,17 @@
             }
         });
 
-        /* --- ADMIN NOTIFICATIONS --- */
+        /* --- ADMIN NOTIFICATIONS (NOW SYNCED GLOBALLY) --- */
         function checkAdminNotifications() {
             if (userRole !== 'admin') {
                 document.getElementById('adminBellContainer').style.display = 'none';
                 return;
             }
             document.getElementById('adminBellContainer').style.display = 'block';
-            let pending = JSON.parse(localStorage.getItem('SLP_OPS_PENDING') || '[]');
             const badge = document.getElementById('adminBellBadge');
-            if (pending.length > 0) {
+            if (syncedOpsPending.length > 0) {
                 badge.style.display = 'block';
-                badge.innerText = pending.length;
+                badge.innerText = syncedOpsPending.length;
             } else {
                 badge.style.display = 'none';
             }
@@ -1277,13 +1311,12 @@
 
         function renderNotifications() {
             const drop = document.getElementById('adminNotifDropdown');
-            let pending = JSON.parse(localStorage.getItem('SLP_OPS_PENDING') || '[]');
-            if (pending.length === 0) {
+            if (syncedOpsPending.length === 0) {
                 drop.innerHTML = `<div style="padding:1rem; color:var(--text-muted); font-size:0.8rem; text-align:center;">No pending requests</div>`;
                 return;
             }
             let html = '';
-            pending.forEach((p, idx) => {
+            syncedOpsPending.forEach((p, idx) => {
                 html += `<div style="padding:0.75rem; border-bottom:1px solid var(--border-color); font-size:0.8rem;">
                     <strong style="color:#fff;">Operations User: ${p.name}</strong><br>
                     <span style="color:var(--accent-color);">${p.email} wants access.</span>
@@ -1297,22 +1330,59 @@
         }
 
         function approveOps(idx) {
-            let pending = JSON.parse(localStorage.getItem('SLP_OPS_PENDING') || '[]');
-            let approved = JSON.parse(localStorage.getItem('SLP_OPS_APPROVED') || '[]');
-            let user = pending.splice(idx, 1)[0];
-            if(!approved.includes(user.email)) approved.push(user.email);
-            localStorage.setItem('SLP_OPS_PENDING', JSON.stringify(pending));
-            localStorage.setItem('SLP_OPS_APPROVED', JSON.stringify(approved));
+            let user = syncedOpsPending[idx];
+            if (!user) return;
+            
+            // Push approval into the system log
+            const payload = { 
+                driverName: "OPS_ACCESS_APPROVED", 
+                securityName: "Admin", 
+                actionByEmail: user.email, 
+                direction: "SYSTEM", 
+                dockNumber: "0",
+                iqamaNumber: "N/A",
+                plateNumber: "N/A",
+                mobileNumber: "N/A",
+                dispatchType: "N/A",
+                sealNumber: "N/A",
+                securityId: "N/A",
+                actionByName: loggedInUser.name
+            };
+            fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+
+            syncedOpsPending.splice(idx, 1);
+            if (!syncedOpsApproved.includes(user.email)) syncedOpsApproved.push(user.email);
+            
             renderNotifications();
             checkAdminNotifications();
+            fetchLogs(); // Sync
         }
 
         function denyOps(idx) {
-            let pending = JSON.parse(localStorage.getItem('SLP_OPS_PENDING') || '[]');
-            pending.splice(idx, 1);
-            localStorage.setItem('SLP_OPS_PENDING', JSON.stringify(pending));
+            let user = syncedOpsPending[idx];
+            if (!user) return;
+
+            // Push denial into system log
+            const payload = { 
+                driverName: "OPS_ACCESS_DENIED", 
+                securityName: "Admin", 
+                actionByEmail: user.email, 
+                direction: "SYSTEM", 
+                dockNumber: "0",
+                iqamaNumber: "N/A",
+                plateNumber: "N/A",
+                mobileNumber: "N/A",
+                dispatchType: "N/A",
+                sealNumber: "N/A",
+                securityId: "N/A",
+                actionByName: loggedInUser.name
+            };
+            fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+
+            syncedOpsPending.splice(idx, 1);
             renderNotifications();
             checkAdminNotifications();
+            fetchLogs(); // Sync
         }
 
         /* ---------------- INTRO SCREEN PARTICLES ---------------- */
@@ -2165,25 +2235,78 @@
             renderAnalyticsTable(filtered);
         }
 
-        // FLATTENED ANALYTICS TABLE FUNCTION
         function renderAnalyticsTable(list) {
-            const tbody = document.getElementById('analyticsLogTableBody');
-            tbody.innerHTML = '';
+            const container = document.getElementById('analyticsGroupedTables');
+            container.innerHTML = '';
             
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic; font-size:0.8rem; text-transform:uppercase;">${tr('No records match this filter.')}</td></tr>`;
+                container.innerHTML = `<div class="card" style="background:transparent; border:none; text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;">${tr('No records match this filter.')}</div>`;
                 return;
             }
 
+            // Group by direction
+            let groups = {};
             list.forEach(r => {
                 let dirSafe = r.direction ? r.direction : '';
                 let entryReasonSafe = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason : 'OUTBOUND';
                 let displayDir = r.isInside ? dirSafe.split(' - ')[0].toUpperCase() : entryReasonSafe.split(' - ')[0].toUpperCase();
-                let cssClass = getBadgeClass(displayDir, !r.isInside && displayDir==='OUTBOUND');
-
-                // Does NOT output the Iqama ID for security reasons
-                tbody.innerHTML += `<tr><td><strong>${r.driverName}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="${cssClass}">${tr(displayDir)}</span></td><td><strong>${r.dockNumber}</strong></td><td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td><td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.8rem; color:var(--text-muted);">${r.isInside?'<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>':formatTimeText(r.timestamp)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.isInside?null:r.timestamp)}</td><td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td></tr>`;
+                
+                if (!groups[displayDir]) groups[displayDir] = [];
+                groups[displayDir].push(r);
             });
+
+            // Render Accordions
+            for (let [dir, items] of Object.entries(groups)) {
+                let cssClass = getBadgeClass(dir, false); 
+                
+                let rowsHtml = items.map(r => {
+                    let rDirSafe = r.direction ? r.direction : '';
+                    let rEntryReasonSafe = r.entryReason && r.entryReason !== "Unknown" ? r.entryReason : 'OUTBOUND';
+                    let rDisplayDir = r.isInside ? rDirSafe.split(' - ')[0].toUpperCase() : rEntryReasonSafe.split(' - ')[0].toUpperCase();
+                    let rCssClass = getBadgeClass(rDisplayDir, !r.isInside && rDisplayDir==='OUTBOUND');
+
+                    return `<tr>
+                        <td><strong>${r.driverName}</strong></td>
+                        <td>${generatePlateBumperUI(r.plateNumber)}</td>
+                        <td><span class="${rCssClass}">${tr(rDisplayDir)}</span></td>
+                        <td><strong>${r.dockNumber}</strong></td>
+                        <td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${r.isInside?'<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>':formatTimeText(r.timestamp)}</td>
+                        <td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.isInside?null:r.timestamp)}</td>
+                        <td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td>
+                    </tr>`;
+                }).join('');
+
+                let tableHtml = `
+                    <table style="min-width: 800px; margin-top: 0;">
+                        <thead><tr>
+                            <th data-i18n="Driver">${tr('Driver')}</th>
+                            <th data-i18n="Plate">${tr('Plate')}</th>
+                            <th data-i18n="Direction">${tr('Direction')}</th>
+                            <th data-i18n="Dock">${tr('Dock')}</th>
+                            <th data-i18n="Seal Number">${tr('Seal Number')}</th>
+                            <th data-i18n="Check In Truck">${tr('Check In Truck')}</th>
+                            <th data-i18n="Check Out">${tr('Check Out')}</th>
+                            <th data-i18n="Duration">${tr('Duration')}</th>
+                            <th data-i18n="Security">${tr('Security')}</th>
+                        </tr></thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                `;
+
+                container.innerHTML += `
+                    <div class="accordion-wrapper">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title"><span class="${cssClass}" style="margin-right: 10px;">${tr(dir)}</span></div>
+                            <div class="accordion-badge">${items.length}</div>
+                        </div>
+                        <div class="accordion-content">
+                            ${tableHtml}
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         function setAnalyticsDateFilter(range, btnEl) {
@@ -2627,9 +2750,38 @@
         /* ---------------- PAIRING ENGINE (BULLETPROOF UPDATES) ---------------- */
         window.handleLogsResponse = function(data) {
 
-            // --- 1. APPLY PERSISTENT LOCAL OVERRIDES ---
+            // --- 1. GLOBAL OPS APPROVAL SYNC INTERCEPTION ---
+            let pendingOps = {};
+            let approvedOps = {};
+            let actualLogs = [];
+
+            (data || []).forEach(row => {
+                if (row.direction === "SYSTEM" && row.driverName && row.driverName.startsWith("OPS_ACCESS")) {
+                    let reqEmail = (row.actionByEmail || "").toLowerCase();
+                    if (row.driverName === "OPS_ACCESS_REQUEST") {
+                        pendingOps[reqEmail] = { name: row.securityName, email: reqEmail, timestamp: row.timestamp };
+                    } else if (row.driverName === "OPS_ACCESS_APPROVED") {
+                        approvedOps[reqEmail] = true;
+                        delete pendingOps[reqEmail]; // Remove from pending if approved
+                    } else if (row.driverName === "OPS_ACCESS_DENIED") {
+                        delete pendingOps[reqEmail];
+                    }
+                    return; // Skip adding to actual visual logs
+                }
+                actualLogs.push(row);
+            });
+
+            syncedOpsPending = Object.values(pendingOps);
+            syncedOpsApproved = Object.keys(approvedOps);
+            
+            if (userRole === 'admin') {
+                checkAdminNotifications();
+            }
+            // --------------------------------------------------
+
+            // --- 2. APPLY PERSISTENT LOCAL OVERRIDES ---
             let overrides = JSON.parse(localStorage.getItem('SLP_OVERRIDES')) || {};
-            let processedData = (data || []).map(row => {
+            let processedData = actualLogs.map(row => {
 
                 // Driver Overrides
                 let dOrig = Object.keys(overrides).find(k => (k === row.driverName || overrides[k].name === row.driverName) && overrides[k].type === 'driver');
@@ -2920,9 +3072,10 @@
             }
         }
 
+        // INITIALIZE SYNC
+        fetchLogs();
         setInterval(fetchLogs, 15000);
         setInterval(checkSessionExpiry, 60000); // Check expiry every minute
-        if(!introActive) { fetchLogs(); checkSessionExpiry(); }
     </script>
 </body>
 </html>
