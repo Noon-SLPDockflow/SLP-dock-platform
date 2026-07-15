@@ -228,6 +228,23 @@
         .chart-legend li .legend-label-group { display: flex; align-items: center; gap: 8px; }
         .chart-legend li .legend-color-box { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
 
+        /* Accordion CSS for Grouped Tables */
+        .accordion-wrapper { margin-bottom: 1rem; }
+        .accordion-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
+            cursor: pointer; border-radius: 8px; transition: background 0.2s;
+        }
+        .accordion-header:hover { background: rgba(255,255,255,0.05); }
+        .accordion-title { font-weight: 800; font-size: 0.95rem; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .accordion-badge { background: var(--card-solid); padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; color: var(--accent-color); border: 1px solid var(--border-color); }
+        .accordion-content {
+            display: none; padding: 0; border: 1px solid var(--border-color); border-top: none;
+            border-radius: 0 0 8px 8px; background: rgba(0,0,0,0.15); overflow-x: auto;
+        }
+        .accordion-content.open { display: block; }
+        .accordion-wrapper.open .accordion-header { border-radius: 8px 8px 0 0; border-bottom: 1px dashed var(--border-color); background: rgba(255,255,255,0.02); }
+
         .card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; backdrop-filter: blur(10px); }
         .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; }
         .card h2 { font-size: 0.95rem; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; font-weight: 700; }
@@ -457,7 +474,6 @@
             <li class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard', this)">
                 <span class="nav-icon">📊</span><span class="nav-text" data-i18n="Dashboard">Dashboard</span>
             </li>
-            <!-- NEW ANALYTICS TAB -->
             <li class="nav-item" id="nav-analytics" onclick="switchView('analytics', this)">
                 <span class="nav-icon">📈</span><span class="nav-text" data-i18n="Analytics">Analytics</span>
             </li>
@@ -533,7 +549,6 @@
             </div>
 
             <div class="dashboard-mid-split">
-                <!-- CURRENTLY OCCUPIED DOCKS -->
                 <div class="card" style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 250px;">
                     <div class="card-header-flex">
                         <h2 data-i18n="Currently Occupied Docks">Currently Occupied Docks</h2>
@@ -546,7 +561,6 @@
             </div>
         </div>
 
-        <!-- NEW DEEP-DIVE ANALYTICS VIEW -->
         <div id="view-analytics" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title">
@@ -612,6 +626,9 @@
                     </ul>
                 </div>
             </div>
+
+            <!-- Grouped Log Tables Restored for Analytics -->
+            <div id="analyticsGroupedTables" style="margin-top: 2rem;"></div>
         </div>
 
         <div id="view-checkin" class="app-view">
@@ -917,6 +934,7 @@
         let securityRegistryList = []; 
         let globalHistoryListCache = [];
         window.globalSystemLogs = []; 
+        window.hasFetchedLogs = false; // Flag to fix tablet login race condition
 
         let currentHistoryDateRange = 'all';
         let currentAnalyticsDateRange = 'weekly';
@@ -1123,6 +1141,19 @@
             });
         });
 
+        // Toggle Accordion functionality
+        window.toggleAccordion = function(el) {
+            const content = el.nextElementSibling;
+            const wrapper = el.parentElement;
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                wrapper.classList.remove('open');
+            } else {
+                content.classList.add('open');
+                wrapper.classList.add('open');
+            }
+        };
+
         // 12-Hour Auto Logout Check
         function checkSessionExpiry() {
             const sessionStr = localStorage.getItem('noonSlpUserSession');
@@ -1252,8 +1283,6 @@
                             switchView('dashboard', document.getElementById('nav-dashboard'));
                             checkAdminNotifications();
                         }
-
-                        fetchLogs(); 
                     }, 1000);
                 }, 1200);
             }, 1200); 
@@ -1275,6 +1304,12 @@
             } else if (currentLoginMode === 'ops') {
                 if(!nameInput || !emailInput) return alert("Please fill all fields to authorize access.");
                 if(!emailInput.toLowerCase().endsWith('noon.com')) return alert("Access Denied. Only valid noon.com accounts are permitted.");
+                
+                // If logs haven't fetched from Google Sheet yet, warn the user.
+                if (!window.hasFetchedLogs) {
+                    alert("Connecting to server... Please wait a few seconds and try again.");
+                    return;
+                }
 
                 let isApproved = false;
                 let isPending = false;
@@ -1479,18 +1514,17 @@
 
         window.addEventListener('resize', () => { if(introActive) initParticles(); });
 
-        /* ---------------- ON LOAD SESSION CHECK ---------------- */
+        /* ---------------- ON LOAD SESSION CHECK & FETCH ---------------- */
         const sessionStr = localStorage.getItem('noonSlpUserSession');
         if (sessionStr) {
             const sessionData = JSON.parse(sessionStr);
             const twelveHours = 12 * 60 * 60 * 1000;
 
             if (!sessionData.loginTime || (Date.now() - sessionData.loginTime > twelveHours)) {
-                // Session Expired
                 localStorage.removeItem('noonSlpUserSession');
-                location.reload();
+                initParticles(); 
+                animateParticles();
             } else {
-                // Session Active
                 executeLogin(sessionData.name, sessionData.email, sessionData.noonId || "", sessionData.role);
                 document.getElementById('introOverlay').style.display = 'none';
                 introActive = false;
@@ -2410,6 +2444,74 @@
                 );
             }
             updateAnalyticsHub(filtered, range);
+            renderAnalyticsTable(filtered); // This is what renders the accordion!
+        }
+
+        // ACCORDION ANALYTICS TABLE FUNCTION
+        function renderAnalyticsTable(list) {
+            const container = document.getElementById('analyticsGroupedTables');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            if (list.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;">${tr('No records match this filter.')}</div>`;
+                return;
+            }
+
+            let groups = {};
+            list.forEach(r => {
+                let displayDir = (r.direction || '').split(' - ')[0].toUpperCase();
+                let cssClass = getBadgeClass(displayDir, r.checkOutTime !== "");
+
+                if (!groups[displayDir]) groups[displayDir] = { items: [], cssClass: cssClass };
+                groups[displayDir].items.push(r);
+            });
+
+            for (let [dir, group] of Object.entries(groups)) {
+                let rowsHtml = group.items.map(r => {
+                    let activeSeal = r.sealNumber || '--';
+                    return `<tr>
+                        <td><strong>${r.driverName}</strong></td>
+                        <td>${generatePlateBumperUI(r.plateNumber)}</td>
+                        <td><span class="${group.cssClass}">${tr(dir)}</span></td>
+                        <td><strong>${r.dockNumber}</strong></td>
+                        <td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${activeSeal}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">${!r.checkOutTime ? '<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>' : formatTimeText(r.checkOutTime)}</td>
+                        <td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.checkOutTime)}</td>
+                        <td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td>
+                    </tr>`;
+                }).join('');
+
+                let tableHtml = `
+                    <table style="min-width: 800px; margin-top: 0;">
+                        <thead><tr>
+                            <th data-i18n="Driver">${tr('Driver')}</th>
+                            <th data-i18n="Plate">${tr('Plate')}</th>
+                            <th data-i18n="Direction">${tr('Direction')}</th>
+                            <th data-i18n="Dock">${tr('Dock')}</th>
+                            <th data-i18n="Seal Number">${tr('Seal Number')}</th>
+                            <th data-i18n="Check In Truck">${tr('Check In Truck')}</th>
+                            <th data-i18n="Check Out">${tr('Check Out')}</th>
+                            <th data-i18n="Duration">${tr('Duration')}</th>
+                            <th data-i18n="Security">${tr('Security')}</th>
+                        </tr></thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+                `;
+
+                container.innerHTML += `
+                    <div class="accordion-wrapper">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <div class="accordion-title"><span class="${group.cssClass}" style="margin-right: 10px;">${tr(dir)}</span></div>
+                            <div class="accordion-badge">${group.items.length}</div>
+                        </div>
+                        <div class="accordion-content">
+                            ${tableHtml}
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         function setAnalyticsDateFilter(range, btnEl) {
@@ -2852,6 +2954,7 @@
 
         /* ---------------- PAIRING ENGINE (BULLETPROOF UPDATES) ---------------- */
         window.handleLogsResponse = function(responsePayload) {
+            window.hasFetchedLogs = true;
             // New backend format returns { logs: [], ops: [] }
             let rawLogs = responsePayload.logs || [];
             window.globalSystemLogs = responsePayload.ops || [];
@@ -2879,9 +2982,10 @@
 
                 return row;
             });
+            // ------------------------------------------
 
             // Single Row Architecture! No more pairing Outbound rows.
-            let chronData = processedData.sort((a,b) => new Date(a.checkInTime || a.timestamp) - new Date(b.checkInTime || b.timestamp)); 
+            let chronData = processedData.sort((a,b) => new Date(a.checkInTime) - new Date(b.checkInTime)); 
             globalHistoryListCache = chronData.slice().reverse(); // History is sorted newest first
             globalLogsCache = chronData;
 
@@ -3008,14 +3112,6 @@
                     driverPhoto: temporaryCapturedImage || "" // Send compressed photo payload!
                 };
 
-                // Save image to local storage tied to driver name as a backup
-                if (temporaryCapturedImage) {
-                    try {
-                        localStorage.setItem('SLP_IMG_' + payload.driverName.trim().toUpperCase(), temporaryCapturedImage);
-                    } catch(e) { console.warn("Local storage full, cannot save image."); }
-                    temporaryCapturedImage = null;
-                }
-
                 // Fire post request in background
                 fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
                     .catch(e => console.error("Background save issue:", e));
@@ -3125,9 +3221,9 @@
             }
         }
 
+        fetchLogs(); // Run immediately on load so tablet has system logs ready!
         setInterval(fetchLogs, 15000);
-        setInterval(checkSessionExpiry, 60000); // Check expiry every minute
-        if(!introActive) { fetchLogs(); checkSessionExpiry(); }
+        setInterval(checkSessionExpiry, 60000); 
     </script>
 </body>
 </html>
