@@ -480,12 +480,12 @@
             </li>
         </ul>
         <div class="sidebar-footer">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color); cursor:pointer;" onclick="location.reload();">
                 <div style="display:flex; align-items:center; gap: 0.75rem; overflow: hidden;">
                     <div class="driver-avatar-img" id="sidebarUserPic" style="width: 32px; height: 32px; background:var(--accent-color); color:#000; font-weight:800; font-size:0.8rem; border:none; flex-shrink: 0;">?</div>
                     <div style="overflow: hidden;">
                         <h4 id="sidebarUserName" style="color:#fff; font-size:0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Guest User</h4>
-                        <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Not signed in</p>
+                        <p id="sidebarUserEmail" style="font-size:0.65rem; color:var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Click to Refresh</p>
                     </div>
                 </div>
             </div>
@@ -611,15 +611,6 @@
                         <li><div class="legend-label-group" data-i18n="No Data">No Data</div></li>
                     </ul>
                 </div>
-            </div>
-
-            <!-- Filtered Log Table without Personal Details -->
-            <div class="card" style="margin-top: 2rem; overflow-x: auto; padding: 1.5rem; background: transparent; border: none;">
-                <h3 style="color: #fff; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 1rem;" data-i18n="Filtered Movement Logs">Filtered Movement Logs</h3>
-                <table id="analyticsLogTable">
-                    <thead><tr><th data-i18n="Driver">Driver</th><th data-i18n="Plate">Plate</th><th data-i18n="Direction">Direction</th><th data-i18n="Dock">Dock</th><th data-i18n="Seal Number">Seal Number</th><th data-i18n="Check In Truck">Check In Truck</th><th data-i18n="Check Out">Check Out</th><th data-i18n="Duration">Duration</th><th data-i18n="Security">Security</th></tr></thead>
-                    <tbody id="analyticsLogTableBody"><tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;" data-i18n="No records match this filter.">NO RECORDS MATCH THIS FILTER.</td></tr></tbody>
-                </table>
             </div>
         </div>
 
@@ -837,11 +828,11 @@
         </div>
     </div>
 
-    <!-- CHECK OUT MODAL (NEW REWRITE) -->
+    <!-- CHECK OUT MODAL -->
     <div class="modal-overlay" id="signOutModal">
         <div class="modal-window" style="max-width: 500px; border: 1px solid rgba(252, 194, 0, 0.4);">
             <div class="modal-header-container">
-                <h2 style="color: #fff; font-size: 1.25rem;" data-i18n="Authorize Departure">CHECK OUT</h2>
+                <h2 style="color: #fff; font-size: 1.25rem;" data-i18n="CHECK OUT">CHECK OUT</h2>
                 <button class="btn-modal-close" onclick="closeSignOutModal()">✕</button>
             </div>
             <div class="modal-body-content" style="padding: 1.5rem 2rem;">
@@ -862,13 +853,13 @@
                     </div>
                 </div>
 
-                <div class="form-group" style="text-align: left; margin-bottom: 1.5rem;">
+                <div class="form-group" id="checkoutSealContainer" style="text-align: left; margin-bottom: 1.5rem;">
                     <label class="badge-style" style="color: var(--accent-color);" data-i18n="ATTACH DEPARTURE SEAL *">ATTACH DEPARTURE SEAL *</label>
                     <input type="text" id="signOutSeal" class="input-box-styled" data-i18n="ATTACH DEPARTURE SEAL *" placeholder="e.g. SEAL-9022-X" style="border-color: rgba(252, 194, 0, 0.5); background:#0b0e14;">
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    <button id="btnConfirmSignOut" class="submit-btn-global" style="margin-top: 0; border-radius: 6px;">CONFIRM CHECK OUT</button>
+                    <button id="btnConfirmSignOut" class="submit-btn-global" style="margin-top: 0; border-radius: 6px;" data-i18n="CONFIRM CHECK OUT">CONFIRM CHECK OUT</button>
                     <button class="btn-modal-cancel" style="background: transparent; border: none; color: var(--text-muted); font-size: 0.75rem; letter-spacing:0.5px; text-align:center;" onclick="closeSignOutModal()" data-i18n="DISCARD CHANGES">DISCARD CHANGES</button>
                 </div>
             </div>
@@ -925,13 +916,13 @@
         let driversRegistryList = [];
         let securityRegistryList = []; 
         let globalHistoryListCache = [];
-        window.globalSystemLogs = []; // Stores System/Ops Access requests globally to keep out of main tables
+        window.globalSystemLogs = []; 
 
         let currentHistoryDateRange = 'all';
         let currentAnalyticsDateRange = 'weekly';
         let temporaryCapturedImage = null;
         
-        // NEW: Check out image holders
+        // Check out image holders
         let tempCheckoutTruckPhoto = null;
         let tempCheckoutItemPhoto = null;
 
@@ -1065,7 +1056,7 @@
             "Authorize Departure": "تصريح المغادرة",
             "Completing SLP cycle...": "إكمال دورة SLP...",
             "ATTACH DEPARTURE SEAL *": "إرفاق ختم المغادرة *",
-            "CONFIRM SIGN OUT": "تأكيد الخروج",
+            "CONFIRM CHECK OUT": "تأكيد تسجيل الخروج",
             "CHECK OUT": "تسجيل الخروج",
             "DISCARD CHANGES": "تجاهل التغييرات",
             "Capture": "التقاط",
@@ -1115,7 +1106,7 @@
             });
             updateHeroDateTime();
             if(window.handleLogsResponse && globalLogsCache) {
-                window.handleLogsResponse(globalLogsCache);
+                window.handleLogsResponse({ logs: globalLogsCache, ops: window.globalSystemLogs });
             }
         }
 
@@ -2229,6 +2220,12 @@
             document.getElementById('signOutModalSubtext').innerText = `${tr('Completing SLP cycle for vehicle')} ${plateNumber || '(' + tr('No Plate Provided') + ')'}`;
             document.getElementById('signOutSeal').value = '';
             
+            if (dispatchType && dispatchType.toUpperCase() === 'RECEIVING') {
+                document.getElementById('checkoutSealContainer').style.display = 'none';
+            } else {
+                document.getElementById('checkoutSealContainer').style.display = 'block';
+            }
+            
             // Reset photo states
             tempCheckoutTruckPhoto = null;
             tempCheckoutItemPhoto = null;
@@ -2248,8 +2245,10 @@
         }
 
         document.getElementById('btnConfirmSignOut').addEventListener('click', async () => {
-            const sealVal = document.getElementById('signOutSeal').value.trim();
-            if (!sealVal) { alert('Please attach a departure seal number.'); return; }
+            const isReceiving = currentSignOutContext.dispatchType && currentSignOutContext.dispatchType.toUpperCase() === 'RECEIVING';
+            const sealVal = isReceiving ? "" : document.getElementById('signOutSeal').value.trim();
+            
+            if (!isReceiving && !sealVal) { alert('Please attach a departure seal number.'); return; }
             if (!tempCheckoutTruckPhoto) { alert('Please attach a Truck Picture.'); return; }
             if (!tempCheckoutItemPhoto) { alert('Please attach an Item Picture.'); return; }
             if (!currentSignOutContext) return;
@@ -2259,12 +2258,12 @@
             btn.innerText = tr("Processing..."); btn.disabled = true;
 
             try {
-                // Send check out payload. Note: The backend searches for this truck using driverName + plateNumber where checkOut is empty.
+                // Send check out payload.
                 const payload = { 
                     action: "checkout",
                     driverName, 
                     plateNumber, 
-                    sealNumber: sealVal, 
+                    sealNumber: sealVal, // Will be empty for Receiving, preserving DB value 
                     truckPhoto: tempCheckoutTruckPhoto,
                     itemPhoto: tempCheckoutItemPhoto 
                 };
@@ -2276,12 +2275,12 @@
                 let activeLog = globalLogsCache.find(r => r.driverName === driverName && r.plateNumber === plateNumber && !r.checkOutTime);
                 if (activeLog) {
                     activeLog.checkOutTime = new Date().toISOString();
-                    activeLog.sealNumber = sealVal;
+                    if(!isReceiving) activeLog.sealNumber = sealVal; // Only overwrite optimistically if dispatching
                     activeLog.truckPhoto = tempCheckoutTruckPhoto;
                     activeLog.itemPhoto = tempCheckoutItemPhoto;
                 }
                 
-                window.handleLogsResponse(globalLogsCache);
+                window.handleLogsResponse({ logs: globalLogsCache, ops: window.globalSystemLogs });
 
                 closeSignOutModal();
                 setTimeout(fetchLogs, 3000);
@@ -2411,25 +2410,6 @@
                 );
             }
             updateAnalyticsHub(filtered, range);
-            renderAnalyticsTable(filtered);
-        }
-
-        // FLATTENED ANALYTICS TABLE FUNCTION
-        function renderAnalyticsTable(list) {
-            const tbody = document.getElementById('analyticsLogTableBody');
-            tbody.innerHTML = '';
-            
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic; font-size:0.8rem; text-transform:uppercase;">${tr('No records match this filter.')}</td></tr>`;
-                return;
-            }
-
-            list.forEach(r => {
-                let displayDir = (r.direction || '').split(' - ')[0].toUpperCase();
-                let cssClass = getBadgeClass(displayDir, r.checkOutTime !== "");
-
-                tbody.innerHTML += `<tr><td><strong>${r.driverName}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="${cssClass}">${tr(displayDir)}</span></td><td><strong>${r.dockNumber}</strong></td><td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td><td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.8rem; color:var(--text-muted);">${!r.checkOutTime ? '<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>' : formatTimeText(r.checkOutTime)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.checkOutTime)}</td><td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td></tr>`;
-            });
         }
 
         function setAnalyticsDateFilter(range, btnEl) {
@@ -3027,6 +3007,14 @@
                     actionByName: loggedInUser.name,
                     driverPhoto: temporaryCapturedImage || "" // Send compressed photo payload!
                 };
+
+                // Save image to local storage tied to driver name as a backup
+                if (temporaryCapturedImage) {
+                    try {
+                        localStorage.setItem('SLP_IMG_' + payload.driverName.trim().toUpperCase(), temporaryCapturedImage);
+                    } catch(e) { console.warn("Local storage full, cannot save image."); }
+                    temporaryCapturedImage = null;
+                }
 
                 // Fire post request in background
                 fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
