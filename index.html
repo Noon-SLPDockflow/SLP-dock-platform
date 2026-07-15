@@ -474,6 +474,7 @@
             <li class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard', this)">
                 <span class="nav-icon">📊</span><span class="nav-text" data-i18n="Dashboard">Dashboard</span>
             </li>
+            <!-- NEW ANALYTICS TAB -->
             <li class="nav-item" id="nav-analytics" onclick="switchView('analytics', this)">
                 <span class="nav-icon">📈</span><span class="nav-text" data-i18n="Analytics">Analytics</span>
             </li>
@@ -549,6 +550,7 @@
             </div>
 
             <div class="dashboard-mid-split">
+                <!-- CURRENTLY OCCUPIED DOCKS -->
                 <div class="card" style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 250px;">
                     <div class="card-header-flex">
                         <h2 data-i18n="Currently Occupied Docks">Currently Occupied Docks</h2>
@@ -561,6 +563,7 @@
             </div>
         </div>
 
+        <!-- NEW DEEP-DIVE ANALYTICS VIEW -->
         <div id="view-analytics" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title">
@@ -817,7 +820,7 @@
                     <div class="modal-slate-cell"><span data-i18n="Full Legal Name">Full Legal Name</span><p id="modalDataName">--</p></div>
                     <div class="modal-slate-cell"><span id="modalLabelIqama" data-i18n="Iqama/National ID">Iqama/National ID</span><p id="modalDataIqama">--</p></div>
                     <div class="modal-slate-cell" id="modalDataPlateCell"><span data-i18n="Primary Vehicle Plate">Primary Vehicle Plate</span><div class="modal-plate-capsules" id="modalDataPlate"><div class="modal-plate-tag">--</div></div></div>
-                    <div class="modal-slate-cell"><span data-i18n="Mobile Number">Mobile Number</span><p id="modalDataMobile">--</p></div>
+                    <div class="modal-slate-cell" id="modalDataMobileCell"><span data-i18n="Mobile Number">Mobile Number</span><p id="modalDataMobile">--</p></div>
                     <div class="modal-slate-cell"><span data-i18n="Registered Date">Registered Date</span><p id="modalDataDate">--</p></div>
                 </div>
             </div>
@@ -835,7 +838,7 @@
                 <div class="form-group"><label id="editLabelName" class="badge-style" data-i18n="Driver Name *">Driver Name</label><input type="text" id="editName" class="input-box-styled"></div>
                 <div class="form-group"><label id="editLabelId" class="badge-style" data-i18n="Iqama Number *">Iqama Number</label><input type="text" id="editIqama" class="input-box-styled"></div>
                 <div class="form-group" id="editPlateGroup"><label class="badge-style" data-i18n="Truck Plate Number *">Plate Number</label><input type="text" id="editPlate" class="input-box-styled"></div>
-                <div class="form-group"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="editPhone" class="input-box-styled"></div>
+                <div class="form-group" id="editPhoneGroup"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="editPhone" class="input-box-styled"></div>
             </div>
             <div class="modal-footer-container">
                 <button class="btn-modal-cancel" style="color: var(--danger-color); border-color: var(--danger-color); margin-right: auto;" onclick="deleteDriver()" data-i18n="Delete">Delete</button>
@@ -934,7 +937,7 @@
         let securityRegistryList = []; 
         let globalHistoryListCache = [];
         window.globalSystemLogs = []; 
-        window.hasFetchedLogs = false; // Flag to fix tablet login race condition
+        window.hasFetchedLogs = false; 
 
         let currentHistoryDateRange = 'all';
         let currentAnalyticsDateRange = 'weekly';
@@ -1611,6 +1614,7 @@
             let titleEl = document.getElementById('modalTitleName');
             let plateCell = document.getElementById('modalDataPlateCell');
             let iqamaLabel = document.getElementById('modalLabelIqama');
+            let mobileCell = document.getElementById('modalDataMobileCell');
             const viewport = document.getElementById('modalMediaViewport');
 
             // Fix image viewing size to prevent cropping
@@ -1622,11 +1626,13 @@
                 titleEl.innerText = tr("Security Guard Details");
                 iqamaLabel.innerText = tr("Noon ID");
                 plateCell.style.display = 'none';
+                mobileCell.style.display = 'none';
                 viewport.style.backgroundImage = `url('https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=800')`;
             } else {
                 titleEl.innerText = tr("Driver Details");
                 iqamaLabel.innerText = tr("Iqama/National ID");
                 plateCell.style.display = 'block';
+                mobileCell.style.display = 'block';
 
                 let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
                 let segments = plate ? plate.split(' ') : ['--'];
@@ -1673,6 +1679,7 @@
             let labelName = document.getElementById('editLabelName');
             let labelId = document.getElementById('editLabelId');
             let plateGroup = document.getElementById('editPlateGroup');
+            let phoneGroup = document.getElementById('editPhoneGroup');
             let typeInput = document.getElementById('editRecordType');
 
             if (isGuard) {
@@ -1680,6 +1687,7 @@
                 labelName.innerText = tr("Security Name *");
                 labelId.innerText = tr("Security ID *");
                 plateGroup.style.display = 'none';
+                phoneGroup.style.display = 'none';
                 typeInput.value = "guard";
                 document.getElementById('editPlate').value = '';
             } else {
@@ -1687,6 +1695,7 @@
                 labelName.innerText = tr("Driver Name *");
                 labelId.innerText = tr("Iqama Number *");
                 plateGroup.style.display = 'block';
+                phoneGroup.style.display = 'block';
                 typeInput.value = "driver";
                 document.getElementById('editPlate').value = plate;
             }
@@ -2791,14 +2800,9 @@
                         name: item.securityName,
                         id: item.securityId || "N/A",
                         registered: item.checkInTime || item.timestamp,
-                        phone: item.guardMobile || item.mobileNumber || "N/A"
+                        phone: "N/A" // Force "N/A" so it does not pull from the mobile string used for drivers
                     };
                 } else {
-                    if (item.guardMobile && item.guardMobile !== "N/A" && item.guardMobile !== "--") {
-                        uniqueMap[item.securityName].phone = item.guardMobile;
-                    } else if (item.mobileNumber && item.mobileNumber !== "N/A" && item.mobileNumber !== "--") {
-                        uniqueMap[item.securityName].phone = item.mobileNumber;
-                    }
                     if (item.securityId && item.securityId !== "N/A" && item.securityId !== "--") {
                         uniqueMap[item.securityName].id = item.securityId;
                     }
@@ -2818,7 +2822,7 @@
                 container.innerHTML += `
                     <div class="driver-registry-card security-card" data-search-blob="${guard.name.toLowerCase()} ${(guard.id || '').toLowerCase()}">
                         <div class="card-management-actions">
-                            <button class="btn-icon-manage" onclick="openEditDriverModal('${guard.name.replace(/'/g, "\\'")}', '${guard.id.replace(/'/g, "\\'")}', '', '${guard.phone.replace(/'/g, "\\'")}', true)">✏️</button>
+                            <button class="btn-icon-manage" onclick="openEditDriverModal('${guard.name.replace(/'/g, "\\'")}', '${guard.id.replace(/'/g, "\\'")}', '', '', true)">✏️</button>
                         </div>
                         <div class="driver-card-header">
                             <div class="driver-avatar-img" style="background: rgba(56, 139, 253, 0.15); color: #79c0ff; border-color: rgba(56, 139, 253, 0.3);">🛡️</div>
@@ -2833,9 +2837,8 @@
                         <div class="driver-card-info-grid">
                             <div class="info-block"><p>🆔 ${tr('Noon ID')}</p><data>${guard.id}</data></div>
                             <div class="info-block"><p>📅 ${tr('Registered Date')}</p><data>${dateFormatted}</data></div>
-                            <div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 ${tr('Mobile Number')}</p><data>${guard.phone}</data></div>
                         </div>
-                        <button class="btn-card-action" onclick="openDriverProfileModal('${guard.name.replace(/'/g, "\\'")}', '${guard.id.replace(/'/g, "\\'")}', '', '${dateFormatted}', '${guard.phone.replace(/'/g, "\\'")}', true)">${tr('View Records')}</button>
+                        <button class="btn-card-action" onclick="openDriverProfileModal('${guard.name.replace(/'/g, "\\'")}', '${guard.id.replace(/'/g, "\\'")}', '', '${dateFormatted}', '', true)">${tr('View Records')}</button>
                     </div>`;
             });
         }
@@ -2977,15 +2980,13 @@
                 if (gOrig) {
                     row.securityName = overrides[gOrig].name;
                     row.securityId = overrides[gOrig].id;
-                    row.guardMobile = overrides[gOrig].phone; // Safely track the guard's phone without overwriting the driver's phone for this log entry
                 }
 
                 return row;
             });
-            // ------------------------------------------
 
             // Single Row Architecture! No more pairing Outbound rows.
-            let chronData = processedData.sort((a,b) => new Date(a.checkInTime) - new Date(b.checkInTime)); 
+            let chronData = processedData.sort((a,b) => new Date(a.checkInTime || a.timestamp) - new Date(b.checkInTime || b.timestamp)); 
             globalHistoryListCache = chronData.slice().reverse(); // History is sorted newest first
             globalLogsCache = chronData;
 
@@ -3187,8 +3188,9 @@
 
         function getAvailableViews() {
             let availableViews = [];
-            document.querySelectorAll('.nav-item').forEach(item => {
-                if (window.getComputedStyle(item).display !== 'none') {
+            // Target only items inside the nav-links container to ignore footer buttons
+            document.querySelectorAll('.nav-links .nav-item').forEach(item => {
+                if (window.getComputedStyle(item).display !== 'none' && item.id) {
                     availableViews.push(item.id.replace('nav-', ''));
                 }
             });
