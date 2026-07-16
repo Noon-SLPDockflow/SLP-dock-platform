@@ -567,6 +567,7 @@
             </div>
 
             <div class="dashboard-mid-split">
+                <!-- CURRENTLY OCCUPIED DOCKS -->
                 <div class="card" style="display: flex; flex-direction: column; justify-content: flex-start; min-height: 250px;">
                     <div class="card-header-flex">
                         <h2 data-i18n="Currently Occupied Docks">Currently Occupied Docks</h2>
@@ -579,6 +580,7 @@
             </div>
         </div>
 
+        <!-- NEW DEEP-DIVE ANALYTICS VIEW -->
         <div id="view-analytics" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title">
@@ -1320,8 +1322,7 @@
                 executeLogin(nameInput, emailInput, '', 'admin');
 
             } else if (currentLoginMode === 'ops') {
-                if(!nameInput || !emailInput) return alert("Please fill all fields to authorize access.");
-                if(!emailInput.toLowerCase().endsWith('noon.com')) return alert("Access Denied. Only valid noon.com accounts are permitted.");
+                if(!nameInput || !noonIdInput) return alert("Please fill all fields to authorize access.");
                 
                 // If logs haven't fetched from Google Sheet yet, warn the user.
                 if (!window.hasFetchedLogs) {
@@ -1332,9 +1333,9 @@
                 let isApproved = false;
                 let isPending = false;
 
-                // Check access based on remote global system logs
+                // Check access based on remote global system logs using Noon ID (not email)
                 (window.globalSystemLogs || []).forEach(log => {
-                    if (log.noonId && log.noonId.toLowerCase() === emailInput.toLowerCase()) {
+                    if (log.noonId && log.noonId.toLowerCase() === noonIdInput.toLowerCase()) {
                         if (log.accepted) {
                             isApproved = true;
                             isPending = false;
@@ -1348,14 +1349,14 @@
                 });
 
                 if (isApproved) {
-                    executeLogin(nameInput, emailInput, '', 'ops');
+                    executeLogin(nameInput, '', noonIdInput, 'ops');
                 } else if (isPending) {
                     alert("Your access request is currently pending Admin approval.");
                 } else {
                     const payload = {
                         action: "opsRequest",
                         name: nameInput,
-                        noonId: emailInput.toLowerCase()
+                        noonId: noonIdInput.toLowerCase()
                     };
 
                     fetch(API_URL, { 
@@ -1402,29 +1403,29 @@
             let requestsMap = {}; 
             
             (window.globalSystemLogs || []).forEach(log => {
-                let email = log.noonId;
-                if (!requestsMap[email]) {
-                    requestsMap[email] = log;
+                let noonId = log.noonId;
+                if (!requestsMap[noonId]) {
+                    requestsMap[noonId] = log;
                 } else {
                     // Update to latest status
-                    requestsMap[email] = log;
+                    requestsMap[noonId] = log;
                 }
             });
 
             let pendingHtml = '';
             let pendingCount = 0;
             
-            for (let email in requestsMap) {
-                if (!requestsMap[email].accepted && !requestsMap[email].denied) {
+            for (let noonId in requestsMap) {
+                if (!requestsMap[noonId].accepted && !requestsMap[noonId].denied) {
                     pendingCount++;
                     pendingHtml += `
                     <div style="padding:0.75rem; border-bottom:1px solid var(--border-color); font-size:0.8rem;">
-                        <strong style="color:#fff; font-size:0.9rem;">${requestsMap[email].name}</strong><br>
-                        <span style="color:var(--text-muted); font-size:0.75rem;">${email}</span><br>
+                        <strong style="color:#fff; font-size:0.9rem;">${requestsMap[noonId].name}</strong><br>
+                        <span style="color:var(--text-muted); font-size:0.75rem;">ID: ${noonId}</span><br>
                         <span style="color:var(--accent-color); font-size:0.75rem;">wants Operations access.</span>
                         <div style="margin-top:8px; display:flex; gap:8px;">
-                            <button onclick="approveOpsRequest('${requestsMap[email].name.replace(/'/g, "\\'")}', '${email.replace(/'/g, "\\'")}')" style="background:var(--success-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Approve</button>
-                            <button onclick="denyOpsRequest('${requestsMap[email].name.replace(/'/g, "\\'")}', '${email.replace(/'/g, "\\'")}')" style="background:var(--danger-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Deny</button>
+                            <button onclick="approveOpsRequest('${requestsMap[noonId].name.replace(/'/g, "\\'")}', '${noonId.replace(/'/g, "\\'")}')" style="background:var(--success-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Approve</button>
+                            <button onclick="denyOpsRequest('${requestsMap[noonId].name.replace(/'/g, "\\'")}', '${noonId.replace(/'/g, "\\'")}')" style="background:var(--danger-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Deny</button>
                         </div>
                     </div>`;
                 }
@@ -1449,20 +1450,28 @@
             drop.innerHTML += `<div style="padding:0.5rem; text-align:center; background:rgba(0,0,0,0.3); border-top:1px solid var(--border-color);"><button onclick="openOpsHistoryModal()" style="background:transparent; border:none; color:var(--accent-color); font-size:0.75rem; font-weight:bold; cursor:pointer; text-transform:uppercase;">View Access History</button></div>`;
         }
 
-        function approveOpsRequest(name, email) {
-            const payload = { action: "opsApprove", name: name, noonId: email };
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        function approveOpsRequest(name, id) {
+            const payload = { action: "opsApprove", name: name, noonId: id };
+            fetch(API_URL, { 
+                method: 'POST', 
+                headers: {'Content-Type':'text/plain;charset=utf-8'},
+                body: JSON.stringify(payload) 
+            });
             // Optimistic Update
-            let log = window.globalSystemLogs.find(l => l.noonId === email);
+            let log = window.globalSystemLogs.find(l => l.noonId === id);
             if(log) log.accepted = true;
             renderNotifications();
         }
 
-        function denyOpsRequest(name, email) {
-            const payload = { action: "opsDeny", name: name, noonId: email };
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        function denyOpsRequest(name, id) {
+            const payload = { action: "opsDeny", name: name, noonId: id };
+            fetch(API_URL, { 
+                method: 'POST', 
+                headers: {'Content-Type':'text/plain;charset=utf-8'},
+                body: JSON.stringify(payload) 
+            });
             // Optimistic Update
-            let log = window.globalSystemLogs.find(l => l.noonId === email);
+            let log = window.globalSystemLogs.find(l => l.noonId === id);
             if(log) log.denied = true;
             renderNotifications();
         }
@@ -2453,12 +2462,10 @@
 
             let filtered = globalHistoryListCache.filter(r => {
                 const checkInMatch = isDateInRange(r.checkInTime, range, now, fromStr, toStr);
-                // In new structure, check out time exists if they checked out.
                 const checkOutMatch = r.checkOutTime ? isDateInRange(r.checkOutTime, range, now, fromStr, toStr) : false;
 
                 if (timeFilter === 'in') return checkInMatch;
                 if (timeFilter === 'out') return checkOutMatch;
-                // Both: Valid if either the check-in OR check-out fell in the range
                 return checkInMatch || checkOutMatch;
             });
 
@@ -3243,7 +3250,5 @@
 
         fetchLogs(); // Run immediately on load so tablet has system logs ready!
         setInterval(fetchLogs, 15000);
-        setInterval(checkSessionExpiry, 60000); 
-    </script>
-</body>
-</html>
+        setInterval(checkSessionExpiry, 6I encountered an error doing what you asked. Could you try again?
+            
