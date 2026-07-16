@@ -628,8 +628,14 @@
                 </div>
             </div>
 
-            <!-- Grouped Log Tables Restored for Analytics -->
-            <div id="analyticsGroupedTables" style="margin-top: 2rem;"></div>
+            <!-- Single Flat Log Table for Analytics -->
+            <div class="card" style="margin-top: 2rem; overflow-x: auto; padding: 1.5rem; background: transparent; border: none;">
+                <h3 style="color: #fff; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 1rem;" data-i18n="Filtered Movement Logs">Filtered Movement Logs</h3>
+                <table id="analyticsLogTable">
+                    <thead><tr><th data-i18n="Driver">Driver</th><th data-i18n="Plate">Plate</th><th data-i18n="Direction">Direction</th><th data-i18n="Dock">Dock</th><th data-i18n="Seal Number">Seal Number</th><th data-i18n="Check In Truck">Check In Truck</th><th data-i18n="Check Out">Check Out</th><th data-i18n="Duration">Duration</th><th data-i18n="Security">Security</th></tr></thead>
+                    <tbody id="analyticsLogTableBody"><tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;" data-i18n="No records match this filter.">NO RECORDS MATCH THIS FILTER.</td></tr></tbody>
+                </table>
+            </div>
         </div>
 
         <div id="view-checkin" class="app-view">
@@ -1141,19 +1147,6 @@
                 }
             });
         });
-
-        // Toggle Accordion functionality
-        window.toggleAccordion = function(el) {
-            const content = el.nextElementSibling;
-            const wrapper = el.parentElement;
-            if (content.classList.contains('open')) {
-                content.classList.remove('open');
-                wrapper.classList.remove('open');
-            } else {
-                content.classList.add('open');
-                wrapper.classList.add('open');
-            }
-        };
 
         // 12-Hour Auto Logout Check
         function checkSessionExpiry() {
@@ -2433,6 +2426,7 @@
 
             let filtered = globalHistoryListCache.filter(r => {
                 const checkInMatch = isDateInRange(r.checkInTime, range, now, fromStr, toStr);
+                // In new structure, check out time exists if they checked out.
                 const checkOutMatch = r.checkOutTime ? isDateInRange(r.checkOutTime, range, now, fromStr, toStr) : false;
 
                 if (timeFilter === 'in') return checkInMatch;
@@ -2450,74 +2444,26 @@
                 );
             }
             updateAnalyticsHub(filtered, range);
-            renderAnalyticsTable(filtered); // Renders the accordion!
+            renderAnalyticsTable(filtered); // Renders the single flat table
         }
 
-        // ACCORDION ANALYTICS TABLE FUNCTION (Restored)
+        // FLATTENED ANALYTICS TABLE FUNCTION
         function renderAnalyticsTable(list) {
-            const container = document.getElementById('analyticsGroupedTables');
-            if(!container) return;
-            container.innerHTML = '';
+            const tbody = document.getElementById('analyticsLogTableBody');
+            tbody.innerHTML = '';
             
             if (list.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;">${tr('No records match this filter.')}</div>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic; font-size:0.8rem; text-transform:uppercase;">${tr('No records match this filter.')}</td></tr>`;
                 return;
             }
 
-            let groups = {};
             list.forEach(r => {
                 let displayDir = (r.direction || '').split(' - ')[0].toUpperCase();
                 let cssClass = getBadgeClass(displayDir, r.checkOutTime !== "");
 
-                if (!groups[displayDir]) groups[displayDir] = { items: [], cssClass: cssClass };
-                groups[displayDir].items.push(r);
+                // Does NOT output the Iqama ID for security reasons
+                tbody.innerHTML += `<tr><td><strong>${r.driverName}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="${cssClass}">${tr(displayDir)}</span></td><td><strong>${r.dockNumber}</strong></td><td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td><td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.8rem; color:var(--text-muted);">${!r.checkOutTime ? '<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>' : formatTimeText(r.checkOutTime)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.checkOutTime)}</td><td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td></tr>`;
             });
-
-            for (let [dir, group] of Object.entries(groups)) {
-                let rowsHtml = group.items.map(r => {
-                    let activeSeal = r.sealNumber || '--';
-                    return `<tr>
-                        <td><strong>${r.driverName}</strong></td>
-                        <td>${generatePlateBumperUI(r.plateNumber)}</td>
-                        <td><span class="${group.cssClass}">${tr(dir)}</span></td>
-                        <td><strong>${r.dockNumber}</strong></td>
-                        <td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${activeSeal}</td>
-                        <td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td>
-                        <td style="font-size:0.8rem; color:var(--text-muted);">${!r.checkOutTime ? '<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>' : formatTimeText(r.checkOutTime)}</td>
-                        <td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.checkOutTime)}</td>
-                        <td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td>
-                    </tr>`;
-                }).join('');
-
-                let tableHtml = `
-                    <table style="min-width: 800px; margin-top: 0;">
-                        <thead><tr>
-                            <th data-i18n="Driver">${tr('Driver')}</th>
-                            <th data-i18n="Plate">${tr('Plate')}</th>
-                            <th data-i18n="Direction">${tr('Direction')}</th>
-                            <th data-i18n="Dock">${tr('Dock')}</th>
-                            <th data-i18n="Seal Number">${tr('Seal Number')}</th>
-                            <th data-i18n="Check In Truck">${tr('Check In Truck')}</th>
-                            <th data-i18n="Check Out">${tr('Check Out')}</th>
-                            <th data-i18n="Duration">${tr('Duration')}</th>
-                            <th data-i18n="Security">${tr('Security')}</th>
-                        </tr></thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-                `;
-
-                container.innerHTML += `
-                    <div class="accordion-wrapper">
-                        <div class="accordion-header" onclick="toggleAccordion(this)">
-                            <div class="accordion-title"><span class="${group.cssClass}" style="margin-right: 10px;">${tr(dir)}</span></div>
-                            <div class="accordion-badge">${group.items.length}</div>
-                        </div>
-                        <div class="accordion-content">
-                            ${tableHtml}
-                        </div>
-                    </div>
-                `;
-            }
         }
 
         function setAnalyticsDateFilter(range, btnEl) {
