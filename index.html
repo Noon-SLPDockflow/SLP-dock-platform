@@ -353,10 +353,10 @@
         .modal-header-container h2 { font-size: 1.1rem; color: #fff; font-weight: 700; text-transform: uppercase; }
         .btn-modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
         .modal-body-content { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; overflow-y: auto; }
-
+        
         /* Fixed Viewport so images are never cropped */
         .modal-media-viewport { width: 100%; height: 210px; border-radius: 6px; border: 1px solid var(--border-color); display:flex; align-items:center; justify-content:center; background-color: #0b0e14; background-size: contain; background-position: center; background-repeat: no-repeat; }
-
+        
         .modal-data-blocks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
         .modal-slate-cell { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 0.85rem 1rem; border-radius: 6px; }
         .modal-slate-cell span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 6px; }
@@ -645,14 +645,6 @@
                 </div>
             </div>
 
-            <!-- Single Flat Log Table for Analytics -->
-            <div class="card" style="margin-top: 2rem; overflow-x: auto; padding: 1.5rem; background: transparent; border: none;">
-                <h3 style="color: #fff; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 1rem;" data-i18n="Filtered Movement Logs">Filtered Movement Logs</h3>
-                <table id="analyticsLogTable">
-                    <thead><tr><th data-i18n="Driver">Driver</th><th data-i18n="Plate">Plate</th><th data-i18n="Direction">Direction</th><th data-i18n="Dock">Dock</th><th data-i18n="Seal Number">Seal Number</th><th data-i18n="Check In Truck">Check In Truck</th><th data-i18n="Check Out">Check Out</th><th data-i18n="Duration">Duration</th><th data-i18n="Security">Security</th></tr></thead>
-                    <tbody id="analyticsLogTableBody"><tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;" data-i18n="No records match this filter.">NO RECORDS MATCH THIS FILTER.</td></tr></tbody>
-                </table>
-            </div>
             <!-- Grouped Log Tables Restored for Analytics -->
             <div id="analyticsGroupedTables" style="margin-top: 2rem;"></div>
         </div>
@@ -780,7 +772,7 @@
             <div class="card" style="padding: 1.5rem; background: transparent; border:none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
                     <div class="header-search-box-container" style="width: 320px;"><span>🔍</span><input type="text" id="historySearchQuery" class="header-search-input" data-i18n="Filter by driver, plate, or security ID..." placeholder="Filter by driver, plate, or security ID..." oninput="applyHistoryFilters()"></div>
-
+                    
                     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                         <select id="historyTimeFilter" class="input-box-styled" style="width:auto; padding: 0.4rem; font-size: 0.75rem; font-weight: 700;" onchange="applyHistoryFilters()">
                             <option value="both" data-i18n="Both (In & Out)">Both (In & Out)</option>
@@ -965,7 +957,7 @@
         let currentHistoryDateRange = 'all';
         let currentAnalyticsDateRange = 'weekly';
         let temporaryCapturedImage = null;
-
+        
         // Check out image holders
         let tempCheckoutTruckPhoto = null;
         let tempCheckoutItemPhoto = null;
@@ -1330,7 +1322,7 @@
             } else if (currentLoginMode === 'ops') {
                 if(!nameInput || !emailInput) return alert("Please fill all fields to authorize access.");
                 if(!emailInput.toLowerCase().endsWith('noon.com')) return alert("Access Denied. Only valid noon.com accounts are permitted.");
-
+                
                 // If logs haven't fetched from Google Sheet yet, warn the user.
                 if (!window.hasFetchedLogs) {
                     alert("Connecting to server... Please wait a few seconds and try again.");
@@ -1371,11 +1363,11 @@
                         headers: {'Content-Type':'text/plain;charset=utf-8'}, 
                         body: JSON.stringify(payload) 
                     }).catch(e => console.error("Access request transmission error", e));
-
+                    
                     // Optimistic update locally
                     if(!window.globalSystemLogs) window.globalSystemLogs = [];
                     window.globalSystemLogs.push({...payload, timestamp: new Date().toISOString()});
-
+                    
                     alert("Access request sent to Admin. Please wait for approval.");
                 }
 
@@ -1406,9 +1398,9 @@
 
         function renderNotifications() {
             if (userRole !== 'admin') return;
-
+            
             let requestsMap = {}; 
-
+            
             (window.globalSystemLogs || []).forEach(log => {
                 let email = log.noonId;
                 if (!requestsMap[email]) {
@@ -1421,7 +1413,7 @@
 
             let pendingHtml = '';
             let pendingCount = 0;
-
+            
             for (let email in requestsMap) {
                 if (!requestsMap[email].accepted && !requestsMap[email].denied) {
                     pendingCount++;
@@ -1437,7 +1429,7 @@
                     </div>`;
                 }
             }
-
+            
             const badge = document.getElementById('adminBellBadge');
             if (pendingCount > 0) {
                 badge.style.display = 'block';
@@ -1452,7 +1444,7 @@
             } else {
                 drop.innerHTML = pendingHtml;
             }
-
+            
             // Add History Button to bottom
             drop.innerHTML += `<div style="padding:0.5rem; text-align:center; background:rgba(0,0,0,0.3); border-top:1px solid var(--border-color);"><button onclick="openOpsHistoryModal()" style="background:transparent; border:none; color:var(--accent-color); font-size:0.75rem; font-weight:bold; cursor:pointer; text-transform:uppercase;">View Access History</button></div>`;
         }
@@ -1478,16 +1470,16 @@
         window.openOpsHistoryModal = function() {
             const tbody = document.getElementById('opsAccessHistoryBody');
             tbody.innerHTML = '';
-
+            
             let historyLogs = (window.globalSystemLogs || []).filter(l => l.accepted || l.denied);
-
+            
             if (historyLogs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">No history found.</td></tr>`;
             } else {
                 historyLogs.slice().reverse().forEach(log => {
                     let statusColor = log.accepted ? 'var(--success-color)' : 'var(--danger-color)';
                     let statusText = log.accepted ? 'APPROVED' : 'DENIED';
-
+                    
                     tbody.innerHTML += `
                     <tr>
                         <td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(log.timestamp)}</td>
@@ -1660,7 +1652,7 @@
                 let plateBox = document.getElementById('modalDataPlate'); plateBox.innerHTML = '';
                 let segments = plate ? plate.split(' ') : ['--'];
                 segments.forEach(seg => { let div = document.createElement('div'); div.className = 'modal-plate-tag'; div.innerText = seg; plateBox.appendChild(div); });
-
+                
                 // Show loading placeholder initially
                 viewport.style.backgroundImage = `none`;
                 viewport.innerHTML = `<div id="photoLoader" style="color:var(--accent-color); text-align:center; padding-top:80px; font-weight:bold;">Loading Photo...</div>`;
@@ -1953,13 +1945,11 @@
         async function preprocessImageForOcr(file, scanType) {
             const img = await loadImageRobust(file);
             let sx = 0, sy = 0, sw = img.width, sh = img.height;
-            if (scanType === 'PLATE') { sw = img.width * 0.7; sh = img.height * 0.42; sx = (img.width - sw) / 2; sy = img.height * 0.52; }
             
             // REMOVED AGGRESSIVE CROP. If they take a close photo, cropping 50% of the bottom ruins it.
             // Let Google Vision handle the full image. We just compress it nicely.
             
             const targetWidth = scanType === 'PLATE' ? 1100 : 1400;
-            const scale = sw < targetWidth ? targetWidth / sw : 1;
             const scale = sw > targetWidth ? targetWidth / sw : 1; 
             const canvas = document.createElement('canvas');
             canvas.width = Math.round(sw * scale); canvas.height = Math.round(sh * scale);
@@ -2035,7 +2025,7 @@
                 closeCamera(); 
             }
         }
-
+        
         async function openCheckoutCamera(statusLabelId, scanType) {
             cameraTargetStatusId = statusLabelId; cameraTargetScanType = scanType;
             const overlay = document.getElementById('cameraOverlay'), video = document.getElementById('cameraVideo');
@@ -2116,11 +2106,11 @@
             if (!file) return; 
             const status = document.getElementById(statusLabelId);
             status.innerHTML = "🌀 Processing..."; status.style.color = "var(--accent-color)";
-
+            
             try {
                 const profileBlob = await compressImageForProfile(file);
                 const profileBase64 = await blobToBase64(profileBlob);
-
+                
                 if (scanType === 'truck') {
                     tempCheckoutTruckPhoto = 'data:image/jpeg;base64,' + profileBase64;
                 } else if (scanType === 'item') {
@@ -2290,13 +2280,13 @@
             currentSignOutContext = { driverName, plateNumber, securityName, dockNumber, dispatchType };
             document.getElementById('signOutModalSubtext').innerText = `${tr('Completing SLP cycle for vehicle')} ${plateNumber || '(' + tr('No Plate Provided') + ')'}`;
             document.getElementById('signOutSeal').value = '';
-
+            
             if (dispatchType && dispatchType.toUpperCase() === 'RECEIVING') {
                 document.getElementById('checkoutSealContainer').style.display = 'none';
             } else {
                 document.getElementById('checkoutSealContainer').style.display = 'block';
             }
-
+            
             // Reset photo states
             tempCheckoutTruckPhoto = null;
             tempCheckoutItemPhoto = null;
@@ -2304,7 +2294,7 @@
             document.getElementById('checkoutTruckStatus').style.color = "var(--text-muted)";
             document.getElementById('checkoutItemStatus').innerText = "Item Picture *";
             document.getElementById('checkoutItemStatus').style.color = "var(--text-muted)";
-
+            
             document.getElementById('signOutModal').classList.add('modal-active');
         }
 
@@ -2318,7 +2308,7 @@
         document.getElementById('btnConfirmSignOut').addEventListener('click', async () => {
             const isReceiving = currentSignOutContext.dispatchType && currentSignOutContext.dispatchType.toUpperCase() === 'RECEIVING';
             const sealVal = isReceiving ? "" : document.getElementById('signOutSeal').value.trim();
-
+            
             if (!isReceiving && !sealVal) { alert('Please attach a departure seal number.'); return; }
             if (!tempCheckoutTruckPhoto) { alert('Please attach a Truck Picture.'); return; }
             if (!tempCheckoutItemPhoto) { alert('Please attach an Item Picture.'); return; }
@@ -2350,7 +2340,7 @@
                     activeLog.truckPhoto = tempCheckoutTruckPhoto;
                     activeLog.itemPhoto = tempCheckoutItemPhoto;
                 }
-
+                
                 window.handleLogsResponse({ logs: globalLogsCache, ops: window.globalSystemLogs });
 
                 closeSignOutModal();
@@ -2404,7 +2394,7 @@
             if (!dateValue) return false;
             const refDate = new Date(dateValue);
             if (isNaN(refDate.getTime())) return false;
-
+            
             if (range === 'all') return true;
             if (range === 'today') {
                 return refDate.toDateString() === now.toDateString();
@@ -2435,7 +2425,7 @@
             }
             if (range === 'custom') {
                 if (!fromStr && !toStr) return true; // Show all if calendar is empty
-
+                
                 let isValid = true;
                 if (fromStr) {
                     const from = new Date(fromStr);
@@ -2481,21 +2471,16 @@
                 );
             }
             updateAnalyticsHub(filtered, range);
-            renderAnalyticsTable(filtered); // Renders the single flat table
             renderAnalyticsTable(filtered); // Renders the accordion!
         }
 
-        // FLATTENED ANALYTICS TABLE FUNCTION
         // ACCORDION ANALYTICS TABLE FUNCTION (Restored)
         function renderAnalyticsTable(list) {
-            const tbody = document.getElementById('analyticsLogTableBody');
-            tbody.innerHTML = '';
             const container = document.getElementById('analyticsGroupedTables');
             if(!container) return;
             container.innerHTML = '';
-
+            
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:3rem; font-style:italic; font-size:0.8rem; text-transform:uppercase;">${tr('No records match this filter.')}</td></tr>`;
                 container.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 3rem; font-style: italic; font-size: 0.8rem; text-transform: uppercase;">${tr('No records match this filter.')}</div>`;
                 return;
             }
@@ -2505,8 +2490,6 @@
                 let displayDir = (r.direction || '').split(' - ')[0].toUpperCase();
                 let cssClass = getBadgeClass(displayDir, r.checkOutTime !== "");
 
-                // Does NOT output the Iqama ID for security reasons
-                tbody.innerHTML += `<tr><td><strong>${r.driverName}</strong></td><td>${generatePlateBumperUI(r.plateNumber)}</td><td><span class="${cssClass}">${tr(displayDir)}</span></td><td><strong>${r.dockNumber}</strong></td><td style="color:var(--text-muted); font-family: monospace; font-size:0.8rem;">${r.sealNumber || '--'}</td><td style="font-size:0.8rem; color:var(--text-muted);">${formatTimeText(r.checkInTime)}</td><td style="font-size:0.8rem; color:var(--text-muted);">${!r.checkOutTime ? '<span style="color:var(--accent-color); font-weight:700;">'+tr('Inside')+'</span>' : formatTimeText(r.checkOutTime)}</td><td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, r.checkOutTime)}</td><td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td></tr>`;
                 if (!groups[displayDir]) groups[displayDir] = { items: [], cssClass: cssClass };
                 groups[displayDir].items.push(r);
             });
@@ -2965,7 +2948,7 @@
                 if (timeFilter === 'out') return checkOutMatch;
                 return checkInMatch || checkOutMatch;
             });
-
+            
             if (rows.length === 0) { alert(tr('No records match this filter.')); return; }
 
             const headers = [tr('Driver'), tr('Iqama Number'), tr('Plate'), tr('Direction'), tr('Dock'), tr('Seal Number'), tr('Check In Truck'), tr('Check Out'), tr('Duration'), tr('Security')];
@@ -3035,7 +3018,7 @@
             document.getElementById('metric-total-checkins').innerText = chronData.length;
 
             let activeList = chronData.filter(r => !r.checkOutTime);
-
+            
             document.getElementById('metric-active-now').innerText = activeList.length;
             if (document.getElementById('activeYardCounter')) { document.getElementById('activeYardCounter').innerText = activeList.length; }
 
@@ -3119,7 +3102,7 @@
             applyHistoryFilters(); // Applies both date and search text filters
             applyAnalyticsFilters(); // Initialize Analytics Charts
             populateDatalists(globalHistoryListCache); // Dynamically update input dropdowns!
-
+            
             // If admin, update the notification bell
             if(userRole === 'admin') renderNotifications();
         };
@@ -3157,7 +3140,7 @@
                     ...payload,
                     checkInTime: new Date().toISOString()
                 });
-
+                
                 // Construct fake response format
                 window.handleLogsResponse({ logs: globalLogsCache, ops: window.globalSystemLogs });
 
