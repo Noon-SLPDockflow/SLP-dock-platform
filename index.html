@@ -1168,6 +1168,106 @@
             checkSessionOnLoad();
         });
 
+        document.getElementById('customSignInBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const nameInput = document.getElementById('loginName').value.trim();
+    const emailInput = document.getElementById('loginEmail').value.trim();
+    const noonIdInput = document.getElementById('loginNoonId').value.trim();
+    const pass = document.getElementById('adminPassword').value;
+    const loginEmailField = document.getElementById('loginEmail');
+    const adminPassField = document.getElementById('adminPassword');
+
+    loginEmailField.setCustomValidity('');
+    adminPassField.setCustomValidity('');
+
+    if (currentLoginMode === 'admin') {
+        if(!nameInput || !emailInput || !pass) {
+            adminPassField.setCustomValidity("Please fill all fields to authorize access.");
+            adminPassField.reportValidity();
+            return;
+        }
+        if (pass !== 'admin123') {
+            adminPassField.setCustomValidity("Incorrect Administrator Password.");
+            adminPassField.reportValidity();
+            return;
+        }
+        executeLogin(nameInput, emailInput, '', 'admin', false);
+
+    } else if (currentLoginMode === 'ops') {
+        if(!nameInput || !emailInput) {
+            loginEmailField.setCustomValidity("Please fill all fields to authorize access.");
+            loginEmailField.reportValidity();
+            return;
+        }
+        if(!emailInput.toLowerCase().endsWith('noon.com')) {
+            loginEmailField.setCustomValidity("Access Denied. Only valid noon.com accounts are permitted.");
+            loginEmailField.reportValidity();
+            return;
+        }
+        
+        if (!window.hasFetchedLogs) {
+            loginEmailField.setCustomValidity("Connecting to server... Please wait a few seconds and try again.");
+            loginEmailField.reportValidity();
+            return;
+        }
+
+        let isApproved = false;
+        let isPending = false;
+
+        (window.globalSystemLogs || []).forEach(log => {
+            if (log.noonId && log.noonId.toLowerCase() === emailInput.toLowerCase()) {
+                if (log.accepted) {
+                    isApproved = true;
+                    isPending = false;
+                } else if (log.denied) {
+                    isApproved = false;
+                    isPending = false;
+                } else {
+                    isPending = true;
+                }
+            }
+        });
+
+        if (isApproved) {
+            executeLogin(nameInput, emailInput, '', 'ops', false);
+        } else if (isPending) {
+            loginEmailField.setCustomValidity("Your access request is currently pending Admin approval.");
+            loginEmailField.reportValidity();
+        } else {
+            const payload = {
+                action: "opsRequest",
+                name: nameInput,
+                noonId: emailInput.toLowerCase()
+            };
+
+            fetch(API_URL, { 
+                method: 'POST', 
+                headers: {'Content-Type':'text/plain;charset=utf-8'}, 
+                body: JSON.stringify(payload) 
+            }).catch(e => console.error("Access request transmission error", e));
+            
+            if(!window.globalSystemLogs) window.globalSystemLogs = [];
+            window.globalSystemLogs.push({...payload, timestamp: new Date().toISOString()});
+            
+            loginEmailField.setCustomValidity("Access request sent to Admin. Please wait for approval.");
+            loginEmailField.reportValidity();
+        }
+
+    } else { 
+        if(!nameInput || !emailInput || !noonIdInput) {
+            loginEmailField.setCustomValidity("Please fill all fields to authorize access.");
+            loginEmailField.reportValidity();
+            return;
+        }
+        if (!allowedEmails.includes(emailInput.toLowerCase())) {
+            loginEmailField.setCustomValidity("Access Denied. Unauthorized Security Email.");
+            loginEmailField.reportValidity();
+            return;
+        }
+        executeLogin(nameInput, emailInput, noonIdInput, 'guard', false);
+    }
+});
         function checkSessionOnLoad() {
             const sessionStr = localStorage.getItem('noonSlpUserSession');
             if (sessionStr) {
