@@ -212,7 +212,7 @@
         }
 
         .highlight-row { background-color: rgba(252, 194, 0, 0.15) !important; border-left: 4px solid var(--accent-color) !important; transition: background-color 0.3s, border 0.3s; }
-        html[dir="rtl"] .highlight-row { border-left: none !important; border-right: 4px solid var(--accent-color) !important; }
+        html[dir="rtl"] .highlight-row { border-left: none !important; border-right: 4px solid var(--accent-color) !important; transition: background-color 0.3s, border 0.3s; }
 
         /* DEEP-DIVE ANALYTICS CHARTS SECTION */
         .analytics-hub-title { background: rgba(56, 139, 253, 0.1); border: 1px solid rgba(56, 139, 253, 0.3); color: #79c0ff; padding: 0.75rem 1rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 6px; margin-bottom: 1.5rem; }
@@ -2023,7 +2023,6 @@
             if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
             isConfirmingState = false;
             
-            // Restore capture controls defaults
             document.querySelector('.btn-capture').innerHTML = `📸 <span data-i18n="Capture">Capture</span>`;
             document.querySelector('.btn-cancel-cam').innerHTML = tr('Cancel');
             document.querySelector('.btn-cancel-cam').removeAttribute('style');
@@ -2033,10 +2032,8 @@
             updateUIStrings();
         }
 
-        // Handle structural Cancel / Retake button behavior
         function handleCameraCancel() {
             if (isConfirmingState) {
-                // Treated as explicit Retake Action
                 isConfirmingState = false;
                 
                 const video = document.getElementById('cameraVideo');
@@ -2077,7 +2074,6 @@
             const canvas = document.getElementById('cameraCanvas');
 
             if (isConfirmingState) {
-                // If Done/Proceed state is clicked, execute layout chaining logic
                 isConfirmingState = false;
                 
                 document.querySelector('.btn-capture').innerHTML = `📸 <span data-i18n="Capture">Capture</span>`;
@@ -2102,7 +2098,6 @@
                 return;
             }
 
-            // Normal Frame Capture Mode
             canvas.width = video.videoWidth; canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
 
@@ -2119,9 +2114,7 @@
             }, 'image/jpeg', 0.85);
 
             triggerCameraFlash();
-            video.pause(); // Freeze stream to display preview capture
-
-            // Morph into verification overlay layout
+            video.pause(); 
             isConfirmingState = true;
             
             if (currentLang === 'ar') {
@@ -3102,7 +3095,28 @@
         }
 
         document.getElementById('entryForm').addEventListener('submit', async e => {
-            e.preventDefault(); const btn = document.querySelector('.submit-btn-global'); btn.innerText = tr("Processing Check In..."); btn.disabled = true;
+            e.preventDefault(); 
+            
+            // --- CORE REGISTRY CONFLICT VALIDATION ENGINE ---
+            const isNewDriverMode = document.getElementById('toggleNewDriverBtn').classList.contains('active');
+            if (isNewDriverMode && window.driversRegistryList) {
+                const checkIqama = document.getElementById('iqamaNumber').value.trim().toLowerCase();
+                const checkPlate = document.getElementById('plateNumber').value.trim().replace(/\s+/g, '').toLowerCase();
+
+                let iqamaConflicted = driversRegistryList.some(d => d.id && d.id.trim().toLowerCase() === checkIqama && d.id !== 'N/A' && d.id !== '--');
+                let plateConflicted = driversRegistryList.some(d => d.plate && d.plate.trim().replace(/\s+/g, '').toLowerCase() === checkPlate && d.plate !== 'N/A' && d.plate !== '--');
+
+                if (iqamaConflicted || plateConflicted) {
+                    if (currentLang === 'ar') {
+                        alert("⚠️ عذراً: رقم الإقامة هذا أو لوحة الشاحنة مسجلة بالفعل في قاعدة البيانات المرجعية للسائقين.\n\nيرجى إلغاء العملية وتغيير الوضع إلى وضع 'سائق حالي' (Existing Driver) وإجراء عملية البحث.");
+                    } else {
+                        alert("⚠️ Data Conflict: This Iqama Number or Truck Plate Number already exists inside the master driver database.\n\nPlease cancel this entry, switch to 'Existing Driver' mode, and search for the driver's profile.");
+                    }
+                    return; 
+                }
+            }
+
+            const btn = document.querySelector('.submit-btn-global'); btn.innerText = tr("Processing Check In..."); btn.disabled = true;
             try {
                 const payload = { 
                     driverName: document.getElementById('driverName').value, 
