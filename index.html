@@ -2331,7 +2331,6 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
 }
 }, 300);
 }
-
         async function runLocalOcrEngine(file, statusLabelId, scanType) {
             const status = document.getElementById(statusLabelId);
             status.innerHTML = "🌀 " + tr("Preparing image..."); status.style.color = "var(--accent-color)";
