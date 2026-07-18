@@ -2248,23 +2248,25 @@ function captureCameraFrame() {
 
         if (video && video.paused) video.play();
 
-       if (cameraTargetScanType === "PLATE") {
-    if (isReceiving) {
-        cameraTargetStatusId = "itemPhotoStatus";
-        cameraTargetScanType = "ITEM_PHOTO";
-        document.getElementById('cameraInstructionLabel').innerHTML = getInstructionText("ITEM_PHOTO");
-    } else {
-        cameraTargetStatusId = "iqamaStatus";
-        cameraTargetScanType = "IQAMA";
-        document.getElementById('cameraInstructionLabel').innerHTML = getInstructionText("IQAMA");
-    }
-} else if (cameraTargetScanType === "ITEM_PHOTO") {
-    cameraTargetStatusId = "iqamaStatus";
-    cameraTargetScanType = "IQAMA";
-    document.getElementById('cameraInstructionLabel').innerHTML = getInstructionText("IQAMA");
-} else if (cameraTargetScanType === "IQAMA") {
-    closeCamera();
-}
+        const isReceiving = document.getElementById('dispatchSelect').value === 'Receiving';
+
+        if (cameraTargetScanType === "PLATE") {
+            if (isReceiving) {
+                cameraTargetStatusId = "itemPhotoStatus";
+                cameraTargetScanType = "ITEM_PHOTO";
+                document.getElementById('cameraInstructionLabel').innerText = getInstructionText("ITEM_PHOTO");
+            } else {
+                cameraTargetStatusId = "iqamaStatus";
+                cameraTargetScanType = "IQAMA";
+                document.getElementById('cameraInstructionLabel').innerText = getInstructionText("IQAMA");
+            }
+        } else if (cameraTargetScanType === "ITEM_PHOTO") {
+            cameraTargetStatusId = "iqamaStatus";
+            cameraTargetScanType = "IQAMA";
+            document.getElementById('cameraInstructionLabel').innerText = getInstructionText("IQAMA");
+        } else if (cameraTargetScanType === "IQAMA") {
+            closeCamera();
+        } else if (cameraTargetScanType === 'truck') {
             cameraTargetStatusId = 'checkoutItemStatus';
             cameraTargetScanType = 'item';
             document.getElementById('cameraInstructionLabel').innerText = getInstructionText('item');
@@ -2275,7 +2277,7 @@ function captureCameraFrame() {
         return;
     }
 
-   if (typeof video !== 'undefined' && video) {
+    if (typeof video !== 'undefined' && video) {
         canvas.width = video.videoWidth; canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
@@ -2293,43 +2295,46 @@ function captureCameraFrame() {
                     runLocalOcrEngine(blob, currentStatusId, currentScanType);
                 }
             };
-   }, 'image/jpeg', 0.85);
+        }, 'image/jpeg', 0.85);
 
         triggerCameraFlash();
-        if (typeof video !== 'undefined' && video.pause) video.pause();
+        if (video.pause) video.pause();
         isConfirmingState = true;
-if (currentLang === 'ar') {
-    document.getElementById('cameraInstructionLabel').innerText = '\u062A\u0645\u0645\u0620\u0627\u0644\u0644\u062A\u0642\u0627\u0637\u0620\u0628\u0646\u062C\u0627\u062D';
-    document.querySelector('.btn-capture').innerText = '\u0645\u0645\u0648\u0627\u0641\u0642\u0629\u0620\u002F\u0020\u0627\u0644\u062A\u0627\u0644\u064A';
-    document.querySelector('.btn-cancel-cam').innerText = '\u0625\u0639\u0627\u062F\u0629\u0020\u0627\u0644\u0645\u062D\u0627\u0648\u0644\u0629';
-} else {
-    document.getElementById('cameraInstructionLabel').innerText = 'Snap Completed!';
-    document.querySelector('.btn-capture').innerText = 'Proceed / Next';
-    document.querySelector('.btn-cancel-cam').innerText = 'Retake';
-}
 
-document.querySelector('.btn-cancel-cam').style.backgroundColor = 'var(--text-muted)';
-document.querySelector('.btn-cancel-cam').style.color = '#000';
+        if (currentLang === 'ar') {
+            document.getElementById('cameraInstructionLabel').innerText = 'تم الالتقاط بنجاح';
+            document.querySelector('.btn-capture').innerText = 'موافقة / التالي';
+            document.querySelector('.btn-cancel-cam').innerText = 'إعادة المحاولة';
+        } else {
+            document.getElementById('cameraInstructionLabel').innerText = 'Snap Completed!';
+            document.querySelector('.btn-capture').innerText = 'Proceed / Next';
+            document.querySelector('.btn-cancel-cam').innerText = 'Retake';
+        }
+
+        document.querySelector('.btn-cancel-cam').style.backgroundColor = 'var(--text-muted)';
+        document.querySelector('.btn-cancel-cam').style.color = '#000';
+    }
+}
 
 function handleFileSelected(inputEl, statusLabelId, scanType) {
     const file = inputEl.files[0];
     if (!file) return;
 
-   runLocalOcrEngine(file, statusLabelId, scanType);
+    runLocalOcrEngine(file, statusLabelId, scanType);
     inputEl.value = '';
 
     setTimeout(() => {
-    if (scanType === 'PLATE') {
-        const isReceiving = document.getElementById('dispatchSelect').value === 'Receiving';
-        if (isReceiving) {
-            document.getElementById('itemPhotoInput').click();
-        } else {
+        if (scanType === 'PLATE') {
+            const isReceiving = document.getElementById('dispatchSelect').value === 'Receiving';
+            if (isReceiving) {
+                document.getElementById('itemPhotoInput').click();
+            } else {
+                document.getElementById('iqamaScanner').click();
+            }
+        } else if (scanType === 'ITEM_PHOTO') {
             document.getElementById('iqamaScanner').click();
         }
-    } else if (scanType === 'ITEM_PHOTO') {
-        document.getElementById('iqamaScanner').click();
-}
-}, 300);
+    }, 300);
 }
         async function runLocalOcrEngine(file, statusLabelId, scanType) {
             const status = document.getElementById(statusLabelId);
