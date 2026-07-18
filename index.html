@@ -253,7 +253,7 @@
             padding: 1rem 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color);
             cursor: pointer; border-radius: 8px; transition: background 0.2s;
         }
-        .accordion-header:hover { background: rgba(255,255,255,0.05); }
+        .accordion-header:hover { background: rgba(252, 194, 0, 0.05); }
         .accordion-title { font-weight: 800; font-size: 0.95rem; color: #fff; display: flex; align-items: center; gap: 10px; }
         .accordion-badge { background: var(--card-solid); padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 700; color: var(--accent-color); border: 1px solid var(--border-color); }
         .accordion-content {
@@ -656,7 +656,6 @@
                         <input type="file" id="driverPhotoInput" accept="image/*" style="display:none;" onchange="handleFileSelected(this, 'driverPhotoStatus', 'PLATE')">
                         <div class="camera-btn-inline" onclick="event.stopPropagation(); openCamera('driverPhotoStatus', 'PLATE')">📸 <span data-i18n="Use Camera">Use Camera</span></div>
                     </div>
-                    <!-- DYNAMIC RECEIVING FIELD FOR EXTRA SNAP -->
                     <div class="scan-box-dashed" id="scanBoxItem" style="display:none;" onclick="document.getElementById('itemPhotoInput').click()">
                         <div><span class="icon">📦</span><span class="label-text" id="itemPhotoStatus">Item Picture *</span></div>
                         <input type="file" id="itemPhotoInput" accept="image/*" style="display:none;" onchange="handleFileSelected(this, 'itemPhotoStatus', 'ITEM_PHOTO')">
@@ -679,7 +678,8 @@
                         </button>
                     </div>
 
-                    <form id="entryForm">
+                    <!-- STRICT AUTOCOMPLETE SUPPRESSION APPLIED AT FORM SCOPE -->
+                    <form id="entryForm" autocomplete="off">
                         <div class="form-grid-columns">
 
                             <datalist id="dl-docks"></datalist>
@@ -690,10 +690,10 @@
                                 <input type="text" id="driverSearchBox" class="input-box-styled header-search-input" data-i18n="Search records..." placeholder="Type to search drivers..." autocomplete="off">
                                 <div id="driverSuggestionsList" class="suggestions-dropdown"></div>
                             </div>
-                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Driver Name *">Driver Name *</label><input type="text" id="driverName" class="input-box-styled" data-i18n="Driver Name *" placeholder="Enter driver full name"></div>
-                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Iqama Number *">Iqama Number *</label><input type="text" id="iqamaNumber" class="input-box-styled" data-i18n="Iqama Number *" placeholder="Enter 10-digit identity card number"></div>
-                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Truck Plate Number *">Truck Plate Number *</label><input type="text" id="plateNumber" class="input-box-styled" data-i18n="Truck Plate Number *" placeholder="Enter bumper plate sequence"></div>
-                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="mobileNumber" class="input-box-styled" data-i18n="Mobile Number" placeholder="Enter mobile number"></div>
+                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Driver Name *">Driver Name *</label><input type="text" id="driverName" class="input-box-styled" data-i18n="Driver Name *" placeholder="Enter driver full name" autocomplete="off"></div>
+                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Iqama Number *">Iqama Number *</label><input type="text" id="iqamaNumber" class="input-box-styled" data-i18n="Iqama Number *" placeholder="Enter 10-digit identity card number" autocomplete="off"></div>
+                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Truck Plate Number *">Truck Plate Number *</label><input type="text" id="plateNumber" class="input-box-styled" data-i18n="Truck Plate Number *" placeholder="Enter bumper plate sequence" autocomplete="off"></div>
+                            <div class="form-group new-driver-field"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="mobileNumber" class="input-box-styled" data-i18n="Mobile Number" placeholder="Enter mobile number" autocomplete="off"></div>
 
                             <div class="form-section-divider" data-i18n="Security & Facility Details">Security & Facility Details</div>
 
@@ -730,8 +730,7 @@
                                     <option value="Liquidation - إعادة بيع البضائع التالفة">Liquidation - إعادة بيع البضائع التالفة</option>
                                     <option value="Others">Others - أخرى</option>
                                 </select>
-                                <!-- HIDDEN SPECIFY BOX FOR OTHERS -->
-                                <input type="text" id="directionCustom" class="input-box-styled" placeholder="Please specify purpose..." style="display:none; margin-top:0.75rem;">
+                                <input type="text" id="directionCustom" class="input-box-styled" placeholder="Please specify purpose..." style="display:none; margin-top:0.75rem;" autocomplete="off">
                             </div>
                             
                             <div class="form-group" style="grid-column: 1 / -1;"><label class="badge-style" data-i18n="Dispatching / Receiving *">Dispatching / Receiving *</label>
@@ -744,7 +743,7 @@
 
                             <div class="form-group" id="sealNumberContainer" style="display: none; grid-column: 1 / -1;">
                                 <label class="badge-style" style="color:var(--accent-color);" data-i18n="Incoming Seal Number *">Incoming Seal Number *</label>
-                                <input type="text" id="sealNumber" class="input-box-styled" data-i18n="Incoming Seal Number *" placeholder="Enter incoming seal number" style="border-color: rgba(252, 194, 0, 0.4);">
+                                <input type="text" id="sealNumber" class="input-box-styled" data-i18n="Incoming Seal Number *" placeholder="Enter incoming seal number" style="border-color: rgba(252, 194, 0, 0.4);" autocomplete="off">
                             </div>
 
                         </div>
@@ -852,10 +851,10 @@
             <div class="modal-body-content">
                 <input type="hidden" id="editOriginalName">
                 <input type="hidden" id="editRecordType" value="driver">
-                <div class="form-group"><label id="editLabelName" class="badge-style" data-i18n="Driver Name *">Driver Name</label><input type="text" id="editName" class="input-box-styled"></div>
-                <div class="form-group"><label id="editLabelId" class="badge-style" data-i18n="Iqama Number *">Iqama Number</label><input type="text" id="editIqama" class="input-box-styled"></div>
-                <div class="form-group" id="editPlateGroup"><label class="badge-style" data-i18n="Truck Plate Number *">Plate Number</label><input type="text" id="editPlate" class="input-box-styled"></div>
-                <div class="form-group" id="editPhoneGroup"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="editPhone" class="input-box-styled"></div>
+                <div class="form-group"><label id="editLabelName" class="badge-style" data-i18n="Driver Name *">Driver Name</label><input type="text" id="editName" class="input-box-styled" autocomplete="off"></div>
+                <div class="form-group"><label id="editLabelId" class="badge-style" data-i18n="Iqama Number *">Iqama Number</label><input type="text" id="editIqama" class="input-box-styled" autocomplete="off"></div>
+                <div class="form-group" id="editPlateGroup"><label class="badge-style" data-i18n="Truck Plate Number *">Plate Number</label><input type="text" id="editPlate" class="input-box-styled" autocomplete="off"></div>
+                <div class="form-group" id="editPhoneGroup"><label class="badge-style" data-i18n="Mobile Number">Mobile Number</label><input type="text" id="editPhone" class="input-box-styled" autocomplete="off"></div>
             </div>
             <div class="modal-footer-container">
                 <button class="btn-modal-cancel" style="color: var(--danger-color); border-color: var(--danger-color); margin-right: auto;" onclick="deleteDriver()" data-i18n="Delete">Delete</button>
@@ -890,7 +889,7 @@
 
                 <div class="form-group" id="checkoutSealContainer" style="text-align: left; margin-bottom: 1.5rem;">
                     <label class="badge-style" style="color: var(--accent-color);" data-i18n="ATTACH DEPARTURE SEAL *">ATTACH DEPARTURE SEAL *</label>
-                    <input type="text" id="signOutSeal" class="input-box-styled" data-i18n="ATTACH DEPARTURE SEAL *" placeholder="e.g. SEAL-9022-X" style="border-color: rgba(252, 194, 0, 0.5); background:#0b0e14;">
+                    <input type="text" id="signOutSeal" class="input-box-styled" data-i18n="ATTACH DEPARTURE SEAL *" placeholder="e.g. SEAL-9022-X" style="border-color: rgba(252, 194, 0, 0.5); background:#0b0e14;" autocomplete="off">
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 0.75rem;">
@@ -956,11 +955,9 @@
         let currentHistoryDateRange = 'all';
         let currentAnalyticsDateRange = 'weekly';
         
-        // Check In Image Holders
-        let temporaryCapturedImage = null; // Re-mapped as default truck/driver snap
-        let temporaryCapturedItemImage = null; // New storage for Receiving check-in item snap
+        let temporaryCapturedImage = null; 
+        let temporaryCapturedItemImage = null; 
         
-        // Check Out Image Holders
         let tempCheckoutTruckPhoto = null;
         let tempCheckoutItemPhoto = null;
 
@@ -1123,7 +1120,7 @@
             return translations[key] || key;
         }
 
-        function toggleLang() {
+        window.toggleLang = function() {
             currentLang = currentLang === 'en' ? 'ar' : 'en';
             document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
             document.documentElement.lang = currentLang;
@@ -1156,12 +1153,35 @@
                 }
             });
 
-            // --- INSTANT Conflict Validation Input Event Listeners ---
+            // --- INSTANT Conflict Validation Listeners ---
             document.getElementById('iqamaNumber').addEventListener('input', runInstantConflictCheck);
             document.getElementById('plateNumber').addEventListener('input', runInstantConflictCheck);
+
+            // --- INITIAL LOAD REFRESH PERSISTENCE GUARDRAIL ---
+            checkSessionOnLoad();
         });
 
-        // --- INSTANT REGISTRY CONFLICT VALIDATION ENGINE ---
+        function checkSessionOnLoad() {
+            const sessionStr = localStorage.getItem('noonSlpUserSession');
+            if (sessionStr) {
+                const sessionData = JSON.parse(sessionStr);
+                const twelveHours = 12 * 60 * 60 * 1000;
+
+                if (!sessionData.loginTime || (Date.now() - sessionData.loginTime > twelveHours)) {
+                    localStorage.removeItem('noonSlpUserSession');
+                    initParticles(); 
+                    animateParticles();
+                } else {
+                    // Pass true as 5th argument to declare instant silent load
+                    executeLogin(sessionData.name, sessionData.email, sessionData.noonId || "", sessionData.role, true);
+                }
+            } else {
+                initParticles();
+                animateParticles();
+            }
+        }
+
+        // --- INSTANT CONFLICT CHECK (FIXED: MAINTAINS INPUT VALUE ON SCREEN) ---
         function runInstantConflictCheck(e) {
             const isNewDriverMode = document.getElementById('toggleNewDriverBtn').classList.contains('active');
             if (!isNewDriverMode || !window.driversRegistryList) return;
@@ -1173,30 +1193,27 @@
             if (targetField.id === 'iqamaNumber') {
                 let match = driversRegistryList.find(d => d.id && d.id.trim().toLowerCase() === val && d.id !== 'N/A' && d.id !== '--');
                 if (match) {
-                    targetField.value = '';
                     if (currentLang === 'ar') {
-                        alert("⚠️ عذراً: رقم الإقامة هذا مسجل بالفعل في النظام!\n\nيرجى استخدام وضع 'سائق حالي' (Existing Driver).");
+                        alert(`⚠️ عذراً: رقم الإقامة هذا (${targetField.value}) مسجل بالفعل في النظام!\n\nيرجى استخدام وضع 'سائق حالي' (Existing Driver).`);
                     } else {
-                        alert("⚠️ Duplicate Found: This Iqama Number already exists inside the master driver database!\n\nPlease switch to 'Existing Driver' mode.");
+                        alert(`⚠️ Duplicate Found: This Iqama Number (${targetField.value}) already exists inside the master driver database!\n\nPlease switch to 'Existing Driver' mode.`);
                     }
                 }
             }
 
             if (targetField.id === 'plateNumber') {
-                const normalizedPlate = val.replace(/\s+/g, '');
+                const normalizedPlate = val.replace(/\s+/g, '').toLowerCase();
                 let match = driversRegistryList.find(d => d.plate && d.plate.trim().replace(/\s+/g, '').toLowerCase() === normalizedPlate && d.plate !== 'N/A' && d.plate !== '--');
                 if (match) {
-                    targetField.value = '';
                     if (currentLang === 'ar') {
-                        alert("⚠️ عذراً: رقم لوحة الشاحنة مسجل بالفعل في النظام!\n\nيرجى استخدام وضع 'سائق حالي' (Existing Driver).");
+                        alert(`⚠️ عذراً: رقم لوحة الشاحنة (${targetField.value}) مسجل بالفعل في النظام!\n\nيرجى استخدام وضع 'سائق حالي' (Existing Driver).`);
                     } else {
-                        alert("⚠️ Duplicate Found: This Truck Plate Number already exists inside the master driver database!\n\nPlease switch to 'Existing Driver' mode.");
+                        alert(`⚠️ Duplicate Found: This Truck Plate Number (${targetField.value}) already exists inside the master driver database!\n\nPlease switch to 'Existing Driver' mode.`);
                     }
                 }
             }
         }
 
-        // --- DYNAMIC OTHERS OPTION DISPATCHER ---
         function handlePurposeChange(selectEl) {
             const customInput = document.getElementById('directionCustom');
             if (selectEl.value === 'Others') {
@@ -1209,7 +1226,6 @@
             }
         }
 
-        // --- DYNAMIC RECEIVING STRUCTURAL PIPELINE ---
         function handleDispatchChange(selectEl) {
             const scannersRow = document.getElementById('checkinScannersRow');
             const itemBox = document.getElementById('scanBoxItem');
@@ -1218,21 +1234,16 @@
             const sealInput = document.getElementById('sealNumber');
 
             if (selectEl.value === 'Receiving') {
-                // Morph Scanners into 3-Column Box Grid Array
                 scannersRow.style.gridTemplateColumns = 'repeat(3, 1fr)';
                 itemBox.style.display = 'block';
                 driverBoxLabel.innerText = "Truck Picture (Check-In) *";
-                
-                // Toggle Seal elements 
                 sealContainer.style.display = 'block';
                 sealInput.required = true;
             } else {
-                // Standard 2-Column Base Parameters
                 scannersRow.style.gridTemplateColumns = 'repeat(2, 1fr)';
                 itemBox.style.display = 'none';
                 driverBoxLabel.innerText = tr("Driver Photo / Truck Photo");
-                temporaryCapturedItemImage = null; // Flush active stream references
-                
+                temporaryCapturedItemImage = null; 
                 sealContainer.style.display = 'none';
                 sealInput.required = false;
                 sealInput.value = '';
@@ -1301,17 +1312,20 @@
             }
         }
 
-        function executeLogin(name, email, noonId, role) {
+        // --- GLOBAL SESSION MANAGEMENT pipeline (FIXED REFRESH BEHAVIOR) ---
+        function executeLogin(name, email, noonId, role, isInitialLoad = false) {
             loggedInUser = { name: name, noonId: noonId, email: email, picture: "👤" };
             userRole = role;
 
-            localStorage.setItem('noonSlpUserSession', JSON.stringify({
-                name: name,
-                noonId: noonId,
-                email: email,
-                role: userRole,
-                loginTime: Date.now()
-            }));
+            if (!isInitialLoad) {
+                localStorage.setItem('noonSlpUserSession', JSON.stringify({
+                    name: name,
+                    noonId: noonId,
+                    email: email,
+                    role: userRole,
+                    loginTime: Date.now()
+                }));
+            }
 
             document.getElementById('nav-dashboard').style.display = (role === 'admin' || role === 'ops') ? 'flex' : 'none';
             document.getElementById('nav-analytics').style.display = (role === 'admin' || role === 'ops') ? 'flex' : 'none'; 
@@ -1331,37 +1345,54 @@
             document.getElementById('sidebarUserEmail').innerText = email;
             document.getElementById('sidebarUserPic').innerText = "👤";
 
-            const statusBox = document.getElementById('authStatus');
-            const authText = document.getElementById('authText');
-            const container = document.getElementById('loginContainer');
+            const introOverlay = document.getElementById('introOverlay');
 
-            document.getElementById('customLoginBox').style.display = 'none';
-            document.querySelector('.login-tabs').style.display = 'none';
-            statusBox.style.display = 'block';
+            if (isInitialLoad) {
+                // Silent fast layout rendering for browser refreshes
+                introOverlay.style.display = 'none';
+                introOverlay.classList.add('hidden');
+                introActive = false;
+                cancelAnimationFrame(animationFrameId);
 
-            setTimeout(() => {
-                authText.innerText = "SYSTEM AUTHENTICATION COMPLETE";
-                authText.style.color = "var(--success-color)";
-                authText.classList.remove('pulsing');
-                container.style.boxShadow = "0 0 80px rgba(46, 160, 67, 0.25), 0 20px 40px rgba(0,0,0,0.8)";
+                if (role === 'ops') {
+                    switchView('dashboard', document.getElementById('nav-dashboard'));
+                } else {
+                    switchView('checkin', document.getElementById('nav-checkin'));
+                    if (role === 'admin') checkAdminNotifications();
+                }
+            } else {
+                // Interactive transition animation for primary authorization clicks
+                const statusBox = document.getElementById('authStatus');
+                const authText = document.getElementById('authText');
+                const container = document.getElementById('loginContainer');
+
+                document.getElementById('customLoginBox').style.display = 'none';
+                document.querySelector('.login-tabs').style.display = 'none';
+                statusBox.style.display = 'block';
 
                 setTimeout(() => {
-                    document.getElementById('introOverlay').classList.add('hidden');
-                    setTimeout(() => { 
-                        introActive = false; 
-                        cancelAnimationFrame(animationFrameId); 
+                    authText.innerText = "SYSTEM AUTHENTICATION COMPLETE";
+                    authText.style.color = "var(--success-color)";
+                    authText.classList.remove('pulsing');
+                    container.style.boxShadow = "0 0 80px rgba(46, 160, 67, 0.25), 0 20px 40px rgba(0,0,0,0.8)";
 
-                        if (role === 'ops') {
-                            switchView('dashboard', document.getElementById('nav-dashboard'));
-                        } else if (role === 'guard') {
-                            switchView('checkin', document.getElementById('nav-checkin'));
-                        } else {
-                            switchView('dashboard', document.getElementById('nav-dashboard'));
-                            checkAdminNotifications();
-                        }
-                    }, 1000);
-                }, 1200);
-            }, 1200); 
+                    setTimeout(() => {
+                        introOverlay.classList.add('hidden');
+                        setTimeout(() => { 
+                            introOverlay.style.display = 'none';
+                            introActive = false; 
+                            cancelAnimationFrame(animationFrameId); 
+
+                            if (role === 'ops') {
+                                switchView('dashboard', document.getElementById('nav-dashboard'));
+                            } else {
+                                switchView('checkin', document.getElementById('nav-checkin'));
+                                if (role === 'admin') checkAdminNotifications();
+                            }
+                        }, 1000);
+                    }, 1200);
+                }, 1200); 
+            }
         }
 
         document.getElementById('customSignInBtn').addEventListener('click', function(e) {
@@ -1375,7 +1406,7 @@
             if (currentLoginMode === 'admin') {
                 if(!nameInput || !emailInput || !pass) return alert("Please fill all fields to authorize access.");
                 if (pass !== 'admin123') return alert("Incorrect Administrator Password.");
-                executeLogin(nameInput, emailInput, '', 'admin');
+                executeLogin(nameInput, emailInput, '', 'admin', false);
 
             } else if (currentLoginMode === 'ops') {
                 if(!nameInput || !emailInput) return alert("Please fill all fields to authorize access.");
@@ -1404,7 +1435,7 @@
                 });
 
                 if (isApproved) {
-                    executeLogin(nameInput, emailInput, '', 'ops');
+                    executeLogin(nameInput, emailInput, '', 'ops', false);
                 } else if (isPending) {
                     alert("Your access request is currently pending Admin approval.");
                 } else {
@@ -1429,9 +1460,17 @@
             } else { 
                 if(!nameInput || !emailInput || !noonIdInput) return alert("Please fill all fields to authorize access.");
                 if (!allowedEmails.includes(emailInput.toLowerCase())) return alert("Access Denied. Unauthorized Security Email.");
-                executeLogin(nameInput, emailInput, noonIdInput, 'guard');
+                executeLogin(nameInput, emailInput, noonIdInput, 'guard', false);
             }
         });
+
+        // --- EXPLICIT WINDOW BOUND SIGN OUT LOGIC ---
+        window.logoutUser = function() {
+            localStorage.removeItem('noonSlpUserSession');
+            localStorage.removeItem('SLP_OVERRIDES');
+            localStorage.removeItem('SLP_DELETES');
+            location.reload();
+        };
 
         function checkAdminNotifications() {
             if (userRole !== 'admin') {
@@ -1607,7 +1646,7 @@
             document.querySelectorAll('.nav-item').forEach(item => item === element ? item.classList.add('active') : item.classList.remove('active'));
         }
 
-        function toggleFullscreen() {
+        window.toggleFullscreen = function() {
             const fsBtnText = document.getElementById('fsBtnLabel');
             const fsIcon = document.getElementById('fsIcon');
             if (!document.fullscreenElement) {
@@ -3147,7 +3186,6 @@
                 }
             }
 
-            // Map standard or custom purpose value securely
             let directionVal = document.getElementById('direction').value;
             if (directionVal === 'Others') {
                 directionVal = document.getElementById('directionCustom').value.trim();
@@ -3198,7 +3236,6 @@
                 temporaryCapturedImage = null;
                 temporaryCapturedItemImage = null;
 
-                // Reset Dynamic Option Layouts to default state
                 document.getElementById('directionCustom').style.display = 'none';
                 document.getElementById('directionCustom').required = false;
                 handleDispatchChange(document.getElementById('dispatchSelect'));
@@ -3284,4 +3321,3 @@
     </script>
 </body>
 </html>
-    
