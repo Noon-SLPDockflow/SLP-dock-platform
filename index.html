@@ -2306,10 +2306,9 @@ function captureCameraFrame() {
         document.getElementById('cameraInstructionLabel').innerHTML = `✅ Snap Completed!<br><span style="font-size:0.85rem; color:#fff;">Verify behind fields or click below to proceed.</span>`;
         document.querySelector('.btn-capture').innerHTML = `👍 Proceed / Next ✅`;
         document.querySelector('.btn-cancel-cam').innerHTML = `🔄 Retake`;
-    }
+  }
     document.querySelector('.btn-cancel-cam').style.backgroundColor = 'var(--text-muted)';
     document.querySelector('.btn-cancel-cam').style.color = '#000';
-}
         function handleFileSelected(inputEl, statusLabelId, scanType) {
             const file = inputEl.files[0];
             if (!file) return; 
