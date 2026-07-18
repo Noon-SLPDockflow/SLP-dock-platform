@@ -2248,23 +2248,23 @@ function captureCameraFrame() {
 
         if (video && video.paused) video.play();
 
-        const isReceiving = document.getElementById('dispatchSelect').value === 'Receiving';
-
-        if (cameraTargetScanType === 'PLATE') {
-            if (isReceiving) {
-                cameraTargetStatusId = 'itemPhotoStatus';
-                cameraTargetScanType = 'ITEM_PHOTO';
-                document.getElementById('cameraInstructionLabel').innerText = getInstructionText('ITEM_PHOTO');
-            } else {
-                cameraTargetStatusId = 'iqamaStatus';
-                cameraTargetScanType = 'IQAMA';
-                document.getElementById('cameraInstructionLabel').innerText = getInstructionText('IQAMA');
-            }
-        } else if (cameraTargetScanType === 'ITEM_PHOTO') {
-            cameraTargetStatusId = 'iqamaStatus';
-            cameraTargetScanType = 'IQAMA';
-            document.getElementById('cameraInstructionLabel').innerText = getInstructionText('IQAMA');
-        } else if (cameraTargetScanType === 'truck') {
+       if (cameraTargetScanType === "PLATE") {
+    if (isReceiving) {
+        cameraTargetStatusId = "itemPhotoStatus";
+        cameraTargetScanType = "ITEM_PHOTO";
+        document.getElementById('cameraInstructionLabel').innerHTML = getInstructionText("ITEM_PHOTO");
+    } else {
+        cameraTargetStatusId = "iqamaStatus";
+        cameraTargetScanType = "IQAMA";
+        document.getElementById('cameraInstructionLabel').innerHTML = getInstructionText("IQAMA");
+    }
+} else if (cameraTargetScanType === "ITEM_PHOTO") {
+    cameraTargetStatusId = "iqamaStatus";
+    cameraTargetScanType = "IQAMA";
+    document.getElementById('cameraInstructionLabel').innerHTML = getInstructionText("IQAMA");
+} else if (cameraTargetScanType === "IQAMA") {
+    closeCamera();
+}
             cameraTargetStatusId = 'checkoutItemStatus';
             cameraTargetScanType = 'item';
             document.getElementById('cameraInstructionLabel').innerText = getInstructionText('item');
@@ -2317,19 +2317,18 @@ function captureCameraFrame() {
             runLocalOcrEngine(file, statusLabelId, scanType);
             inputEl.value = '';
 
-            setTimeout(() => {
-                if (scanType === 'PLATE') {
-                    const isReceiving = document.getElementById('dispatchSelect').value === 'Receiving';
-                    if (isReceiving) {
-                        document.getElementById('itemPhotoInput').click();
-                    } else {
-                        document.getElementById('iqamaScanner').click();
-                    }
-                } else if (scanType === 'ITEM_PHOTO') {
-                    document.getElementById('iqamaScanner').click();
-                }
-            }, 300);
+           setTimeout(() => {
+    if (scanType === 'PLATE') {
+        const isReceiving = document.getElementById('dispatchSelect').value === 'Receiving';
+        if (isReceiving) {
+            document.getElementById('itemPhotoInput').click();
+        } else {
+            document.getElementById('iqamaScanner').click();
         }
+    } else if (scanType === 'ITEM_PHOTO') {
+        document.getElementById('iqamaScanner').click();
+    }
+}, 300);
 
         async function runLocalOcrEngine(file, statusLabelId, scanType) {
             const status = document.getElementById(statusLabelId);
