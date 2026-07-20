@@ -575,24 +575,23 @@
                     <div id="occupiedDocksContainer" class="docks-grid-container">
                         <div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:2rem;" data-i18n="All docks are currently clear.">All docks are currently clear.</div>
                     </div>
-                </div>
+              </div>
+</div>
+        <!-- Operations Access Requests (Dashboard Card) -->
+        <div id="opsApprovalsCard" style="margin-top: 1.5rem; background: var(--card-bg, #1e232a); border: 1px solid var(--border-color, #2a303c); border-radius: 10px; padding: 1.25rem; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color, #2a303c); padding-bottom: 0.75rem;">
+                <h3 style="margin: 0; font-size: 1.05rem; color: #fff; font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                    🔑 OPERATIONS ACCESS REQUESTS
+                </h3>
+                <button onclick="openOpsHistoryModal()" style="background: transparent; border: 1px solid var(--border-color, #2a303c); color: var(--accent-color, #f39c12); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase;">
+                    View Access History
+                </button>
+            </div>
+            <div id="dashboardOpsApprovalsContent">
+                <!-- Pending requests will render here -->
             </div>
         </div>
-        <!-- Operations Access Requests (Dashboard Card) -->
-<div id="opsApprovalsCard" style="margin-top: 1.5rem; background: var(--card-bg, #1e232a); border: 1px solid var(--border-color, #2a303c); border-radius: 10px; padding: 1.25rem; display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color, #2a303c); padding-bottom: 0.75rem;">
-        <h3 style="margin: 0; font-size: 1.05rem; color: #fff; font-weight: bold; display: flex; align-items: center; gap: 8px;">
-            🔑 OPERATIONS ACCESS REQUESTS
-        </h3>
-        <button onclick="openOpsHistoryModal()" style="background: transparent; border: 1px solid var(--border-color, #2a303c); color: var(--accent-color, #f39c12); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-transform: uppercase;">
-            View Access History
-        </button>
     </div>
-    <div id="dashboardOpsApprovalsContent">
-        <!-- Pending requests will render here -->
-    </div>
-</div>
-</div>
         <div id="view-analytics" class="app-view">
             <div class="view-header-row">
                 <div class="view-header-title">
