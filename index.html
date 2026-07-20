@@ -999,9 +999,17 @@
             console.log("SUCCESS: Item photo saved to memory!");
         }
         
-      // Find the button inside the container or parent card
-        const parentContainer = inputEl.closest('div') || inputEl.parentElement;
-        const btn = parentContainer ? parentContainer.querySelector('button') : null;
+    // Climb up the DOM tree until we find the box containing the button
+        let btn = null;
+        let curr = inputEl;
+        for (let i = 0; i < 6 && curr; i++) {
+            let foundBtn = curr.querySelector ? curr.querySelector('button') : null;
+            if (foundBtn) {
+                btn = foundBtn;
+                break;
+            }
+            curr = curr.parentElement;
+        }
 
         if (btn) {
             btn.style.backgroundColor = "#2ecc71";
