@@ -960,6 +960,23 @@
         let tempCheckoutTruckPhoto = null;
         let tempCheckoutItemPhoto = null;
 
+        function handleCheckoutPhoto(event, type) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        if (type === 'truck') {
+            tempCheckoutTruckPhoto = e.target.result;
+            console.log("Truck checkout photo saved temporarily.");
+        } else if (type === 'item') {
+            tempCheckoutItemPhoto = e.target.result;
+            console.log("Item checkout photo saved temporarily.");
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
         let loggedInUser = { name: "Guest User", email: "Not signed in", noonId: "", picture: "" };
         let userRole = 'guard'; 
         let isSidebarHidden = false; 
