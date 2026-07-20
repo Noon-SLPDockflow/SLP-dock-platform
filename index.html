@@ -1647,11 +1647,10 @@ function executeLogin(name, email, noonId, role, isInitialLoad = false) {
         function checkAdminNotifications() {
             if (userRole !== 'admin') {
                 document.getElementById('adminBellContainer').style.display = 'none';
-             function renderNotifications() {
+         function renderNotifications() {
     const approvalsCard = document.getElementById('opsApprovalsCard');
     const approvalsContent = document.getElementById('dashboardOpsApprovalsContent');
 
-    // Only display on the dashboard for Admin users
     if (userRole !== 'admin') {
         if (approvalsCard) approvalsCard.style.display = 'none';
         return;
@@ -1726,7 +1725,6 @@ function approveOpsRequest(name, email) {
     renderNotifications();
 }
 
-
 function denyOpsRequest(name, email) {
     const payload = { action: "opsDeny", name: name, noonId: email };
     fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
@@ -1734,7 +1732,6 @@ function denyOpsRequest(name, email) {
     if (log) log.denied = true;
     renderNotifications();
 }
-
         window.openOpsHistoryModal = function() {
             const tbody = document.getElementById('opsAccessHistoryBody');
             tbody.innerHTML = '';
