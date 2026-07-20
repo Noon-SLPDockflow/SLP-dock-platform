@@ -1648,71 +1648,88 @@ function executeLogin(name, email, noonId, role, isInitialLoad = false) {
             }
         }
 
-        function renderNotifications() {
-            if (userRole !== 'admin') return;
-            let requestsMap = {}; 
-            
-            (window.globalSystemLogs || []).forEach(log => {
-                let email = log.noonId;
-                if (!requestsMap[email]) {
-                    requestsMap[email] = log;
-                } else {
-                    requestsMap[email] = log;
-                }
-            });
+       function renderNotifications() {
+    if (userRole !== 'admin') return;
+    let requestsMap = {};
 
-            let pendingHtml = '';
-            let pendingCount = 0;
-            
-            for (let email in requestsMap) {
-                if (!requestsMap[email].accepted && !requestsMap[email].denied) {
-                    pendingCount++;
-                    pendingHtml += `
-                    <div style="padding:0.75rem; border-bottom:1px solid var(--border-color); font-size:0.8rem;">
-                        <strong style="color:#fff; font-size:0.9rem;">${requestsMap[email].name}</strong><br>
-                        <span style="color:var(--text-muted); font-size:0.75rem;">${email}</span><br>
-                        <span style="color:var(--accent-color); font-size:0.75rem;">wants Operations access.</span>
-                        <div style="margin-top:8px; display:flex; gap:8px;">
-                   <button onclick="approveOpsRequest('${String(requestsMap[email].name || '').replace(/'/g, "\\'")}', '${String(email || '').replace(/'/g, "\\'")}')" style="background:var(--success-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Approve</button>
-        <button onclick="denyOpsRequest('${String(requestsMap[email].name || '').replace(/'/g, "\\'")}', '${String(email || '').replace(/'/g, "\\'")}')" style="background:var(--danger-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Deny</button>
-    </div>
-</div>`;
-                }
-            }
-            
-            const badge = document.getElementById('adminBellBadge');
-            if (pendingCount > 0) {
-                badge.style.display = 'block';
-                badge.innerText = pendingCount;
-            } else {
-                badge.style.display = 'none';
-            }
+    (window.globalSystemLogs || []).forEach(log => {
+        // Safe extraction for any email/ID format
+        let email = log.noonId || log.email || log.userEmail || '';
+        if (!email || email === 'undefined' || email === 'null') return;
 
-            const drop = document.getElementById('adminNotifDropdown');
-            if (pendingCount === 0) {
-                drop.innerHTML = `<div style="padding:1rem; color:var(--text-muted); font-size:0.8rem; text-align:center;">No pending requests</div>`;
-            } else {
-                drop.innerHTML = pendingHtml;
-            }
-            
-            drop.innerHTML += `<div style="padding:0.5rem; text-align:center; background:rgba(0,0,0,0.3); border-top:1px solid var(--border-color);"><button onclick="openOpsHistoryModal()" style="background:transparent; border:none; color:var(--accent-color); font-size:0.75rem; font-weight:bold; cursor:pointer; text-transform:uppercase;">View Access History</button></div>`;
+        let name = log.name || log.userName || log.displayName || email;
+
+        requestsMap[email] = {
+            ...log,
+            noonId: email,
+            name: name,
+            accepted: log.accepted || false,
+            denied: log.denied || false
+        };
+    });
+
+    let pendingHtml = '';
+    let pendingCount = 0;
+
+    for (let email in requestsMap) {
+        let req = requestsMap[email];
+        if (!req.accepted && !req.denied) {
+            pendingCount++;
+            let displayName = req.name || email;
+            let displayEmail = email;
+
+            let safeName = String(displayName).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+            let safeEmail = String(displayEmail).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+
+            pendingHtml += `
+                <div style="padding:0.75rem; border-bottom:1px solid var(--border-color); font-size:0.8rem;">
+                    <strong style="color:#fff; font-size:0.9rem;">${displayName}</strong><br>
+                    <span style="color:var(--text-muted); font-size:0.75rem;">${displayEmail}</span><br>
+                    <span style="color:var(--accent-color); font-size:0.75rem;">wants Operations access.</span>
+                    <div style="margin-top:8px; display:flex; gap:8px;">
+                        <button onclick="approveOpsRequest('${safeName}', '${safeEmail}')" style="background:var(--success-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Approve</button>
+                        <button onclick="denyOpsRequest('${safeName}', '${safeEmail}')" style="background:var(--danger-color); color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Deny</button>
+                    </div>
+                </div>`;
         }
+    }
 
-        function approveOpsRequest(name, email) {
-            const payload = { action: "opsApprove", name: name, noonId: email };
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            let log = window.globalSystemLogs.find(l => l.noonId === email);
-            if(log) log.accepted = true;
-            renderNotifications();
+    const badge = document.getElementById('adminBellBadge');
+    if (badge) {
+        if (pendingCount > 0) {
+            badge.style.display = 'block';
+            badge.innerText = pendingCount;
+        } else {
+            badge.style.display = 'none';
         }
+    }
 
-        function denyOpsRequest(name, email) {
-            const payload = { action: "opsDeny", name: name, noonId: email };
-            fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-            let log = window.globalSystemLogs.find(l => l.noonId === email);
-            if(log) log.denied = true;
-            renderNotifications();
+    const drop = document.getElementById('adminNotifDropdown');
+    if (drop) {
+        if (pendingCount === 0) {
+            drop.innerHTML = '<div style="padding:1rem; color:var(--text-muted); font-size:0.8rem; text-align:center;">No pending requests</div>';
+        } else {
+            drop.innerHTML = pendingHtml;
         }
+        drop.innerHTML += `<div style="padding:0.5rem; text-align:center; background:rgba(0,0,0,0.3); border-top:1px solid var(--border-color);"><button onclick="openOpsHistoryModal()" style="background:transparent; border:none; color:var(--accent-color); font-size:0.75rem; font-weight:bold; cursor:pointer; text-transform:uppercase;">View Access History</button></div>`;
+    }
+}
+
+function approveOpsRequest(name, email) {
+    const payload = { action: "opsApprove", name: name, noonId: email };
+    fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    let log = (window.globalSystemLogs || []).find(l => (l.noonId === email || l.email === email || l.userEmail === email));
+    if (log) log.accepted = true;
+    renderNotifications();
+}
+
+function denyOpsRequest(name, email) {
+    const payload = { action: "opsDeny", name: name, noonId: email };
+    fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    let log = (window.globalSystemLogs || []).find(l => (l.noonId === email || l.email === email || l.userEmail === email));
+    if (log) log.denied = true;
+    renderNotifications();
+}
 
         window.openOpsHistoryModal = function() {
             const tbody = document.getElementById('opsAccessHistoryBody');
