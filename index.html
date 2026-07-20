@@ -469,6 +469,13 @@
                     <input type="password" id="adminPassword" class="input-box-styled" placeholder="Enter Admin Password" style="text-align: center; border-color: rgba(248, 81, 73, 0.4); background: rgba(0,0,0,0.5);">
                 </div>
 
+                <div id="opsAccessStatusMsg" style="display:none; background:rgba(252,194,0,0.15); border:1px solid rgba(252,194,0,0.3); padding:1rem; border-radius:6px; text-align:center;">
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Don't have access yet? Request it from an admin.</p>
+                    <button type="button" onclick="var name=document.getElementById('loginName').value; var email=document.getElementById('loginEmail').value; if(!name||!email){alert('Please fill in Name and Email first');return;} requestOpsAccess(name, email);" style="background:var(--accent-color); color:#000; border:none; padding:0.6rem 1.25rem; border-radius:4px; cursor:pointer; font-weight:700; font-size:0.75rem; text-transform:uppercase;">
+                        🔔 Request Access
+                    </button>
+                </div>
+
                 <button id="customSignInBtn" class="submit-btn-global" style="margin-top: 0.5rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -581,15 +588,16 @@
                     </div>
                 </div>
 
-                <div class="dashboard-notice-card">
-                    <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                <div class="dashboard-notice-card" id="dashboardNoticeCard" style="display:none;">
+                    <div style="display:flex; align-items:flex-start; gap:0.75rem; flex:1;">
                         <div class="notice-icon">🔔</div>
-                        <div>
-                            <div class="notice-title">Dashboard Notice</div>
-                            <div class="notice-text">Security and dock activity updates will appear here as a compact in-dashboard card.</div>
+                        <div style="width:100%;">
+                            <div class="notice-title" id="noticeTitle">Dashboard Notice</div>
+                            <div class="notice-text" id="noticeText" style="margin-bottom:0.75rem;">Loading...</div>
+                            <div id="accessRequestsList" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
                         </div>
                     </div>
-                    <span class="notice-pill">Live</span>
+                    <span class="notice-pill" id="noticePill">Live</span>
                 </div>
             </div>
         </div>
@@ -1034,7 +1042,9 @@
         let loggedInUser = { name: "Guest User", email: "Not signed in", noonId: "", picture: "" };
         let userRole = 'guard'; 
         let isSidebarHidden = false; 
-        let isConfirmingState = false; 
+        let isConfirmingState = false;
+        let accessRequests = JSON.parse(localStorage.getItem('SLP_ACCESS_REQUESTS')) || [];
+        let approvedOpsEmails = JSON.parse(localStorage.getItem('SLP_APPROVED_OPS_EMAILS')) || []; 
 
         const translations = {
             "Dashboard": "لوحة القيادة",
@@ -1277,53 +1287,31 @@
             return;
         }
         
-        if (!window.hasFetchedLogs) {
-            loginEmailField.setCustomValidity("Connecting to server... Please wait a few seconds and try again.");
+        approvedOpsEmails = JSON.parse(localStorage.getItem('SLP_APPROVED_OPS_EMAILS')) || [];
+        
+        if (approvedOpsEmails.includes(emailInput.toLowerCase())) {
+            executeLogin(nameInput, emailInput, '', 'ops', false);
+            return;
+        }
+        
+        accessRequests = JSON.parse(localStorage.getItem('SLP_ACCESS_REQUESTS')) || [];
+        const userRequest = accessRequests.find(r => r.email.toLowerCase() === emailInput.toLowerCase());
+        
+        if (userRequest && userRequest.status === 'pending') {
+            loginEmailField.setCustomValidity("Your access request is currently pending Admin approval.");
             loginEmailField.reportValidity();
             return;
         }
-
-        let isApproved = false;
-        let isPending = false;
-
-        (window.globalSystemLogs || []).forEach(log => {
-            if (log.noonId && log.noonId.toLowerCase() === emailInput.toLowerCase()) {
-                if (log.accepted) {
-                    isApproved = true;
-                    isPending = false;
-                } else if (log.denied) {
-                    isApproved = false;
-                    isPending = false;
-                } else {
-                    isPending = true;
-                }
-            }
-        });
-
-        if (isApproved) {
-            executeLogin(nameInput, emailInput, '', 'ops', false);
-        } else if (isPending) {
-            loginEmailField.setCustomValidity("Your access request is currently pending Admin approval.");
+        
+        if (userRequest && userRequest.status === 'rejected') {
+            loginEmailField.setCustomValidity("Your access request has been rejected by Admin.");
             loginEmailField.reportValidity();
-        } else {
-            const payload = {
-                action: "opsRequest",
-                name: nameInput,
-                noonId: emailInput.toLowerCase()
-            };
-
-            fetch(API_URL, { 
-                method: 'POST', 
-                headers: {'Content-Type':'text/plain;charset=utf-8'}, 
-                body: JSON.stringify(payload) 
-            }).catch(e => console.error("Access request transmission error", e));
-            
-            if(!window.globalSystemLogs) window.globalSystemLogs = [];
-            window.globalSystemLogs.push({...payload, timestamp: new Date().toISOString()});
-            
-            loginEmailField.setCustomValidity("Access request sent to Admin. Please wait for approval.");
-            loginEmailField.reportValidity();
+            return;
         }
+        
+        requestOpsAccess(nameInput, emailInput);
+        loginEmailField.setCustomValidity("Access request sent to Admin. Please wait for approval.");
+        loginEmailField.reportValidity();
 
     } else { 
         if(!nameInput || !emailInput || !noonIdInput) {
@@ -1543,19 +1531,23 @@ function switchLoginMode(mode) {
     const scanBox = document.getElementById('loginScanBox');
     const noonId = document.getElementById('loginNoonId');
     const pass = document.getElementById('adminPasswordContainer');
+    const opsStatusMsg = document.getElementById('opsAccessStatusMsg');
 
     if (mode === 'admin') {
         scanBox.style.display = 'none';
         noonId.style.display = 'none';
         pass.style.display = 'block';
+        if (opsStatusMsg) opsStatusMsg.style.display = 'none';
     } else if (mode === 'ops') {
         scanBox.style.display = 'none';
         noonId.style.display = 'none';
         pass.style.display = 'none';
+        if (opsStatusMsg) opsStatusMsg.style.display = 'block';
     } else { 
         scanBox.style.display = 'block';
         noonId.style.display = 'block';
         pass.style.display = 'none';
+        if (opsStatusMsg) opsStatusMsg.style.display = 'none';
     }
 }
 function executeLogin(name, email, noonId, role, isInitialLoad = false) {
@@ -1586,9 +1578,9 @@ function executeLogin(name, email, noonId, role, isInitialLoad = false) {
         document.getElementById('securityNameId').value = noonId;
     }
 
-    document.getElementById('sidebarUserName').innerText = name + (role === 'admin' ? " (Admin)" : (role === 'ops' ? " (Ops)" : ""));
-    document.getElementById('sidebarUserEmail').innerText = email;
-    document.getElementById('sidebarUserPic').innerText = "👤";
+            if (role === 'admin') {
+                renderAccessRequests();
+            }
 
     const introOverlay = document.getElementById('introOverlay');
 
@@ -1645,6 +1637,92 @@ function executeLogin(name, email, noonId, role, isInitialLoad = false) {
             localStorage.removeItem('SLP_DELETES');
             location.reload();
         };
+
+        function renderAccessRequests() {
+            const card = document.getElementById('dashboardNoticeCard');
+            const title = document.getElementById('noticeTitle');
+            const text = document.getElementById('noticeText');
+            const list = document.getElementById('accessRequestsList');
+            const pill = document.getElementById('noticePill');
+
+            if (userRole !== 'admin') {
+                card.style.display = 'none';
+                return;
+            }
+
+            accessRequests = JSON.parse(localStorage.getItem('SLP_ACCESS_REQUESTS')) || [];
+            const pendingRequests = accessRequests.filter(r => r.status === 'pending');
+
+            if (pendingRequests.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+
+            card.style.display = 'flex';
+            title.innerText = 'Ops Access Requests (' + pendingRequests.length + ')';
+            text.innerText = pendingRequests.length + ' pending request' + (pendingRequests.length !== 1 ? 's' : '') + ' for Operations login access.';
+            text.style.marginBottom = '0.75rem';
+            list.innerHTML = '';
+
+            pendingRequests.forEach((req, idx) => {
+                const reqDiv = document.createElement('div');
+                reqDiv.style.cssText = 'background: rgba(252,194,0,0.08); border: 1px solid rgba(252,194,0,0.2); padding: 0.75rem; border-radius: 6px; display:flex; justify-content:space-between; align-items:center; gap:0.5rem; font-size:0.75rem;';
+                reqDiv.innerHTML = '<div><div style="color:#fff; font-weight:700; margin-bottom:0.25rem;">' + req.name + '</div><div style="color:var(--text-muted); font-size:0.7rem;">' + req.email + '</div></div><div style="display:flex; gap:0.5rem;"><button onclick="approveAccessRequest(' + idx + ')" style="background:var(--success-color); color:#fff; border:none; padding:0.4rem 0.75rem; border-radius:4px; cursor:pointer; font-weight:700; font-size:0.7rem; text-transform:uppercase;">Approve</button><button onclick="rejectAccessRequest(' + idx + ')" style="background:var(--danger-color); color:#fff; border:none; padding:0.4rem 0.75rem; border-radius:4px; cursor:pointer; font-weight:700; font-size:0.7rem; text-transform:uppercase;">Reject</button></div>';
+                list.appendChild(reqDiv);
+            });
+
+            pill.innerText = pendingRequests.length + ' pending';
+        }
+
+        function approveAccessRequest(index) {
+            accessRequests = JSON.parse(localStorage.getItem('SLP_ACCESS_REQUESTS')) || [];
+            const req = accessRequests[index];
+            if (req && req.status === 'pending') {
+                req.status = 'approved';
+                req.approvedAt = new Date().toISOString();
+                localStorage.setItem('SLP_ACCESS_REQUESTS', JSON.stringify(accessRequests));
+                
+                approvedOpsEmails = JSON.parse(localStorage.getItem('SLP_APPROVED_OPS_EMAILS')) || [];
+                if (!approvedOpsEmails.includes(req.email)) {
+                    approvedOpsEmails.push(req.email);
+                    localStorage.setItem('SLP_APPROVED_OPS_EMAILS', JSON.stringify(approvedOpsEmails));
+                }
+                
+                alert('✅ Access approved for ' + req.email + '. They can now login as Operations.');
+                renderAccessRequests();
+            }
+        }
+
+        function rejectAccessRequest(index) {
+            accessRequests = JSON.parse(localStorage.getItem('SLP_ACCESS_REQUESTS')) || [];
+            const req = accessRequests[index];
+            if (req && req.status === 'pending') {
+                req.status = 'rejected';
+                req.rejectedAt = new Date().toISOString();
+                localStorage.setItem('SLP_ACCESS_REQUESTS', JSON.stringify(accessRequests));
+                alert('❌ Access request from ' + req.email + ' has been rejected.');
+                renderAccessRequests();
+            }
+        }
+
+        function requestOpsAccess(name, email) {
+            accessRequests = JSON.parse(localStorage.getItem('SLP_ACCESS_REQUESTS')) || [];
+            
+            const existingRequest = accessRequests.find(r => r.email === email);
+            if (existingRequest) {
+                alert('You have already requested access. Status: ' + existingRequest.status);
+                return;
+            }
+            
+            accessRequests.push({
+                name: name,
+                email: email,
+                status: 'pending',
+                requestedAt: new Date().toISOString()
+            });
+            localStorage.setItem('SLP_ACCESS_REQUESTS', JSON.stringify(accessRequests));
+            alert('✅ Your access request has been sent to the admin. Please wait for approval.');
+        }
 
         function checkAdminNotifications() {
             if (userRole !== 'admin') {
@@ -3510,3 +3588,4 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
     </script>
 </body>
 </html>
+
