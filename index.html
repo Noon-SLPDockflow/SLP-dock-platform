@@ -1647,7 +1647,7 @@ function executeLogin(name, email, noonId, role, isInitialLoad = false) {
         function checkAdminNotifications() {
             if (userRole !== 'admin') {
                 document.getElementById('adminBellContainer').style.display = 'none';
-    function renderNotifications() {
+function renderNotifications() {
     const approvalsCard = document.getElementById('opsApprovalsCard');
     const approvalsContent = document.getElementById('dashboardOpsApprovalsContent');
 
@@ -1732,8 +1732,7 @@ function denyOpsRequest(name, email) {
     if (log) log.denied = true;
     renderNotifications();
 }
-
-window.openOpsHistoryModal = function() {
+ window.openOpsHistoryModal = function() {
     const tbody = document.getElementById('opsAccessHistoryBody');
     if (!tbody) return;
     tbody.innerHTML = '';
@@ -1763,6 +1762,7 @@ window.openOpsHistoryModal = function() {
     const drop = document.getElementById('adminBellDropdown');
     if (drop) drop.classList.remove('open');
 };
+  
         const canvas = document.getElementById('particleCanvas');
         const ctx = canvas.getContext('2d');
         let width, height, particles;
