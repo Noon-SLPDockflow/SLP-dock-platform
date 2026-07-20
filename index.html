@@ -410,14 +410,28 @@
         .custom-date-row input[type="date"] { background: #0d1117; border: 1px solid var(--border-color); color: #fff; padding: 0.5rem 0.75rem; border-radius: 4px; font-size: 0.8rem; outline:none;}
         .custom-date-row button { background: var(--accent-color); color: #000; border: none; padding: 0.55rem 1rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; cursor: pointer; text-transform: uppercase; }
 
-        /* Admin Bell Icon CSS */
-        .admin-bell-container { position: fixed; top: 1.5rem; right: 1.5rem; z-index: 1000; display: none; }
-        html[dir="rtl"] .admin-bell-container { right: auto; left: 1.5rem; }
-        .admin-bell-icon { font-size: 1.5rem; cursor: pointer; position: relative; background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 0.5rem; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-        .admin-bell-icon:hover { border-color: var(--accent-color); }
-        .admin-bell-badge { position: absolute; top: -2px; right: -2px; background: var(--danger-color); color: #fff; font-size: 0.6rem; font-weight: bold; border-radius: 50%; padding: 2px 6px; display: none; }
-        .admin-notif-dropdown { right: 0; left: auto; width: 300px; margin-top: 10px; max-height: 400px; text-align: left; }
-        html[dir="rtl"] .admin-notif-dropdown { right: auto; left: 0; text-align: right; }
+        /* Dashboard notice card */
+        .dashboard-notice-card {
+            margin-top: 1.25rem; padding: 1rem 1.25rem; border: 1px solid var(--border-color);
+            border-radius: 8px; background: rgba(18, 22, 31, 0.8); display: flex;
+            align-items: flex-start; justify-content: space-between; gap: 1rem;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+        }
+        .dashboard-notice-card .notice-icon {
+            width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; background: rgba(252, 194, 0, 0.12); color: var(--accent-color);
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .dashboard-notice-card .notice-title {
+            font-size: 0.85rem; font-weight: 800; color: #fff; margin-bottom: 0.25rem;
+        }
+        .dashboard-notice-card .notice-text {
+            font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;
+        }
+        .dashboard-notice-card .notice-pill {
+            background: rgba(46, 160, 67, 0.15); color: var(--success-color); border: 1px solid rgba(46, 160, 67, 0.25);
+            border-radius: 999px; padding: 0.3rem 0.6rem; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -426,16 +440,6 @@
     <button id="floatingOpenBtn" onclick="toggleSidebar()" title="Menu">
         <span style="color:var(--accent-color); font-size:1.2rem;">☰</span> <span data-i18n="Menu">Menu</span>
     </button>
-
-    <!-- ADMIN NOTIFICATION BELL -->
-    <div id="adminBellContainer" class="admin-bell-container">
-        <div class="admin-bell-icon" onclick="toggleNotifications()">
-            🔔<span id="adminBellBadge" class="admin-bell-badge">0</span>
-        </div>
-        <div id="adminNotifDropdown" class="suggestions-dropdown admin-notif-dropdown">
-            <!-- Notifications will render here -->
-        </div>
-    </div>
 
     <!-- CUSTOM INTRO SCREEN OVERLAY -->
     <div id="introOverlay" class="intro-overlay">
@@ -575,6 +579,17 @@
                     <div id="occupiedDocksContainer" class="docks-grid-container">
                         <div style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); font-size:0.8rem; margin-top:2rem;" data-i18n="All docks are currently clear.">All docks are currently clear.</div>
                     </div>
+                </div>
+
+                <div class="dashboard-notice-card">
+                    <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+                        <div class="notice-icon">🔔</div>
+                        <div>
+                            <div class="notice-title">Dashboard Notice</div>
+                            <div class="notice-text">Security and dock activity updates will appear here as a compact in-dashboard card.</div>
+                        </div>
+                    </div>
+                    <span class="notice-pill">Live</span>
                 </div>
             </div>
         </div>
