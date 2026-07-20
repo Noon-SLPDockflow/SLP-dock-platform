@@ -960,20 +960,55 @@
         let tempCheckoutTruckPhoto = null;
         let tempCheckoutItemPhoto = null;
 
-       function handleCheckoutPhoto(event, type) {
-    // This line makes it smart enough to handle either 'event' or 'this'
-    const input = event.target || event; 
-    const file = input.files ? input.files[0] : null;
-    if (!file) return;
+     function handleCheckoutPhoto(arg1, arg2) {
+    let inputEl = null;
+    let typeStr = '';
 
+    // 1. Auto-detect how the HTML passed the data (fixes reversed or missing arguments)
+    if (typeof arg1 === 'string') {
+        typeStr = arg1;
+        inputEl = (arg2 && arg2.target) ? arg2.target : (window.event ? window.event.target : null);
+    } else if (typeof arg2 === 'string') {
+        typeStr = arg2;
+        inputEl = (arg1 && arg1.target) ? arg1.target : (arg1 && arg1.files ? arg1 : null);
+    } else {
+        inputEl = (arg1 && arg1.target) ? arg1.target : (arg1 && arg1.files ? arg1 : (window.event ? window.event.target : null));
+    }
+
+    if (!inputEl || !inputEl.files || !inputEl.files[0]) {
+        console.error("Upload failed: Could not detect the file from the button click.");
+        return;
+    }
+
+    const file = inputEl.files[0];
+
+    // 2. Auto-detect Truck vs Item if the HTML forgot to tell us
+    if (!typeStr) {
+        const htmlText = (inputEl.id + " " + inputEl.outerHTML).toLowerCase();
+        typeStr = (htmlText.includes('item') || htmlText.includes('cargo')) ? 'item' : 'truck';
+    }
+
+    // 3. Save the image and force the UI update
     const reader = new FileReader();
     reader.onload = function(e) {
-        if (type === 'truck') {
+        if (typeStr.toLowerCase().includes('truck')) {
             tempCheckoutTruckPhoto = e.target.result;
-            console.log("Truck checkout photo saved temporarily.");
-        } else if (type === 'item') {
+            console.log("SUCCESS: Truck photo saved to memory!");
+        } else {
             tempCheckoutItemPhoto = e.target.result;
-            console.log("Item checkout photo saved temporarily.");
+            console.log("SUCCESS: Item photo saved to memory!");
+        }
+        
+        // Find the button and force it to turn green
+        let btn = inputEl.previousElementSibling;
+        if (!btn || btn.tagName !== 'BUTTON') {
+            btn = inputEl.parentElement ? inputEl.parentElement.querySelector('button') : null;
+        }
+        if (btn) {
+            btn.style.backgroundColor = "#2ecc71";
+            btn.style.color = "#fff";
+            btn.style.border = "none";
+            btn.innerText = "✅ Attached";
         }
     };
     reader.readAsDataURL(file);
