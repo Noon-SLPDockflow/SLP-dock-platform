@@ -2619,15 +2619,20 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
 
         let currentSignOutContext = null;
 
-        function promptSignOut(driverName, plateNumber, securityName, dockNumber, dispatchType) {
+      function promptSignOut(driverName, plateNumber, securityName, dockNumber, dispatchType) {
             currentSignOutContext = { driverName, plateNumber, securityName, dockNumber, dispatchType };
             document.getElementById('signOutModalSubtext').innerText = `${tr('Completing SLP cycle for vehicle')} ${plateNumber || '(' + tr('No Plate Provided') + ')'}`;
             document.getElementById('signOutSeal').value = '';
             
-            if (dispatchType && dispatchType.toUpperCase() === 'RECEIVING') {
+            const isReceiving = dispatchType && dispatchType.toUpperCase() === 'RECEIVING';
+            const checkoutScanners = document.querySelector('#signOutModal .scanners-double-row');
+
+            if (isReceiving) {
                 document.getElementById('checkoutSealContainer').style.display = 'none';
+                if (checkoutScanners) checkoutScanners.style.display = 'none';
             } else {
                 document.getElementById('checkoutSealContainer').style.display = 'block';
+                if (checkoutScanners) checkoutScanners.style.display = 'grid';
             }
             
             tempCheckoutTruckPhoto = null;
@@ -2651,9 +2656,12 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
             const isReceiving = currentSignOutContext.dispatchType && currentSignOutContext.dispatchType.toUpperCase() === 'RECEIVING';
             const sealVal = isReceiving ? "" : document.getElementById('signOutSeal').value.trim();
             
-            if (!isReceiving && !sealVal) { alert('Please attach a departure seal number.'); return; }
-            if (!tempCheckoutTruckPhoto) { alert('Please attach a Truck Picture.'); return; }
-            if (!tempCheckoutItemPhoto) { alert('Please attach an Item Picture.'); return; }
+            // Bypass photo & seal requirements for RECEIVING trucks at checkout
+            if (!isReceiving) {
+                if (!sealVal) { alert('Please attach a departure seal number.'); return; }
+                if (!tempCheckoutTruckPhoto) { alert('Please attach a Truck Picture.'); return; }
+                if (!tempCheckoutItemPhoto) { alert('Please attach an Item Picture.'); return; }
+            }
             if (!currentSignOutContext) return;
 
             const { driverName, plateNumber, securityName, dockNumber } = currentSignOutContext;
@@ -2666,8 +2674,8 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
                     driverName, 
                     plateNumber, 
                     sealNumber: sealVal, 
-                    truckPhoto: tempCheckoutTruckPhoto,
-                    itemPhoto: tempCheckoutItemPhoto 
+                    truckPhoto: tempCheckoutTruckPhoto || "",
+                    itemPhoto: tempCheckoutItemPhoto || ""
                 };
 
                 fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
@@ -2677,8 +2685,8 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
                 if (activeLog) {
                     activeLog.checkOutTime = new Date().toISOString();
                     if(!isReceiving) activeLog.sealNumber = sealVal; 
-                    activeLog.truckPhoto = tempCheckoutTruckPhoto;
-                    activeLog.itemPhoto = tempCheckoutItemPhoto;
+                    activeLog.truckPhoto = tempCheckoutTruckPhoto || "";
+                    activeLog.itemPhoto = tempCheckoutItemPhoto || "";
                 }
                 
                 window.handleLogsResponse({ logs: globalLogsCache, ops: window.globalSystemLogs });
@@ -2689,8 +2697,6 @@ function handleFileSelected(inputEl, statusLabelId, scanType) {
                 btn.disabled = false;
             }
         });
-
-        function fmtDate(s) {
             if(!s) return "May 10, 2026"; let d = new Date(s); if(isNaN(d.getTime())) return s;
             const monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
             const monthsAr = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
