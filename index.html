@@ -3591,18 +3591,37 @@ function closeSignOutModal() {
                 document.getElementById('securityNameId').value = loggedInUser.noonId || '';
                 temporaryCapturedImage = null;
                 temporaryCapturedItemImage = null;
+const dirCustom = document.getElementById('directionCustom');
+                if (dirCustom) {
+                    dirCustom.style.display = 'none';
+                    dirCustom.required = false;
+                }
 
-                document.getElementById('directionCustom').style.display = 'none';
-                document.getElementById('directionCustom').required = false;
-                handleDispatchChange(document.getElementById('dispatchSelect'));
+                const dispSelect = document.getElementById('dispatchSelect');
+                if (dispSelect && typeof handleDispatchChange === 'function') {
+                    handleDispatchChange(dispSelect);
+                }
 
-                btn.innerText = tr("Check In Truck"); btn.disabled = false;
-                switchView('active-trucks', document.getElementById('nav-active-trucks')); 
+                if (btn) {
+                    btn.innerText = typeof tr !== 'undefined' ? tr("Check In Truck") : "Check In Truck";
+                    btn.disabled = false;
+                }
 
-                setTimeout(fetchLogs, 3500); 
+                const navBtn = document.getElementById('nav-active-trucks');
+                if (typeof switchView === 'function') {
+                    switchView('active-trucks', navBtn);
+                }
+
+                setTimeout(() => { if (typeof fetchLogs === 'function') fetchLogs(); }, 1500);
             } catch (err) {
-                alert("Error saving log: " + err.message);
-                btn.innerText = tr("Check In Truck"); btn.disabled = false;
+                console.error("Check-in save notification issue:", err);
+                if (err && err.message && !err.message.includes('style') && !err.message.includes('null')) {
+                    alert("Error saving log: " + err.message);
+                }
+                if (btn) {
+                    btn.innerText = typeof tr !== 'undefined' ? tr("Check In Truck") : "Check In Truck";
+                    btn.disabled = false;
+                }
             }
         });
 
