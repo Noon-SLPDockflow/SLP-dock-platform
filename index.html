@@ -3656,10 +3656,30 @@ const dirCustom = document.getElementById('directionCustom');
                     btn.disabled = false;
                 }
 
-            // 🟢 1. NATIVE ALERT (100% GUARANTEED TO SHOW)
-                alert("✅ TRUCK CHECKED IN SUCCESSFULLY!");
+// 🟢 1. STYLED BANNER (MATCHES CHECKOUT VIDEO EXACTLY)
+                const plateInput = document.getElementById('plateNumber');
+                const plateStr = plateInput ? plateInput.value.trim().toUpperCase() : '';
+                const msg = plateStr ? `CHECK IN COMPLETE — ${plateStr}` : `CHECK IN COMPLETE`;
+                
+                const toast = document.createElement('div');
+                toast.style.cssText = 'position:fixed; top:-20px; left:50%; transform:translateX(-50%); background:#2ea643; color:#000000; padding:16px 32px; border-radius:8px; font-weight:900; font-size:1.1rem; z-index:2147483647; box-shadow:0 10px 30px rgba(0,0,0,0.8); display:flex; align-items:center; gap:12px; transition:all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); opacity:0; text-transform:uppercase;';
+                toast.innerHTML = `<span style="font-size: 1.4rem;">✅</span> ${msg}`;
+                document.body.appendChild(toast);
+                
+                // Animate banner sliding down
+                setTimeout(() => {
+                    toast.style.top = '40px';
+                    toast.style.opacity = '1';
+                }, 10);
+                
+                // Remove banner automatically after 3.5 seconds
+                setTimeout(() => {
+                    toast.style.top = '-20px';
+                    toast.style.opacity = '0';
+                    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
+                }, 3500);
 
-                // 🟢 2. BRUTE-FORCE REDIRECT TO ACTIVE TRUCKS
+                // 🟢 2. AUTO-REDIRECT TO ACTIVE TRUCKS IMMEDIATELY
                 document.querySelectorAll('.app-view').forEach(view => {
                     view.classList.remove('active-view');
                     view.style.display = 'none';
