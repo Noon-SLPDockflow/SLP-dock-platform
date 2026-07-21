@@ -3634,24 +3634,27 @@ const dirCustom = document.getElementById('directionCustom');
                     btn.innerText = typeof tr !== 'undefined' ? tr("Check In Truck") : "Check In Truck";
                     btn.disabled = false;
                 }
-            }
+}
+        });
+
         let touchstartX = 0;
         let touchstartY = 0;
         let touchendX = 0;
         let touchendY = 0;
 
         const gestureZone = document.getElementById('mainContentArea');
+        if (gestureZone) {
+            gestureZone.addEventListener('touchstart', function(event) {
+                touchstartX = event.changedTouches[0].screenX;
+                touchstartY = event.changedTouches[0].screenY;
+            }, {passive: true});
 
-        gestureZone.addEventListener('touchstart', function(event) {
-            touchstartX = event.changedTouches[0].screenX;
-            touchstartY = event.changedTouches[0].screenY;
-        }, {passive: true});
-
-        gestureZone.addEventListener('touchend', function(event) {
-            touchendX = event.changedTouches[0].screenX;
-            touchendY = event.changedTouches[0].screenY;
-            handleGesture(event);
-        }, {passive: true});
+            gestureZone.addEventListener('touchend', function(event) {
+                touchendX = event.changedTouches[0].screenX;
+                touchendY = event.changedTouches[0].screenY;
+                handleGesture(event);
+            }, {passive: true});
+        }
 
         function handleGesture(event) {
             if (event.target.closest('table') || event.target.closest('.suggestions-dropdown')) {
