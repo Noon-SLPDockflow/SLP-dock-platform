@@ -3647,16 +3647,16 @@ const dirCustom = document.getElementById('directionCustom');
                     btn.disabled = false;
                 }
 
-                // 🟢 1. GUARANTEED VISIBLE BANNER (Z-INDEX 9999999)
+              // 🟢 1. BULLETPROOF VISIBLE BANNER (MAX Z-INDEX)
                 const toast = document.createElement('div');
-                toast.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#2ea643; color:#ffffff; padding:16px 32px; border-radius:12px; font-weight:800; font-size:1.1rem; letter-spacing:0.5px; z-index:9999999; box-shadow:0 10px 30px rgba(0,0,0,0.6); display:flex; align-items:center; gap:12px; border:2px solid #ffffff; transition:all 0.4s ease;';
+                toast.style.cssText = 'position:fixed; top:30px; left:50%; transform:translateX(-50%); background:#2ea643; color:#ffffff; padding:16px 32px; border-radius:12px; font-weight:800; font-size:1.1rem; letter-spacing:0.5px; z-index:2147483647; box-shadow:0 10px 30px rgba(0,0,0,0.8); display:flex; align-items:center; gap:12px; border:2px solid #ffffff; transition:opacity 0.5s ease;';
                 toast.innerHTML = `<span style="font-size: 1.4rem;">✅</span> CHECK-IN COMPLETED SUCCESSFULLY!`;
                 document.body.appendChild(toast);
+                
                 setTimeout(() => {
                     toast.style.opacity = '0';
-                    toast.style.transform = 'translate(-50%, -20px)';
-                    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
-                }, 3000);
+                    setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 500);
+                }, 4000);
 
                 // 🟢 2. AUTO-SWITCH TAB TO ACTIVE TRUCKS
                 const activeTab = document.getElementById('nav-active-trucks') || document.querySelector('[data-view="active-trucks"]');
@@ -3666,9 +3666,8 @@ const dirCustom = document.getElementById('directionCustom');
                     switchView('active-trucks');
                 }
 
-                setTimeout(() => { if (typeof fetchLogs === 'function') fetchLogs(); }, 800);
-
-                setTimeout(() => { if (typeof fetchLogs === 'function') fetchLogs(); }, 1500);
+                // 🟢 3. FIX DISAPPEARING TRUCK (Wait 4 seconds for Google Sheets to save before fetching)
+                setTimeout(() => { if (typeof fetchLogs === 'function') fetchLogs(); }, 4000);
             } catch (err) {
                 console.error("Check-in save notification issue:", err);
                 if (err && err.message && !err.message.includes('style') && !err.message.includes('null')) {
