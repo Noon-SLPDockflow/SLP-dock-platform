@@ -1456,19 +1456,20 @@ function checkDockOccupation() {
                     if (driverBox) driverBox.style.display = 'block';
                     if (iqamaBox) iqamaBox.style.display = 'block';
                     if (driverBoxLabel) driverBoxLabel.innerText = typeof tr !== 'undefined' ? tr("Driver Photo / Truck Photo") : "Driver Photo / Truck Photo";
-                }
-            }
-        }        }function toggleAccordion(el) {
-    const content = el.nextElementSibling;
-    const wrapper = el.parentElement;
-    if (content.classList.contains('open')) {
-        content.classList.remove('open');
-        wrapper.classList.remove('open');
-    } else {
-        content.classList.add('open');
-        wrapper.classList.add('open');
-    }
 }
+            }
+        }
+
+function toggleAccordion(el) {
+            const content = el.nextElementSibling;
+            const wrapper = el.parentElement;
+            if (content && content.classList.contains('open')) {
+                content.classList.remove('open');
+                if (wrapper) wrapper.classList.remove('open');
+            } else {
+                if (content) content.classList.add('open');
+                if (wrapper) wrapper.classList.add('open');
+            }
 
 function checkSessionExpiry() {
     const sessionStr = localStorage.getItem('noonSlpUserSession');
