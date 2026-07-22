@@ -3628,7 +3628,18 @@ function closeSignOutModal() {
                     driverPhoto: temporaryCapturedImage || "",
                     checkInItemPhoto: temporaryCapturedItemImage || ""
                 };
-
+// 🟢 AUTO-SYNC NEW GUARDS TO GOOGLE SHEETS
+            const guardSyncPayload = {
+                action: 'addGuard',
+                guardId: document.getElementById('securityNameId').value,
+                guardName: document.getElementById('securityNameField').value
+            };
+            if (guardSyncPayload.guardId && guardSyncPayload.guardName) {
+                fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(guardSyncPayload) 
+                }).catch(e => console.error("Guard sync error:", e));
+            }
              fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
