@@ -3687,16 +3687,16 @@ const dirCustom = document.getElementById('directionCustom');
                     setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 400);
                 }, 3500);
 
-                // 🟢 2. AUTO-REDIRECT TO ACTIVE TRUCKS IMMEDIATELY
-                document.querySelectorAll('.app-view').forEach(view => {
-                    view.classList.remove('active-view');
-                    view.style.display = 'none';
-                });
-                const targetView = document.getElementById('view-active-trucks');
-                if (targetView) {
-                    targetView.classList.add('active-view');
-                    targetView.style.display = 'block';
-                }
+// 🟢 2. PROPER NATIVE REDIRECT TO ACTIVE TRUCKS
+const activeTabBtn = document.getElementById('nav-active-trucks') || document.querySelector('[data-view="active-trucks"]');
+if (activeTabBtn) {
+    activeTabBtn.click(); // Politely clicks the sidebar tab for you
+} else if (typeof switchView === 'function') {
+    switchView('active-trucks');
+}
+
+// Safety cleanup: removes any lingering brute-force locks
+document.querySelectorAll('.app-view').forEach(v => v.style.display = '');
 
                 // 🟢 3. WAIT FOR GOOGLE SHEETS BEFORE REFRESHING
                 setTimeout(() => { if (typeof fetchLogs === 'function') fetchLogs(); }, 4000);
