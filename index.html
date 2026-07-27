@@ -743,9 +743,19 @@
                                 <input type="text" id="securityNameId" class="input-box-styled" required data-i18n="Security ID *" placeholder="Enter staff token number (e.g. LP0023)" autocomplete="off">
                             </div>
 
-                            <div class="form-group"><label class="badge-style" data-i18n="Dock Number *">Dock Number *</label>
-                                <input type="text" id="dockNumber" class="input-box-styled" list="dl-docks" required data-i18n="Dock Number *" placeholder="e.g. 25 or Dock 4" autocomplete="off">
-                            </div>
+<div class="form-group">
+    <label class="badge-style" data-i18n="Dock Number *">Dock Number *</label>
+    
+    <!-- 1. SELECT DROPDOWN -->
+    <select id="dockNumber" class="input-box-styled" required onchange="toggleCustomDockInput(this.value)">
+        <option value="" disabled selected>Select Dock (15 - 90)...</option>
+        <!-- Docks 15 to 90 populated dynamically via JS in Step 3 -->
+        <option value="Others">Others / آخر</option>
+    </select>
+
+    <!-- 2. CUSTOM NUMERIC DOCK INPUT (Opens when "Others" is selected) -->
+    <input type="number" id="dockNumberCustom" class="input-box-styled" placeholder="Enter Custom Numeric Dock..." style="display:none; margin-top:0.5rem;" min="1" oninput="this.value = this.value.replace(/[^0-9]/g, '');" autocomplete="off">
+</div>
 
                             <div class="form-group"><label class="badge-style" data-i18n="Purpose / Direction *">Purpose / Direction *</label>
                                 <select id="direction" class="input-box-styled" style="font-size: 0.85rem;" onchange="handlePurposeChange(this)">
@@ -1423,7 +1433,41 @@ function checkDockOccupation() {
                 customInput.value = '';
             }
         }
+function toggleCustomDockInput(val) {
+    const customInput = document.getElementById('dockNumberCustom');
+    if (!customInput) return;
 
+    if (val === 'Others') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+        customInput.focus();
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+        customInput.value = '';
+    }
+}
+
+function initDockDropdown() {
+    const dockSelect = document.getElementById('dockNumber');
+    if (!dockSelect) return;
+
+    dockSelect.innerHTML = `<option value="" disabled selected>Select Dock (15 - 90)...</option>`;
+
+    for (let i = 15; i <= 90; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.innerText = `Dock ${i}`;
+        dockSelect.appendChild(opt);
+    }
+
+    const othersOpt = document.createElement('option');
+    othersOpt.value = "Others";
+    othersOpt.innerText = "Others / آخر";
+    dockSelect.appendChild(othersOpt);
+}
+
+document.addEventListener('DOMContentLoaded', initDockDropdown);
   function handleDispatchChange(selectEl) {
             if (!selectEl) return;
             const scannersRow = document.getElementById('checkinScannersRow');
@@ -2863,11 +2907,22 @@ function closeSignOutModal() {
             if (currentLang === 'ar') return `${h}س ${m}د`;
             return `${h}h ${m}m`;
         }
-        function generatePlateBumperUI(plateStr) {
-            let parts = plateStr ? plateStr.split(' ') : ['--'];
-            if(parts.length >= 2) { return `<div class="plate-box-split"><div class="plate-segment">${parts[0]}</div><div class="plate-segment">${parts[1]}</div></div>`; }
-            return `<div class="plate-box-split"><div class="plate-segment">${plateStr || '--'}</div></div>`;
-        }
+function generatePlateBumperUI(plateStr) {
+    plateStr = String(plateStr || "").trim();
+
+    if (!plateStr || plateStr === "--") {
+        return `<span style="color:#a0a0a0;">N/A</span>`;
+    }
+
+    const parts = plateStr.split(' ');
+    let numbers = parts[0] || '';
+    let letters = parts.slice(1).join(' ') || '';
+
+    return `<div class="plate-bumper">
+        <span class="plate-num">${numbers}</span>
+        <span class="plate-let">${letters}</span>
+    </div>`;
+}
 
         function getBadgeClass(displayDir, isOut) {
             if(isOut || displayDir.includes("OUTBOUND") || displayDir.includes("مغادرة")) return "badge out";
@@ -3607,8 +3662,19 @@ function compileDriversRegistryCards(data) {
             }
 
             // --- DOUBLE CHECK DOCK OCCUPATION SECURITY GATEWAY ON SUBMIT ---
-            const dockVal = document.getElementById('dockNumber').value.trim().toUpperCase();
-            if (globalLogsCache) {
+let dockVal = document.getElementById('dockNumber').value;
+if (dockVal === 'Others') {
+    dockVal = document.getElementById('dockNumberCustom').value;
+}
+dockVal = String(dockVal || '').replace(/[^0-9]/g, '').trim();
+
+if (!dockVal) {
+    alert(typeof currentLang !== 'undefined' && currentLang === 'ar' ? 'يرجى إدخال رقم رصيف صحيح (أرقام فقط)' : 'Please enter a valid numeric Dock Number.');
+    return;
+}
+
+if (globalLogsCache) {
+    // ... rest of dockOccupied check
                 let dockOccupied = globalLogsCache.some(r => !r.checkOutTime && String(r.dockNumber).trim().toUpperCase() === dockVal);
                 if (dockOccupied) {
                     if (currentLang === 'ar') {
