@@ -3622,8 +3622,7 @@ function compileDriversRegistryCards(data) {
                             <td style="color:var(--accent-color); font-weight:bold;">${calcDuration(r.checkInTime, null)}</td>
                             <td style="font-size:0.75rem; color:var(--text-muted);">🛡️ ${r.securityName || tr('Guard')}</td>
                             <td style="text-align:right; padding-right:1rem;">
-                                <button class="btn-checkout-action" onclick="promptSignOut('${r.driverName.replace(/'/g, "\\'")}', '${(r.plateNumber || '').replace(/'/g, "\\'")}', '${(r.securityName || tr('Guard')).replace(/'/g, "\\'")}', '${r.dockNumber}', '${activeDispType}')">${tr('CHECK OUT')}</button>
-                            </td>
+<button class="btn-checkout-action" onclick="promptSignOut('${r.driverName.replace(/'/g, "\\'")}', '${String(r.plateNumber || '').replace(/'/g, "\\'")}', '${(r.securityName || tr('Guard')).replace(/'/g, "\\'")}', '${r.dockNumber}', '${activeDispType}')">${tr('CHECK OUT')}</button>                            </td>
                         </tr>`;
                     });
                 }
