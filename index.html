@@ -3220,46 +3220,68 @@ function closeSignOutModal() {
             if(dlDocks) dlDocks.innerHTML = [...docks].sort().map(v => `<option value="${v}">`).join('');
         }
 
-        function compileDriversRegistryCards(data) {
-            let deletes = JSON.parse(localStorage.getItem('SLP_DELETES')) || [];
-            const container = document.getElementById('driversRegistryContainer'); container.innerHTML = '';
-            let uniqueDriversMap = {};
+function compileDriversRegistryCards(data) {
+    let deletes = JSON.parse(localStorage.getItem('SLP_DELETES')) || [];
+    const container = document.getElementById('driversRegistryContainer');
+    if (container) container.innerHTML = '';
+    let uniqueDriversMap = {};
 
-            data.forEach(item => {
-                if(!item.driverName || item.driverName.trim() === "") return;
-                if (deletes.some(d => d.type === 'driver' && d.name === item.driverName)) return; 
+    if (!data) return;
 
-                if(!uniqueDriversMap[item.driverName]) {
-                    uniqueDriversMap[item.driverName] = { 
-                        name: item.driverName, plate: item.plateNumber || "--", registered: item.checkInTime || item.timestamp, id: item.iqamaNumber || "N/A", phone: item.mobileNumber || "N/A"
-                    };
-                } else {
-                    if (item.mobileNumber && item.mobileNumber !== "N/A" && item.mobileNumber !== "--") {
-                        uniqueDriversMap[item.driverName].phone = item.mobileNumber;
-                    }
-                    if (item.iqamaNumber && item.iqamaNumber !== "N/A" && item.iqamaNumber !== "--") {
-                        uniqueDriversMap[item.driverName].id = item.iqamaNumber;
-                    }
-                }
-            });
+    data.forEach(item => {
+        if (!item.driverName || String(item.driverName).trim() === "") return;
+        if (deletes.some(d => d.type === 'driver' && d.name === item.driverName)) return;
 
-            let list = Object.values(uniqueDriversMap);
-            driversRegistryList = list; 
-            document.getElementById('metric-drivers-count').innerText = list.length;
-            if(list.length === 0) { container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:3rem; font-size:0.8rem;">${tr('No personnel maps cataloged.')}</div>`; return; }
+        // Wrap plateNumber with String() to prevent numeric crashes
+        const safePlate = String(item.plateNumber || "--");
 
-            list.forEach(driver => {
-                let dateFormatted = fmtDate(driver.registered);
-                container.innerHTML += `
-                    <div class="driver-registry-card" data-search-blob="${driver.name.toLowerCase()} ${(driver.plate || '').toLowerCase()}">
-                        <div class="card-management-actions"><button class="btn-icon-manage" onclick="openEditDriverModal('${driver.name.replace(/'/g, "\\'")}', '${String(driver.id).replace(/'/g, "\\'")}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${String(driver.phone || '').replace(/'/g, "\\'")}', false)">✏️</button></div>
-                        <div class="driver-card-header"><div class="driver-avatar-img">👤</div><div class="driver-meta"><h3>${driver.name}</h3><div class="driver-badges"><span class="tag-badge verified">${tr('Verified')}</span><span class="tag-badge carrier">${tr('SLP')}</span></div></div></div>
-                        <div class="driver-card-info-grid"><div class="info-block"><p>🆔 ${tr('Iqama/National ID')}</p><data>${driver.id}</data></div><div class="info-block"><p>📅 ${tr('Registered Date')}</p><data>${dateFormatted}</data></div><div class="info-block" style="grid-column: 1 / -1; margin-top: 4px;"><p>📞 ${tr('Mobile Number')}</p><data>${driver.phone}</data></div></div>
-                        <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name.replace(/'/g, "\\'")}', '${String(driver.id).replace(/'/g, "\\'")}', '${(driver.plate || '').replace(/'/g, "\\'")}', '${dateFormatted}', '${String(driver.phone || '').replace(/'/g, "\\'")}', false)">${tr('View Records')}</button>
-                    </div>`;
-            });
+        if (!uniqueDriversMap[item.driverName]) {
+            uniqueDriversMap[item.driverName] = {
+                name: item.driverName,
+                plate: safePlate,
+                registered: item.checkInTime || item.timestamp,
+                id: item.iqamaNumber || "N/A",
+                phone: item.mobileNumber || "N/A"
+            };
+        } else {
+            if (item.mobileNumber && item.mobileNumber !== "N/A" && item.mobileNumber !== "--") {
+                uniqueDriversMap[item.driverName].phone = item.mobileNumber;
+            }
+            if (item.iqamaNumber && item.iqamaNumber !== "N/A" && item.iqamaNumber !== "--") {
+                uniqueDriversMap[item.driverName].id = item.iqamaNumber;
+            }
+            if (safePlate && safePlate !== "--") {
+                uniqueDriversMap[item.driverName].plate = safePlate;
+            }
         }
+    });
 
+    let list = Object.values(uniqueDriversMap);
+    driversRegistryList = list;
+    
+    const countElem = document.getElementById('metric-drivers-count');
+    if (countElem) countElem.innerText = list.length;
+
+    if (list.length === 0) { 
+        if (container) container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-muted); padding:3rem; font-size:0.8rem;">${tr('No personnel maps cataloged.')}</div>`; 
+        return; 
+    }
+
+    list.forEach(driver => {
+        let dateFormatted = fmtDate(driver.registered);
+        // Safe string lowercasing for search blob
+        const searchName = String(driver.name || "").toLowerCase();
+        const searchPlate = String(driver.plate || "").toLowerCase();
+
+        container.innerHTML += `
+            <div class="driver-registry-card" data-search-blob="${searchName} ${searchPlate}">
+                <div class="card-management-actions"><button class="btn-icon-manage" onclick="openEditDriverModal('${driver.name.replace(/'/g, "\\'")}', '${String(driver.id).replace(/'/g, "\\'")}', '${String(driver.plate || '').replace(/'/g, "\\'")}', '${String(driver.phone || '').replace(/'/g, "\\'")}', false)">✏️ </button></div>
+                <div class="driver-card-header"><div class="driver-avatar-img">👤</div><div><div class="driver-meta"><h3>${driver.name}</h3><div class="driver-badges"><span class="tag-badge verified">${tr('Verified')}</span><span class="tag-badge carrier">${tr('SLP')}</span></div></div></div></div>
+                <div class="driver-card-info-grid"><div><p class="info-block">${tr('Iqama/National ID')}</p><p>${driver.id}</p></div><div class="info-block"><p>${tr('Registered Date')}</p><p>${dateFormatted}</p></div><div class="info-block" style="grid-column: 1 / -1;"><p>${tr('Mobile Number')}</p><p>${driver.phone}</p></div></div>
+                <button class="btn-card-action" onclick="openDriverProfileModal('${driver.name.replace(/'/g, "\\'")}', '${String(driver.id).replace(/'/g, "\\'")}', '${String(driver.plate || '').replace(/'/g, "\\'")}', '${dateFormatted}', '${String(driver.phone || '').replace(/'/g, "\\'")}')">${tr('View Records')}</button>
+            </div>`;
+    });
+}
         function filterRegistryCards() {
             let query = document.getElementById('driverRegistrySearch').value.toLowerCase();
             document.querySelectorAll('.driver-registry-card:not(.security-card)').forEach(card => { card.style.display = card.getAttribute('data-search-blob').includes(query) ? 'flex' : 'none'; });
