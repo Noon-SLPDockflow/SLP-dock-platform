@@ -442,7 +442,13 @@
     </style>
 </head>
 <body>
-
+<!-- 🔴 SMART UPDATE NOTIFICATION BUTTON -->
+    <div id="updateAppBtn" onclick="window.location.href = window.location.pathname + '?v=' + new Date().getTime()" style="display:none; position:fixed; top:20px; right:50%; transform:translateX(50%); z-index:2147483647; background:#1a1a1a; color:#fff; border:1px solid #333; padding:10px 24px; border-radius:50px; font-weight:bold; cursor:pointer; align-items:center; gap:12px; box-shadow:0 8px 24px rgba(0,0,0,0.8); transition:0.3s;">
+        <div style="width:12px; height:12px; background:#ff4444; border-radius:50%; box-shadow:0 0 10px #ff4444; animation: pulse 1s infinite alternate;"></div>
+        <span style="font-size:1.1rem; letter-spacing:0.5px;">New Update Available! Click to Refresh</span>
+    </div>
+    <style>@keyframes pulse { 0% { opacity: 0.6; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }</style>
+    
     <!-- FLOATING MENU BUTTON -->
     <button id="floatingOpenBtn" onclick="toggleSidebar()" title="Menu">
         <span style="color:var(--accent-color); font-size:1.2rem;">☰</span> <span data-i18n="Menu">Menu</span>
@@ -2876,6 +2882,11 @@ function closeSignOutModal() {
             `;
             toast.innerHTML = `<span style="font-size: 1.3rem;">✅</span> CHECK OUT COMPLETE — ${identifier || 'Vehicle'}`;
             document.body.appendChild(toast);
+            // 🔴 ADD TO LOCAL PENDING LIST SO SERVER LAG DOESN'T BRING IT BACK
+if (!window.pendingCheckOuts) window.pendingCheckOuts = [];
+if (typeof identifier !== 'undefined') {
+    window.pendingCheckOuts.push(String(identifier).replace(/\s+/g, '').toLowerCase());
+}
 
             setTimeout(() => {
                 toast.style.opacity = '0';
@@ -3539,6 +3550,39 @@ function compileDriversRegistryCards(data) {
 
             let chronData = processedData.sort((a,b) => new Date(a.checkInTime || a.timestamp) - new Date(b.checkInTime || b.timestamp)); 
             globalHistoryListCache = chronData.slice().reverse(); 
+            // 🟢 KEEP LOCAL PENDING CHECK-INS VISIBLE (SPACE-PROOF MATCHING)
+    if (window.pendingCheckIns && window.pendingCheckIns.length > 0) {
+        window.pendingCheckIns.forEach(pendingLog => {
+            const existsInServer = chronData.some(s => 
+                String(s.plateNumber || '').replace(/\s+/g, '').toLowerCase() === String(pendingLog.plateNumber || '').replace(/\s+/g, '').toLowerCase() && 
+                !s.checkOutTime
+            );
+
+            if (existsInServer) {
+                window.pendingCheckIns = window.pendingCheckIns.filter(p => p !== pendingLog);
+            } else {
+                chronData.unshift(pendingLog);
+            }
+        });
+    }
+            // 🔴 KEEP LOCAL CHECK-OUTS HIDDEN UNTIL CONFIRMED BY SERVER
+    if (window.pendingCheckOuts && window.pendingCheckOuts.length > 0) {
+        window.pendingCheckOuts.forEach(plate => {
+            const serverRecord = chronData.find(s => 
+                String(s.plateNumber || '').replace(/\s+/g, '').toLowerCase() === plate
+            );
+            
+            if (serverRecord) {
+                if (serverRecord.checkOutTime) {
+                    // Server officially registered the checkout! Remove from pending list
+                    window.pendingCheckOuts = window.pendingCheckOuts.filter(p => p !== plate);
+                } else {
+                    // Server is lagging: force a local checkout time so it stays off the Active screen
+                    serverRecord.checkOutTime = new Date().toISOString(); 
+                }
+            }
+        });
+    }
             globalLogsCache = chronData;
 
             const activeBody = document.getElementById('activeYardTableBody');
@@ -3634,11 +3678,36 @@ function compileDriversRegistryCards(data) {
             if(userRole === 'admin') renderNotifications();
         };
 
-        function fetchLogs() {
-            const old = document.getElementById('jsonp-fetcher'); if(old) old.remove();
-            const s = document.createElement('script'); s.id = 'jsonp-fetcher'; s.src = API_URL + "?callback=handleLogsResponse&prefix=handleLogsResponse&_" + new Date().getTime(); document.body.appendChild(s);
-        }
+       let isFetchingLogs = false;
 
+function fetchLogs() {
+    // 🟢 BLOCK OVERLAPPING REQUESTS TO PREVENT FREEZING
+    if (isFetchingLogs) return; 
+    
+    isFetchingLogs = true;
+
+    const old = document.getElementById('jsonp-fetcher');
+    if (old) old.remove();
+
+    const s = document.createElement('script');
+    s.id = 'jsonp-fetcher';
+    s.src = API_URL + "?callback=handleLogsResponseWrapper&prefix=handleLogsResponse&_" + new Date().getTime();
+    
+    // Safety net: release lock if network fails
+    s.onerror = function() {
+        isFetchingLogs = false;
+    };
+
+    document.body.appendChild(s);
+}
+
+// 🟢 WRAPPER TO RELEASE NETWORK LOCK WHEN DATA ARRIVES
+window.handleLogsResponseWrapper = function(data) {
+    isFetchingLogs = false; // Release lock so next polling cycle can run smoothly
+    if (typeof window.handleLogsResponse === 'function') {
+        window.handleLogsResponse(data);
+    }
+};
         document.getElementById('entryForm').addEventListener('submit', async e => {
             e.preventDefault(); 
             
@@ -3746,11 +3815,21 @@ if (globalLogsCache) {
             })
                     .catch(e => console.error("Background save issue:", e));
 
-                globalLogsCache.push({
-                    ...payload,
-                    checkInTime: new Date().toISOString()
-                });
-                
+
+                // 🟢 PUSH TO LOCAL PENDING LIST IMMEDIATELY SO TRUCK NEVER DISAPPEARS
+if (!window.pendingCheckIns) window.pendingCheckIns = [];
+
+const newLocalLog = {
+    ...payload,
+    dockNumber: typeof dockVal !== 'undefined' ? dockVal : payload.dockNumber,
+    direction: typeof directionVal !== 'undefined' ? directionVal : payload.direction,
+    checkInTime: new Date().toISOString(),
+    checkOutTime: null
+};
+
+window.pendingCheckIns.push(newLocalLog);
+
+
                 window.handleLogsResponse({ logs: globalLogsCache, ops: window.globalSystemLogs });
 
                 document.getElementById('entryForm').reset(); 
@@ -3938,6 +4017,28 @@ function toggleLoginLanguage() {
         if (authBtn) authBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> AUTHORIZE ACCESS';
     }
 }
+ // ==========================================
+// 🚀 AUTO-UPDATE CHECKER
+// Change this number every time you deploy new code!
+const CURRENT_APP_VERSION = "1.0"; 
+// ==========================================
+
+function checkForNewCode() {
+    // Silently fetch the live HTML file directly from the server
+    fetch(window.location.href.split('#')[0].split('?')[0] + '?cachebust=' + new Date().getTime(), { cache: 'no-store' })
+        .then(r => r.text())
+        .then(html => {
+            const match = html.match(/const CURRENT_APP_VERSION = "([^"]+)";/);
+            if (match && match[1] !== CURRENT_APP_VERSION) {
+                const btn = document.getElementById('updateAppBtn');
+                if (btn) btn.style.display = 'flex';
+            }
+        }).catch(() => { /* Ignore network errors */ });
+}
+
+// Check 5 seconds after they open the app, and then every 2 minutes
+setTimeout(checkForNewCode, 5000);
+setInterval(checkForNewCode, 120000);
     </script>
 </body>
 </html>
