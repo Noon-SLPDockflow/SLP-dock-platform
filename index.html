@@ -1202,7 +1202,7 @@
             const badgeClass = getBadgeClass(dir, false);
             const durStr = calculateDurationStr(r.checkInTime, null);
             let dCheckIn = new Date(r.checkInTime);
-            let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleTimeString() : r.checkInTime;
+            let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString('en-US') : r.checkInTime;
             
             activeHtml += `<tr>
                 <td><strong>${r.driverName}</strong></td>
@@ -1306,9 +1306,9 @@
             const durStr = calculateDurationStr(r.checkInTime, r.checkOutTime);
             
             let dCheckIn = new Date(r.checkInTime);
-            let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString() : r.checkInTime;
+            let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString('en-US') : r.checkInTime;
             let dCheckOut = r.checkOutTime ? new Date(r.checkOutTime) : null;
-            let safeCheckOutStr = dCheckOut && !isNaN(dCheckOut.getTime()) ? dCheckOut.toLocaleString() : (r.checkOutTime || '<span style="color:var(--accent-color); font-weight:700;">Inside</span>');
+            let safeCheckOutStr = dCheckOut && !isNaN(dCheckOut.getTime()) ? dCheckOut.toLocaleString('en-US') : (r.checkOutTime || '<span style="color:var(--accent-color); font-weight:700;">Inside</span>');
             
             html += `<tr>
                 <td><strong>${r.driverName}</strong></td>
@@ -1457,9 +1457,9 @@
                 let badgeCls = getBadgeClass(dir, false);
                 let rows = items.slice(0,20).map(r => {
                     let dCheckIn = new Date(r.checkInTime);
-                    let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString() : r.checkInTime;
+                    let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString('en-US') : r.checkInTime;
                     let dCheckOut = r.checkOutTime ? new Date(r.checkOutTime) : null;
-                    let safeCheckOutStr = dCheckOut && !isNaN(dCheckOut.getTime()) ? dCheckOut.toLocaleString() : (r.checkOutTime || 'Inside');
+                    let safeCheckOutStr = dCheckOut && !isNaN(dCheckOut.getTime()) ? dCheckOut.toLocaleString('en-US') : (r.checkOutTime || 'Inside');
 
                     return `<tr>
                         <td><strong>${r.driverName}</strong></td>
@@ -1971,7 +1971,7 @@
         const headers = ['Driver', 'Iqama Number', 'Plate', 'Direction', 'Dock', 'Noon Employee ID', 'How many Boxes', 'Seal Number', 'Check In Truck', 'Check Out', 'Security'];
         const csvLines = [headers.join(',')];
         globalLogsCache.forEach(r => {
-            const line = [r.driverName || '', r.iqamaNumber || '', r.plateNumber || '', r.direction || '', r.dockNumber || '', r.noonEmployeeId || '', r.boxCount || '0', r.sealNumber || '--', new Date(r.checkInTime).toLocaleString(), r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : 'Inside', r.securityName || ''].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
+            const line = [r.driverName || '', r.iqamaNumber || '', r.plateNumber || '', r.direction || '', r.dockNumber || '', r.noonEmployeeId || '', r.boxCount || '0', r.sealNumber || '--', new Date(r.checkInTime).toLocaleString('en-US'), r.checkOutTime ? new Date(r.checkOutTime).toLocaleString('en-US') : 'Inside', r.securityName || ''].map(v => `"${String(v).replace(/"/g, '""')}"`).join(',');
             csvLines.push(line);
         });
         const csvContent = csvLines.join('\n');
@@ -1982,7 +1982,7 @@
     }
     window.exportHistoryToExcel = exportHistoryToExcel;
 
-    const CURRENT_APP_VERSION = "3.5";
+    const CURRENT_APP_VERSION = "3.6";
     function checkForNewCode() {
         fetch(window.location.href.split('#')[0].split('?')[0] + '?cachebust=' + new Date().getTime(), { cache: 'no-store' })
             .then(r => r.text())
