@@ -1046,7 +1046,7 @@
 
             fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) }).catch(e => console.error(e));
             
-            payload.checkInTime = new Date().toLocaleString();
+            payload.checkInTime = new Date().toISOString();
             globalLogsCache.unshift(payload);
             window.handleLogsResponse({logs: globalLogsCache});
             
@@ -1101,7 +1101,7 @@
             
             let match = globalLogsCache.find(r => r.plateNumber === currentSignOutContext.plateNumber && !r.checkOutTime);
             if (match) { 
-                match.checkOutTime = new Date().toLocaleString(); 
+                match.checkOutTime = new Date().toISOString(); 
                 if (seal) match.sealNumber = seal; 
             }
             
@@ -1201,6 +1201,8 @@
             const dir = String(r.direction || '').split('-')[0].trim().toUpperCase();
             const badgeClass = getBadgeClass(dir, false);
             const durStr = calculateDurationStr(r.checkInTime, null);
+            let dCheckIn = new Date(r.checkInTime);
+            let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleTimeString() : r.checkInTime;
             
             activeHtml += `<tr>
                 <td><strong>${r.driverName}</strong></td>
@@ -1211,7 +1213,7 @@
                 <td>${r.boxCount||'--'}</td>
                 <td style="font-family:monospace;">${r.sealNumber||'--'}</td>
                 <td><strong>${r.dockNumber}</strong></td>
-                <td>${new Date(r.checkInTime).toLocaleTimeString()}</td>
+                <td>${safeCheckInStr}</td>
                 <td class="live-duration" data-timein="${r.checkInTime}" style="color:var(--accent-color); font-weight:bold;">${durStr}</td>
                 <td>🛡️ ${r.securityName}</td>
                 <td style="text-align:right;"><button class="btn-checkout-action" onclick="promptSignOut('${String(r.driverName).replace(/'/g,"\\'")}', '${String(r.plateNumber).replace(/'/g,"\\'")}', '${String(r.securityName).replace(/'/g,"\\'")}', '${r.dockNumber}', '${r.dispatchType}')">OUT</button></td>
@@ -1303,6 +1305,11 @@
             const badgeClass = getBadgeClass(dir, r.checkOutTime !== "");
             const durStr = calculateDurationStr(r.checkInTime, r.checkOutTime);
             
+            let dCheckIn = new Date(r.checkInTime);
+            let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString() : r.checkInTime;
+            let dCheckOut = r.checkOutTime ? new Date(r.checkOutTime) : null;
+            let safeCheckOutStr = dCheckOut && !isNaN(dCheckOut.getTime()) ? dCheckOut.toLocaleString() : (r.checkOutTime || '<span style="color:var(--accent-color); font-weight:700;">Inside</span>');
+            
             html += `<tr>
                 <td><strong>${r.driverName}</strong></td>
                 <td>${generatePlateBumperUI(r.plateNumber)}</td>
@@ -1311,8 +1318,8 @@
                 <td><span style="font-family:monospace; color:var(--text-muted);">${r.noonEmployeeId||'--'}</span></td>
                 <td>${r.boxCount||'--'}</td>
                 <td style="font-family:monospace;">${r.sealNumber && r.sealNumber !== "" ? r.sealNumber : '--'}</td>
-                <td>${new Date(r.checkInTime).toLocaleString()}</td>
-                <td>${r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : '<span style="color:var(--accent-color); font-weight:700;">Inside</span>'}</td>
+                <td>${safeCheckInStr}</td>
+                <td>${safeCheckOutStr}</td>
                 <td style="color:var(--accent-color); font-weight:bold;">${durStr}</td>
                 <td>🛡️ ${r.securityName}</td>
             </tr>`;
@@ -1448,16 +1455,23 @@
             let aHtml = '';
             for (let [dir, items] of Object.entries(groups)) {
                 let badgeCls = getBadgeClass(dir, false);
-                let rows = items.slice(0,20).map(r => `<tr>
-                    <td><strong>${r.driverName}</strong></td>
-                    <td>${generatePlateBumperUI(r.plateNumber)}</td>
-                    <td><strong>${r.dockNumber}</strong></td>
-                    <td style="font-family:monospace; color:var(--text-muted);">${r.sealNumber && r.sealNumber !== "" ? r.sealNumber : '--'}</td>
-                    <td>${new Date(r.checkInTime).toLocaleString()}</td>
-                    <td>${r.checkOutTime ? new Date(r.checkOutTime).toLocaleString() : 'Inside'}</td>
-                    <td style="color:var(--accent-color); font-weight:bold;">${calculateDurationStr(r.checkInTime, r.checkOutTime)}</td>
-                    <td>🛡️ ${r.securityName}</td>
-                </tr>`).join('');
+                let rows = items.slice(0,20).map(r => {
+                    let dCheckIn = new Date(r.checkInTime);
+                    let safeCheckInStr = !isNaN(dCheckIn.getTime()) ? dCheckIn.toLocaleString() : r.checkInTime;
+                    let dCheckOut = r.checkOutTime ? new Date(r.checkOutTime) : null;
+                    let safeCheckOutStr = dCheckOut && !isNaN(dCheckOut.getTime()) ? dCheckOut.toLocaleString() : (r.checkOutTime || 'Inside');
+
+                    return `<tr>
+                        <td><strong>${r.driverName}</strong></td>
+                        <td>${generatePlateBumperUI(r.plateNumber)}</td>
+                        <td><strong>${r.dockNumber}</strong></td>
+                        <td style="font-family:monospace; color:var(--text-muted);">${r.sealNumber && r.sealNumber !== "" ? r.sealNumber : '--'}</td>
+                        <td>${safeCheckInStr}</td>
+                        <td>${safeCheckOutStr}</td>
+                        <td style="color:var(--accent-color); font-weight:bold;">${calculateDurationStr(r.checkInTime, r.checkOutTime)}</td>
+                        <td>🛡️ ${r.securityName}</td>
+                    </tr>`;
+                }).join('');
                 
                 aHtml += `<div class="accordion-wrapper">
                     <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('open')">
@@ -1968,7 +1982,7 @@
     }
     window.exportHistoryToExcel = exportHistoryToExcel;
 
-    const CURRENT_APP_VERSION = "3.4";
+    const CURRENT_APP_VERSION = "3.5";
     function checkForNewCode() {
         fetch(window.location.href.split('#')[0].split('?')[0] + '?cachebust=' + new Date().getTime(), { cache: 'no-store' })
             .then(r => r.text())
