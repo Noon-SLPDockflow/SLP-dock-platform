@@ -981,8 +981,8 @@
         }
         
         if (window.hasFetchedLogs && globalLogsCache) {
-            compileDriversRegistryCards(globalLogsCache);
-            compileSecurityRegistryCards(globalLogsCache);
+            compileDriversRegistryCards();
+            compileSecurityRegistryCards();
         }
     }
 
@@ -1027,6 +1027,13 @@
                         localGuards.push({ securityName: name, securityId: noonId });
                         localStorage.setItem('noonSlpLocalGuards', JSON.stringify(localGuards));
                     }
+                    // Auto-add guard to separate sheet on backend if they log in
+                    fetch(API_URL, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ action: 'addGuard', securityName: name, securityId: noonId }) 
+                    }).catch(e => console.error(e));
+
                     executeLogin(name, email, noonId, 'guard', false);
                 }
             });
@@ -1227,6 +1234,28 @@
             let displayUnit = countVal === "1" ? (typeVal === "Boxes" ? "Box" : "Pallet") : typeVal;
             let finalBoxCountStr = countVal + " " + displayUnit;
             
+            if (isNew) {
+                fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ 
+                        action: 'addDriver', 
+                        driverName: dName, 
+                        iqamaNumber: iqNum, 
+                        plateNumber: combinedPlate, 
+                        mobileNumber: document.getElementById('mobileNumber')?.value || "N/A" 
+                    }) 
+                }).catch(e => console.error(e));
+                
+                driversRegistryList.push({
+                    name: dName,
+                    id: iqNum,
+                    plate: combinedPlate,
+                    phone: document.getElementById('mobileNumber')?.value || "N/A"
+                });
+                compileDriversRegistryCards();
+            }
+
             const payload = {
                 action: 'checkin', 
                 driverName: dName, 
@@ -1390,6 +1419,19 @@
         let rawLogs = responsePayload.logs || [];
         globalLogsCache = rawLogs.sort((a,b) => parseFlexibleDate(b.checkInTime) - parseFlexibleDate(a.checkInTime));
         
+        if (responsePayload.guards) {
+            securityRegistryList = responsePayload.guards;
+        }
+        
+        if (responsePayload.drivers) {
+            driversRegistryList = responsePayload.drivers.map(d => ({
+                name: d.driverName,
+                id: d.iqamaNumber || "--",
+                plate: d.plateNumber || "--",
+                phone: d.mobileNumber || "--"
+            }));
+        }
+
         const activeList = globalLogsCache.filter(r => !r.checkOutTime);
         const mTotal = document.getElementById('metric-total-checkins');
         const mActive = document.getElementById('metric-active-now');
@@ -1457,8 +1499,8 @@
         
         applyHistoryFilters();
         applyAnalyticsFilters();
-        compileDriversRegistryCards(globalLogsCache);
-        compileSecurityRegistryCards(globalLogsCache);
+        compileDriversRegistryCards();
+        compileSecurityRegistryCards();
     };
 
     const debouncedApplyAnalyticsFilters = debounce(applyAnalyticsFilters, 300);
@@ -1673,6 +1715,16 @@
 
         const aTables = document.getElementById('analyticsGroupedTables');
         if (aTables) {
+            // 1. SAVE THE STATE OF OPEN ACCORDIONS (NEW)
+            let openAccordions = [];
+            aTables.querySelectorAll('.accordion-wrapper').forEach(wrapper => {
+                const content = wrapper.querySelector('.accordion-content');
+                if (content && content.classList.contains('open')) {
+                    const titleSpan = wrapper.querySelector('.accordion-title span');
+                    if (titleSpan) openAccordions.push(titleSpan.innerText.trim());
+                }
+            });
+
             let groups = {};
             filtered.forEach(r => {
                 let dDir = String(r.direction || '').split('-')[0].trim().toUpperCase();
@@ -1700,12 +1752,15 @@
                     </tr>`;
                 }).join('');
                 
+                // 2. CHECK MEMORY TO SEE IF IT SHOULD BE OPEN (NEW)
+                let isOpenClass = openAccordions.includes(dir) ? 'open' : '';
+                
                 aHtml += `<div class="accordion-wrapper">
                     <div class="accordion-header" onclick="this.nextElementSibling.classList.toggle('open')">
                         <div class="accordion-title"><span class="${badgeCls}">${dir}</span></div>
                         <div class="accordion-badge">${items.length}</div>
                     </div>
-                    <div class="accordion-content">
+                    <div class="accordion-content ${isOpenClass}">
                         <div class="table-responsive">
                             <table>
                                 <thead><tr><th>Driver</th><th>Plate</th><th>Dock</th><th>Seal Number</th><th>Check In</th><th>Check Out</th><th>Duration</th><th>Security</th></tr></thead>
@@ -1720,18 +1775,7 @@
     }
     window.applyAnalyticsFilters = applyAnalyticsFilters;
 
-    function compileDriversRegistryCards(data) {
-        let uniqueMap = {};
-        data.forEach(item => {
-            if (item.driverName && !uniqueMap[item.driverName]) {
-                uniqueMap[item.driverName] = {
-                    name: item.driverName, plate: item.plateNumber || "--",
-                    id: item.iqamaNumber || "--", phone: item.mobileNumber || "--",
-                    checkOutTime: item.checkOutTime, dock: item.dockNumber || "--"
-                };
-            }
-        });
-        driversRegistryList = Object.values(uniqueMap);
+    function compileDriversRegistryCards() {
         const container = document.getElementById('driversRegistryContainer');
         if (!container) return;
         let html = '';
@@ -1784,12 +1828,7 @@
     }
     window.filterRegistryCards = filterRegistryCards;
 
-    function compileSecurityRegistryCards(data) {
-        let uniqueMap = {};
-        data.forEach(item => {
-            if (item.securityName && !uniqueMap[item.securityName]) uniqueMap[item.securityName] = item;
-        });
-        securityRegistryList = Object.values(uniqueMap);
+    function compileSecurityRegistryCards() {
         const container = document.getElementById('securityRegistryContainer');
         if (!container) return;
         let html = '';
@@ -1798,6 +1837,7 @@
         securityRegistryList.forEach(g => {
             const searchName = String(g.securityName || "").toLowerCase();
             const editBtnHtml = isAdmin ? `<button class="btn-card-action edit-btn" onclick="openEditGuardModal('${g.securityName.replace(/'/g, "\\'")}', '${String(g.securityId || '').replace(/'/g, "\\'")}')" data-i18n="Edit">Edit</button>` : '';
+            const deleteBtnHtml = isAdmin ? `<button class="btn-card-action" style="border-color: rgba(248, 81, 73, 0.4); color: var(--danger-color);" onclick="deleteGuard('${g.securityName.replace(/'/g, "\\'")}', '${String(g.securityId || '').replace(/'/g, "\\'")}', this)" data-i18n="Delete">Delete</button>` : '';
 
             html += `
             <div class="driver-registry-card security-card" data-name="${searchName}">
@@ -1813,6 +1853,7 @@
                 </div>
                 <div class="card-actions-wrapper">
                     ${editBtnHtml}
+                    ${deleteBtnHtml}
                 </div>
             </div>`;
         });
@@ -1888,17 +1929,17 @@
                 })
             });
 
-            globalLogsCache.forEach(r => {
-                if (r.driverName === oldName) {
-                    r.driverName = newName;
-                    r.iqamaNumber = newIqama;
-                    r.plateNumber = newPlate;
-                    r.mobileNumber = newMobile || "N/A";
+            driversRegistryList.forEach(d => {
+                if (d.name.toLowerCase() === oldName.toLowerCase()) {
+                    d.name = newName;
+                    d.id = newIqama;
+                    d.plate = newPlate;
+                    d.phone = newMobile || "N/A";
                 }
             });
 
             closeEditDriverModal();
-            window.handleLogsResponse({ logs: globalLogsCache });
+            compileDriversRegistryCards();
         } catch (e) {
             console.error(e);
         } finally {
@@ -1910,7 +1951,7 @@
     window.saveDriverEdit = saveDriverEdit;
 
     async function deleteDriver(driverName, iqama, btn) {
-        if (!confirm(currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا السائق؟ سيتم مسح جميع سجلاته.' : 'Are you sure you want to delete this driver? All of their records will be removed.')) return;
+        if (!confirm(currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا السائق؟ سيتم مسح جميع سجلاته.' : 'Are you sure you want to delete this driver?')) return;
         
         const originalText = btn.innerText;
         btn.innerText = "⏳...";
@@ -1927,8 +1968,8 @@
                 })
             });
 
-            globalLogsCache = globalLogsCache.filter(r => !(r.driverName === driverName && (r.iqamaNumber === iqama || r.iqamaNumber === "--")));
-            window.handleLogsResponse({ logs: globalLogsCache });
+            driversRegistryList = driversRegistryList.filter(d => !(d.name === driverName && (d.id === iqama || d.id === "--")));
+            compileDriversRegistryCards();
         } catch (e) {
             console.error(e);
             alert("Error deleting driver.");
@@ -1979,15 +2020,15 @@
                 })
             });
 
-            globalLogsCache.forEach(r => {
-                if (r.securityName === oldName) {
-                    r.securityName = newName;
-                    r.securityId = newGuardId;
+            securityRegistryList.forEach(g => {
+                if (g.securityName.toLowerCase() === oldName.toLowerCase()) {
+                    g.securityName = newName;
+                    g.securityId = newGuardId;
                 }
             });
 
             closeEditGuardModal();
-            window.handleLogsResponse({ logs: globalLogsCache });
+            compileSecurityRegistryCards();
         } catch (e) {
             console.error(e);
         } finally {
@@ -1997,6 +2038,35 @@
         }
     }
     window.saveGuardEdit = saveGuardEdit;
+
+    async function deleteGuard(guardName, guardId, btn) {
+        if (!confirm(currentLang === 'ar' ? 'هل أنت متأكد من حذف هذا الحارس؟' : 'Are you sure you want to delete this guard?')) return;
+        
+        const originalText = btn.innerText;
+        btn.innerText = "⏳...";
+        btn.disabled = true;
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'deleteGuard',
+                    securityName: guardName,
+                    securityId: guardId
+                })
+            });
+
+            securityRegistryList = securityRegistryList.filter(g => !(g.securityName === guardName && g.securityId === guardId));
+            compileSecurityRegistryCards();
+        } catch (e) {
+            console.error(e);
+            alert("Error deleting guard.");
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    }
+    window.deleteGuard = deleteGuard;
 
     window.renderLoginGuardSuggestions = debounce(function(value, type) {
         const listName = document.getElementById('loginNameSuggestions');
@@ -2487,24 +2557,18 @@
                 // Extract all numbers (3 or 4 digits)
                 let digitMatches = cleanText.match(/\b\d{3,4}\b/g);
                 if (digitMatches && digitMatches.length > 0) {
-                    finalDigits = digitMatches[digitMatches.length - 1];
+                    finalDigits = digitMatches[digitMatches.length - 1]; // English digits are at the bottom
                 }
 
-                // Extract all 3-letter combinations, strictly ignoring "KSA"
-                let letterMatches = cleanText.match(/\b[A-Z]{3}\b/g);
-                if (letterMatches) {
-                    letterMatches = letterMatches.filter(l => l !== 'KSA');
-                    if (letterMatches.length > 0) {
-                        finalLetters = letterMatches[0]; // Take the actual plate letters (e.g. XHU)
-                    }
-                }
-
-                // Secondary fallback for spaced-out letters like "X H U"
-                if (!finalLetters) {
-                    let spacedMatch = cleanText.match(/\b([A-Z])\s+([A-Z])\s+([A-Z])\b/g);
-                    if (spacedMatch) {
-                        let combined = spacedMatch[0].replace(/\s+/g, '');
-                        if (combined !== 'KSA') finalLetters = combined;
+                // Extract all 3-letter combinations (handles both "ABC" and "A B C")
+                let allLetterMatches = cleanText.match(/\b[A-Z]\s*[A-Z]\s*[A-Z]\b/g);
+                if (allLetterMatches) {
+                    let cleanedMatches = allLetterMatches
+                        .map(m => m.replace(/\s+/g, '')) // Remove spaces
+                        .filter(m => m !== 'KSA' && m !== 'CAR'); // Ignore KSA and common watermark words
+                    
+                    if (cleanedMatches.length > 0) {
+                        finalLetters = cleanedMatches[cleanedMatches.length - 1]; // English letters are at the bottom
                     }
                 }
 
@@ -2616,3 +2680,5 @@
 </script>
 </body>
 </html>
+
+                    
