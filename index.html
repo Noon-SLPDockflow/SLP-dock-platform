@@ -1187,7 +1187,7 @@
 
     const entryForm = document.getElementById('entryForm');
     if (entryForm) {
-        entryForm.addEventListener('submit', async (e) => {
+        entryForm.addEventListener('submit', (e) => {
             e.preventDefault(); 
             
             if (window.isCheckInLocked) return;
@@ -1250,7 +1250,7 @@
                     return unlockForm();
                 }
                 
-                // 2. CHECK IF TRUCK IS ALREADY INSIDE (NEW FIX)
+                // 2. CHECK IF TRUCK IS ALREADY INSIDE
                 const cleanTargetPlate = combinedPlate.replace(/\s+/g,'').toLowerCase();
                 const isTruckAlreadyInside = globalLogsCache.some(r => !r.checkOutTime && String(r.plateNumber).replace(/\s+/g,'').toLowerCase() === cleanTargetPlate);
                 
@@ -1270,19 +1270,15 @@
                 let displayUnit = countVal === "1" ? (typeVal === "Boxes" ? "Box" : "Pallet") : typeVal;
                 let finalBoxCountStr = countVal + " " + displayUnit;
                 
-                // Network operations MUST be awaited
+                // --- OPTIMISTIC UI UPDATE (INSTANT) ---
                 if (isNew) {
-                    await fetch(API_URL, { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ 
-                            action: 'addDriver', 
-                            driverName: dName, 
-                            iqamaNumber: iqNum, 
-                            plateNumber: combinedPlate, 
-                            mobileNumber: document.getElementById('mobileNumber')?.value || "N/A" 
-                        }) 
+                    driversRegistryList.push({
+                        name: dName,
+                        id: iqNum,
+                        plate: combinedPlate,
+                        phone: document.getElementById('mobileNumber')?.value || "N/A"
                     });
+                    compileDriversRegistryCards();
                 }
 
                 const payload = {
@@ -1303,13 +1299,6 @@
                     itemPhoto: temporaryCapturedItemImage || ""
                 };
 
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload) 
-                });
-                
-                // Optimistic UI Update (No full page reload)
                 payload.checkInTime = new Date().toISOString();
                 globalLogsCache.unshift(payload);
                 window.handleLogsResponse({logs: globalLogsCache});
@@ -1327,9 +1316,30 @@
                 let navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('active-trucks'));
                 switchView('active-trucks', navItem);
 
+                // --- BACKGROUND NETWORK REQUEST (FIRE AND FORGET) ---
+                if (isNew) {
+                    fetch(API_URL, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ 
+                            action: 'addDriver', 
+                            driverName: dName, 
+                            iqamaNumber: iqNum, 
+                            plateNumber: combinedPlate, 
+                            mobileNumber: document.getElementById('mobileNumber')?.value || "N/A" 
+                        }) 
+                    }).catch(e => console.error("Driver Add Error:", e));
+                }
+
+                fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload) 
+                }).catch(e => console.error("Check-in Upload Error:", e));
+
             } catch (err) {
                 console.error("Check-in Error:", err);
-                alert(currentLang === 'ar' ? "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "A network error occurred. Please try again.");
+                alert(currentLang === 'ar' ? "حدث خطأ في النظام. يرجى المحاولة مرة أخرى." : "A system error occurred. Please try again.");
                 unlockForm();
             }
         });
@@ -1370,7 +1380,7 @@
 
     const btnConfirmSignOut = document.getElementById('btnConfirmSignOut');
     if (btnConfirmSignOut) {
-        btnConfirmSignOut.addEventListener('click', async () => {
+        btnConfirmSignOut.addEventListener('click', () => {
             if (currentSignOutContext && currentSignOutContext.dispatchType !== 'Receiving') {
                 if (!tempCheckoutTruckPhoto || !tempCheckoutItemPhoto) {
                     alert(currentLang === 'ar' ? "يرجى إرفاق صورة الشاحنة وصورة العنصر أولاً." : "Please attach the Truck Picture and Item Picture first.");
@@ -1392,13 +1402,7 @@
                     itemPhoto: tempCheckoutItemPhoto || ""
                 };
                 
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload) 
-                });
-                
-                // Optimistic UI Update (No full page reload)
+                // --- OPTIMISTIC UI UPDATE (INSTANT) ---
                 let match = globalLogsCache.find(r => r.plateNumber === currentSignOutContext.plateNumber && !r.checkOutTime);
                 if (match) { 
                     match.checkOutTime = new Date().toISOString(); 
@@ -1407,13 +1411,21 @@
                 
                 window.handleLogsResponse({logs: globalLogsCache});
                 closeSignOutModal(); 
-                btnConfirmSignOut.innerText = "CONFIRM CHECK OUT"; 
+                btnConfirmSignOut.innerText = tr("CONFIRM CHECK OUT"); 
                 btnConfirmSignOut.disabled = false;
+
+                // --- BACKGROUND NETWORK REQUEST (FIRE AND FORGET) ---
+                fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload) 
+                }).catch(e => console.error("Check-out Upload Error:", e));
 
             } catch (err) {
                 console.error("Check-out Error:", err);
-                alert(currentLang === 'ar' ? "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "A network error occurred. Please try again.");
-                btnConfirmSignOut.innerText = "CONFIRM CHECK OUT"; btnConfirmSignOut.disabled = false;
+                alert(currentLang === 'ar' ? "حدث خطأ في النظام. يرجى المحاولة مرة أخرى." : "A system error occurred. Please try again.");
+                btnConfirmSignOut.innerText = tr("CONFIRM CHECK OUT"); 
+                btnConfirmSignOut.disabled = false;
             }
         });
     }
@@ -1538,9 +1550,7 @@
                 <td class="notranslate" translate="no">${safeCheckInStr}</td>
                 <td class="live-duration notranslate" translate="no" data-timein="${isoCheckIn}" style="color:var(--accent-color); font-weight:bold;">${durStr}</td>
                 <td>🛡️ ${r.securityName}</td>
-                <td style="text-align:right;">
-                    <button class="btn-checkout-action" onclick="promptSignOut('${String(r.driverName).replace(/'/g,"\\'")}', '${String(r.plateNumber).replace(/'/g,"\\'")}', '${String(r.securityName).replace(/'/g,"\\'")}', '${r.dockNumber}', '${r.dispatchType}')" data-i18n="Check out">Check out</button>
-                </td>
+                <td style="text-align:right;"><button class="btn-checkout-action" onclick="promptSignOut('${String(r.driverName).replace(/'/g,"\\'")}', '${String(r.plateNumber).replace(/'/g,"\\'")}', '${String(r.securityName).replace(/'/g,"\\'")}', '${r.dockNumber}', '${r.dispatchType}')" data-i18n="Check out">Check out</button></td>
             </tr>`;
         });
         const yardTable = document.getElementById('activeYardTableBody');
