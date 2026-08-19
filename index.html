@@ -837,8 +837,15 @@
 
     function tr(key) { return currentLang === 'en' ? key : (translations[key] || key); }
 
-    window.toggleLang = function() {
-        currentLang = currentLang === 'en' ? 'ar' : 'en';
+    window.toggleLang = function(forceLang) {
+        if (forceLang) {
+            currentLang = forceLang;
+        } else {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+        }
+        
+        localStorage.setItem('noonSlpLang', currentLang);
+        
         document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
         document.documentElement.lang = currentLang;
         document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -947,7 +954,10 @@
         setDisp('nav-analytics', (role === 'admin') ? 'flex' : 'none');
         setDisp('nav-checkin', (role === 'admin' || role === 'guard') ? 'flex' : 'none');
         setDisp('nav-active-trucks', (role === 'admin' || role === 'guard') ? 'flex' : 'none');
-        setDisp('nav-history', (role === 'admin' || role === 'guard') ? 'flex' : 'none');
+        
+        // ADMIN ONLY FOR HISTORY
+        setDisp('nav-history', (role === 'admin') ? 'flex' : 'none');
+        
         setDisp('nav-drivers', (role === 'admin') ? 'flex' : 'none');
         setDisp('nav-security', (role === 'admin') ? 'flex' : 'none');
         setDisp('btnExportExcel', (role === 'admin') ? 'block' : 'none');
@@ -1001,7 +1011,9 @@
     document.addEventListener("DOMContentLoaded", () => {
         Chart.register(ChartDataLabels);
         
-        document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'date')) el.placeholder = tr(key); else el.innerText = tr(key); });
+        // Initialize saved language
+        let savedLang = localStorage.getItem('noonSlpLang') || 'en';
+        toggleLang(savedLang);
         
         const dockSelect = document.getElementById('dockNumber');
         if (dockSelect) {
@@ -1175,144 +1187,151 @@
 
     const entryForm = document.getElementById('entryForm');
     if (entryForm) {
-        entryForm.addEventListener('submit', (e) => {
+        entryForm.addEventListener('submit', async (e) => {
             e.preventDefault(); 
-            const toggleBtn = document.getElementById('toggleNewDriverBtn');
-            const isNew = toggleBtn && toggleBtn.classList.contains('active');
-            
-            let dName = document.getElementById('driverName')?.value || '';
-            let iqNum = document.getElementById('iqamaNumber')?.value || '';
-            let pDigits = document.getElementById('plateNumberDigits')?.value || '';
-            let pLetters = document.getElementById('plateNumberLetters')?.value || '';
-            let combinedPlate = (pDigits + ' ' + pLetters).trim();
-
-            if (!isNew) {
-                if (!pDigits || !pLetters || !dName || !iqNum) {
-                    alert(currentLang === 'ar' ? "يرجى البحث عن السائق واختياره من القائمة أولاً." : "Please search and select a driver from the dropdown list first.");
-                    return;
-                }
-            }
-
-            if (!pDigits || !pLetters) {
-                alert(currentLang === 'ar' ? "يرجى ملء كل من أرقام وحروف اللوحة." : "Please fill in both the Numbers and Alphabets for the Truck Plate.");
-                return;
-            }
-
-            if (isNew && driversRegistryList.length > 0) {
-                const iqVal = iqNum.trim().toLowerCase();
-                const plVal = combinedPlate.replace(/\s+/g,'').toLowerCase();
-                let iqamaConflicted = driversRegistryList.some(d => String(d.id||'').toLowerCase() === iqVal && iqVal !== 'n/a');
-                let plateConflicted = driversRegistryList.some(d => String(d.plate||'').replace(/\s+/g,'').toLowerCase() === plVal && plVal !== 'n/a');
-                
-                if (iqamaConflicted || plateConflicted) {
-                    alert("⚠️ Duplicate Found: This Iqama Number or Truck Plate Number already exists inside the database.\n\nPlease switch to 'Existing Driver' mode.");
-                    return;
-                }
-            }
-
-            let dockVal = document.getElementById('dockNumber')?.value || '';
-            if (dockVal === 'Others') {
-                const dCust = document.getElementById('dockNumberCustom');
-                if (dCust) dockVal = dCust.value;
-            }
-            dockVal = String(dockVal || '').replace(/[^0-9]/g, '').trim();
-            if (!dockVal) { alert('Please enter a valid numeric Dock Number.'); return; }
-            
-            // 1. CHECK IF DOCK IS OCCUPIED
-            const isDockOccupied = globalLogsCache.some(r => !r.checkOutTime && String(r.dockNumber).trim() === dockVal);
-            if (isDockOccupied) {
-                alert(currentLang === 'ar' ? `خطأ: الرصيف رقم (${dockVal}) مستخدم حالياً من قبل شاحنة أخرى.` : `Error: Dock ${dockVal} is currently occupied by another active truck. Please choose a different dock.`);
-                return;
-            }
-            
-            // 2. CHECK IF TRUCK IS ALREADY INSIDE (NEW FIX)
-            const cleanTargetPlate = combinedPlate.replace(/\s+/g,'').toLowerCase();
-            const isTruckAlreadyInside = globalLogsCache.some(r => !r.checkOutTime && String(r.plateNumber).replace(/\s+/g,'').toLowerCase() === cleanTargetPlate);
-            
-            if (isTruckAlreadyInside) {
-                alert(currentLang === 'ar' ? `خطأ: هذه الشاحنة مسجلة وموجودة حالياً بالداخل.` : `Error: This truck (${combinedPlate}) is already checked in and active inside the facility.`);
-                return;
-            }
-            
-            let directionVal = document.getElementById('direction')?.value || '';
-            if (directionVal === 'Others') {
-                const customDir = document.getElementById('directionCustom');
-                if(customDir) directionVal = customDir.value.trim();
-            }
             
             if (window.isCheckInLocked) return;
-            window.isCheckInLocked = true; setTimeout(() => { window.isCheckInLocked = false; }, 5000);
-
-            const btn = document.querySelector('.submit-btn-global');
+            window.isCheckInLocked = true;
+            
+            const btn = document.querySelector('#entryForm .submit-btn-global');
             if (btn) { btn.innerText = "⏳ Processing..."; btn.disabled = true; }
+
+            const unlockForm = () => {
+                window.isCheckInLocked = false;
+                if (btn) { btn.innerText = tr("Check In Truck"); btn.disabled = false; }
+            };
             
-            let countVal = document.getElementById('boxCount')?.value || "0";
-            let typeVal = document.getElementById('boxType')?.value || "Boxes";
-            let displayUnit = countVal === "1" ? (typeVal === "Boxes" ? "Box" : "Pallet") : typeVal;
-            let finalBoxCountStr = countVal + " " + displayUnit;
-            
-            if (isNew) {
-                fetch(API_URL, { 
+            try {
+                const toggleBtn = document.getElementById('toggleNewDriverBtn');
+                const isNew = toggleBtn && toggleBtn.classList.contains('active');
+                
+                let dName = document.getElementById('driverName')?.value || '';
+                let iqNum = document.getElementById('iqamaNumber')?.value || '';
+                let pDigits = document.getElementById('plateNumberDigits')?.value || '';
+                let pLetters = document.getElementById('plateNumberLetters')?.value || '';
+                let combinedPlate = (pDigits + ' ' + pLetters).trim();
+
+                if (!isNew) {
+                    if (!pDigits || !pLetters || !dName || !iqNum) {
+                        alert(currentLang === 'ar' ? "يرجى البحث عن السائق واختياره من القائمة أولاً." : "Please search and select a driver from the dropdown list first.");
+                        return unlockForm();
+                    }
+                }
+
+                if (!pDigits || !pLetters) {
+                    alert(currentLang === 'ar' ? "يرجى ملء كل من أرقام وحروف اللوحة." : "Please fill in both the Numbers and Alphabets for the Truck Plate.");
+                    return unlockForm();
+                }
+
+                if (isNew && driversRegistryList.length > 0) {
+                    const iqVal = iqNum.trim().toLowerCase();
+                    const plVal = combinedPlate.replace(/\s+/g,'').toLowerCase();
+                    let iqamaConflicted = driversRegistryList.some(d => String(d.id||'').toLowerCase() === iqVal && iqVal !== 'n/a');
+                    let plateConflicted = driversRegistryList.some(d => String(d.plate||'').replace(/\s+/g,'').toLowerCase() === plVal && plVal !== 'n/a');
+                    
+                    if (iqamaConflicted || plateConflicted) {
+                        alert("⚠️ Duplicate Found: This Iqama Number or Truck Plate Number already exists inside the database.\n\nPlease switch to 'Existing Driver' mode.");
+                        return unlockForm();
+                    }
+                }
+
+                let dockVal = document.getElementById('dockNumber')?.value || '';
+                if (dockVal === 'Others') {
+                    const dCust = document.getElementById('dockNumberCustom');
+                    if (dCust) dockVal = dCust.value;
+                }
+                dockVal = String(dockVal || '').replace(/[^0-9]/g, '').trim();
+                if (!dockVal) { alert('Please enter a valid numeric Dock Number.'); return unlockForm(); }
+                
+                // 1. CHECK IF DOCK IS OCCUPIED
+                const isDockOccupied = globalLogsCache.some(r => !r.checkOutTime && String(r.dockNumber).trim() === dockVal);
+                if (isDockOccupied) {
+                    alert(currentLang === 'ar' ? `خطأ: الرصيف رقم (${dockVal}) مستخدم حالياً من قبل شاحنة أخرى.` : `Error: Dock ${dockVal} is currently occupied by another active truck. Please choose a different dock.`);
+                    return unlockForm();
+                }
+                
+                // 2. CHECK IF TRUCK IS ALREADY INSIDE (NEW FIX)
+                const cleanTargetPlate = combinedPlate.replace(/\s+/g,'').toLowerCase();
+                const isTruckAlreadyInside = globalLogsCache.some(r => !r.checkOutTime && String(r.plateNumber).replace(/\s+/g,'').toLowerCase() === cleanTargetPlate);
+                
+                if (isTruckAlreadyInside) {
+                    alert(currentLang === 'ar' ? `خطأ: هذه الشاحنة مسجلة وموجودة حالياً بالداخل.` : `Error: This truck (${combinedPlate}) is already checked in and active inside the facility.`);
+                    return unlockForm();
+                }
+                
+                let directionVal = document.getElementById('direction')?.value || '';
+                if (directionVal === 'Others') {
+                    const customDir = document.getElementById('directionCustom');
+                    if(customDir) directionVal = customDir.value.trim();
+                }
+                
+                let countVal = document.getElementById('boxCount')?.value || "0";
+                let typeVal = document.getElementById('boxType')?.value || "Boxes";
+                let displayUnit = countVal === "1" ? (typeVal === "Boxes" ? "Box" : "Pallet") : typeVal;
+                let finalBoxCountStr = countVal + " " + displayUnit;
+                
+                // Network operations MUST be awaited
+                if (isNew) {
+                    await fetch(API_URL, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({ 
+                            action: 'addDriver', 
+                            driverName: dName, 
+                            iqamaNumber: iqNum, 
+                            plateNumber: combinedPlate, 
+                            mobileNumber: document.getElementById('mobileNumber')?.value || "N/A" 
+                        }) 
+                    });
+                }
+
+                const payload = {
+                    action: 'checkin', 
+                    driverName: dName, 
+                    iqamaNumber: iqNum,
+                    plateNumber: combinedPlate, 
+                    mobileNumber: document.getElementById('mobileNumber')?.value || "N/A",
+                    securityName: document.getElementById('securityNameField')?.value || '', 
+                    dockNumber: dockVal, 
+                    direction: directionVal,
+                    dispatchType: document.getElementById('dispatchSelect')?.value || '', 
+                    noonEmployeeId: document.getElementById('noonEmployeeId')?.value || "N/A",
+                    boxCount: finalBoxCountStr, 
+                    sealNumber: document.getElementById('sealNumber')?.value || "--",
+                    securityId: document.getElementById('securityNameId')?.value || '', 
+                    truckPhoto: temporaryCapturedImage || "", 
+                    itemPhoto: temporaryCapturedItemImage || ""
+                };
+
+                await fetch(API_URL, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ 
-                        action: 'addDriver', 
-                        driverName: dName, 
-                        iqamaNumber: iqNum, 
-                        plateNumber: combinedPlate, 
-                        mobileNumber: document.getElementById('mobileNumber')?.value || "N/A" 
-                    }) 
-                }).catch(e => console.error(e));
-                
-                driversRegistryList.push({
-                    name: dName,
-                    id: iqNum,
-                    plate: combinedPlate,
-                    phone: document.getElementById('mobileNumber')?.value || "N/A"
+                    body: JSON.stringify(payload) 
                 });
-                compileDriversRegistryCards();
+                
+                // Optimistic UI Update (No full page reload)
+                payload.checkInTime = new Date().toISOString();
+                globalLogsCache.unshift(payload);
+                window.handleLogsResponse({logs: globalLogsCache});
+                
+                entryForm.reset();
+                const secNameField = document.getElementById('securityNameField');
+                const secIdField = document.getElementById('securityNameId');
+                if (secNameField) secNameField.value = loggedInUser.name;
+                if (secIdField) secIdField.value = loggedInUser.noonId || '';
+                temporaryCapturedImage = null; temporaryCapturedItemImage = null;
+                updateScannerVisibility();
+                
+                unlockForm();
+                
+                let navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('active-trucks'));
+                switchView('active-trucks', navItem);
+
+            } catch (err) {
+                console.error("Check-in Error:", err);
+                alert(currentLang === 'ar' ? "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "A network error occurred. Please try again.");
+                unlockForm();
             }
-
-            const payload = {
-                action: 'checkin', 
-                driverName: dName, 
-                iqamaNumber: iqNum,
-                plateNumber: combinedPlate, 
-                mobileNumber: document.getElementById('mobileNumber')?.value || "N/A",
-                securityName: document.getElementById('securityNameField')?.value || '', 
-                dockNumber: dockVal, 
-                direction: directionVal,
-                dispatchType: document.getElementById('dispatchSelect')?.value || '', 
-                noonEmployeeId: document.getElementById('noonEmployeeId')?.value || "N/A",
-                boxCount: finalBoxCountStr, 
-                sealNumber: document.getElementById('sealNumber')?.value || "--",
-                securityId: document.getElementById('securityNameId')?.value || '', 
-                truckPhoto: temporaryCapturedImage || "", 
-                itemPhoto: temporaryCapturedItemImage || ""
-            };
-
-            fetch(API_URL, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
-            }).catch(e => console.error(e));
-            
-            payload.checkInTime = new Date().toISOString();
-            globalLogsCache.unshift(payload);
-            window.handleLogsResponse({logs: globalLogsCache});
-            
-            entryForm.reset();
-            const secNameField = document.getElementById('securityNameField');
-            const secIdField = document.getElementById('securityNameId');
-            if (secNameField) secNameField.value = loggedInUser.name;
-            if (secIdField) secIdField.value = loggedInUser.noonId || '';
-            temporaryCapturedImage = null; temporaryCapturedItemImage = null;
-            updateScannerVisibility();
-            
-            if (btn) { btn.innerText = "CHECK IN TRUCK"; btn.disabled = false; }
-            
-            let navItem = Array.from(document.querySelectorAll('.nav-item')).find(el => el.getAttribute('onclick') && el.getAttribute('onclick').includes('active-trucks'));
-            switchView('active-trucks', navItem);
         });
     }
 
@@ -1351,7 +1370,7 @@
 
     const btnConfirmSignOut = document.getElementById('btnConfirmSignOut');
     if (btnConfirmSignOut) {
-        btnConfirmSignOut.addEventListener('click', () => {
+        btnConfirmSignOut.addEventListener('click', async () => {
             if (currentSignOutContext && currentSignOutContext.dispatchType !== 'Receiving') {
                 if (!tempCheckoutTruckPhoto || !tempCheckoutItemPhoto) {
                     alert(currentLang === 'ar' ? "يرجى إرفاق صورة الشاحنة وصورة العنصر أولاً." : "Please attach the Truck Picture and Item Picture first.");
@@ -1360,31 +1379,42 @@
             }
 
             btnConfirmSignOut.innerText = "⏳..."; btnConfirmSignOut.disabled = true;
-            const sealInput = document.getElementById('signOutSeal');
-            const seal = sealInput && currentSignOutContext.dispatchType !== 'Dispatching' ? sealInput.value.trim() : '';
-            const payload = {
-                action: "checkout", 
-                driverName: currentSignOutContext.driverName, 
-                plateNumber: currentSignOutContext.plateNumber,
-                sealNumber: seal, 
-                truckPhoto: tempCheckoutTruckPhoto || "", 
-                itemPhoto: tempCheckoutItemPhoto || ""
-            };
-            fetch(API_URL, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload) 
-            });
             
-            let match = globalLogsCache.find(r => r.plateNumber === currentSignOutContext.plateNumber && !r.checkOutTime);
-            if (match) { 
-                match.checkOutTime = new Date().toISOString(); 
-                if (seal) match.sealNumber = seal; 
+            try {
+                const sealInput = document.getElementById('signOutSeal');
+                const seal = sealInput && currentSignOutContext.dispatchType !== 'Dispatching' ? sealInput.value.trim() : '';
+                const payload = {
+                    action: "checkout", 
+                    driverName: currentSignOutContext.driverName, 
+                    plateNumber: currentSignOutContext.plateNumber,
+                    sealNumber: seal, 
+                    truckPhoto: tempCheckoutTruckPhoto || "", 
+                    itemPhoto: tempCheckoutItemPhoto || ""
+                };
+                
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload) 
+                });
+                
+                // Optimistic UI Update (No full page reload)
+                let match = globalLogsCache.find(r => r.plateNumber === currentSignOutContext.plateNumber && !r.checkOutTime);
+                if (match) { 
+                    match.checkOutTime = new Date().toISOString(); 
+                    if (seal) match.sealNumber = seal; 
+                }
+                
+                window.handleLogsResponse({logs: globalLogsCache});
+                closeSignOutModal(); 
+                btnConfirmSignOut.innerText = "CONFIRM CHECK OUT"; 
+                btnConfirmSignOut.disabled = false;
+
+            } catch (err) {
+                console.error("Check-out Error:", err);
+                alert(currentLang === 'ar' ? "حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "A network error occurred. Please try again.");
+                btnConfirmSignOut.innerText = "CONFIRM CHECK OUT"; btnConfirmSignOut.disabled = false;
             }
-            
-            window.handleLogsResponse({logs: globalLogsCache});
-            closeSignOutModal(); 
-            btnConfirmSignOut.innerText = "CONFIRM CHECK OUT"; btnConfirmSignOut.disabled = false;
         });
     }
 
@@ -1508,7 +1538,9 @@
                 <td class="notranslate" translate="no">${safeCheckInStr}</td>
                 <td class="live-duration notranslate" translate="no" data-timein="${isoCheckIn}" style="color:var(--accent-color); font-weight:bold;">${durStr}</td>
                 <td>🛡️ ${r.securityName}</td>
-                <td style="text-align:right;"><button class="btn-checkout-action" onclick="promptSignOut('${String(r.driverName).replace(/'/g,"\\'")}', '${String(r.plateNumber).replace(/'/g,"\\'")}', '${String(r.securityName).replace(/'/g,"\\'")}', '${r.dockNumber}', '${r.dispatchType}')" data-i18n="Check out">Check out</button></td>
+                <td style="text-align:right;">
+                    <button class="btn-checkout-action" onclick="promptSignOut('${String(r.driverName).replace(/'/g,"\\'")}', '${String(r.plateNumber).replace(/'/g,"\\'")}', '${String(r.securityName).replace(/'/g,"\\'")}', '${r.dockNumber}', '${r.dispatchType}')" data-i18n="Check out">Check out</button>
+                </td>
             </tr>`;
         });
         const yardTable = document.getElementById('activeYardTableBody');
