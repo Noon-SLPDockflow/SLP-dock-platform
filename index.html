@@ -8,6 +8,13 @@
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+<script>
+if(!window.Chart){
+ window.Chart=function(){this.destroy=function(){};};
+ window.Chart.register=function(){};
+}
+if(!window.ChartDataLabels)window.ChartDataLabels={id:"fallback-datalabels"};
+</script>
 <style>
 :root{--bg-color:#090a0c;--page-bg:#111316;--card-bg:#14171a;--card-solid:#191c20;--sidebar-bg:#0b0d0f;--accent-color:#c4a86b;--accent-soft:#d9c99f;--text-main:#fff;--text-muted:#fff;--border-color:rgba(205,207,211,0.2);--success-color:#3ccf8e;--danger-color:#ff6b5c;--nav-hover:rgba(205,207,211,0.08)}
 html{min-height:100%;background-color:#090a0c;overscroll-behavior-y:none}
@@ -2235,6 +2242,31 @@ translations["Brightness"]="السطوع";
       handleFailure(error);
       throw error;
     });
+  };
+})();
+</script>
+<script>
+(function(){
+  window.toggleLoginDockGrid=function(){
+    const grid=document.getElementById("loginDocksGrid");
+    const arrow=document.getElementById("dockDropdownArrow");
+    if(!grid)return;
+    if(!grid.childElementCount){
+      const buttons=document.createDocumentFragment();
+      for(let dock=15;dock<=90;dock++){
+        const button=document.createElement("button");
+        button.type="button";
+        button.className="dock-select-btn";
+        button.textContent=String(dock);
+        if(loginSelectedDocks.includes(dock))button.classList.add("selected");
+        button.addEventListener("click",()=>window.toggleLoginDock(dock,button));
+        buttons.appendChild(button);
+      }
+      grid.appendChild(buttons);
+    }
+    const shouldOpen=window.getComputedStyle(grid).display==="none";
+    grid.style.display=shouldOpen?"grid":"none";
+    if(arrow)arrow.textContent=shouldOpen?"▲":"▼";
   };
 })();
 </script>
