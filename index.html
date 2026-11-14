@@ -2037,5 +2037,206 @@ window.handleOcrSmartChoice=function(choice){
 };
 translations["Brightness"]="السطوع";
 </script>
+<script>
+(function(){
+  const fieldIds=["driverName","iqamaNumber","plateNumberDigits","plateNumberLetters","mobileNumber","driverSearchBox","securityNameField","securityNameId","dockNumber","dockNumberCustom","direction","directionCustom","dispatchSelect","noonEmployeeId","boxType","boxCount","sealNumber"];
+  let saveTimer;
+
+  function getDraftKey(){
+    let identity="guest";
+    try{
+      const session=JSON.parse(localStorage.getItem("noonSlpUserSession")||"null");
+      if(session)identity=session.email||session.noonId||session.name||identity;
+    }catch(error){
+      console.error("Could not identify the active user for the truck registration draft.",error);
+    }
+    return "noonSlpCheckinDraft:"+String(identity).trim().toLowerCase();
+  }
+
+  function getPhotoDraftKey(){
+    return getDraftKey()+":photos";
+  }
+
+  function createDraft(includePhotos){
+    const fields={};
+    fieldIds.forEach(id=>{
+      const field=document.getElementById(id);
+      if(field)fields[id]=field.value;
+    });
+    const draft={version:1,mode:window.currentDriverMode||"new",fields:fields,selectedDriverProfile:window.selectedDriverProfile||null};
+    if(includePhotos){
+      draft.photos={
+        truck:temporaryCapturedImage||null,
+        item:temporaryCapturedItemImage||null,
+        iqama:temporaryCapturedIqamaImage||null
+      };
+    }
+    return draft;
+  }
+
+  function saveDraft(includePhotos){
+    try{
+      const draft=createDraft(includePhotos);
+      sessionStorage.setItem(getDraftKey(),JSON.stringify(draft));
+      if(includePhotos)sessionStorage.setItem(getPhotoDraftKey(),JSON.stringify(draft.photos));
+    }catch(error){
+      console.error("Could not save the pending truck registration draft.",error);
+    }
+  }
+
+  function restoreDraft(draft){
+    if(!draft||draft.version!==1||!draft.fields)return false;
+    const mode=draft.mode||"new";
+    const modeButton=document.getElementById(mode==="existing"?"toggleExistingDriverBtn":mode==="codriver"?"toggleCoDriverBtn":"toggleNewDriverBtn");
+    if(modeButton&&window.setDriverMode)window.setDriverMode(mode,modeButton);
+    fieldIds.forEach(id=>{
+      const field=document.getElementById(id);
+      if(field&&Object.prototype.hasOwnProperty.call(draft.fields,id))field.value=draft.fields[id];
+    });
+    window.selectedDriverProfile=draft.selectedDriverProfile||null;
+    temporaryCapturedImage=draft.photos&&draft.photos.truck||null;
+    temporaryCapturedItemImage=draft.photos&&draft.photos.item||null;
+    temporaryCapturedIqamaImage=draft.photos&&draft.photos.iqama||null;
+    if(window.selectedDriverProfile&&window.updateSelectedDriverUI)window.updateSelectedDriverUI();
+    if(window.updateScannerVisibility)window.updateScannerVisibility();
+    [["driverPhotoStatusTop",temporaryCapturedImage],["driverPhotoStatusBottom",temporaryCapturedImage],["iqamaStatus",temporaryCapturedIqamaImage],["itemPhotoStatus",temporaryCapturedItemImage]].forEach(([id,image])=>{
+      const status=document.getElementById(id);
+      if(status&&image){status.textContent="✅ Attached";status.style.color="var(--success-color)";}
+    });
+    return true;
+  }
+
+  function showRecoveredDraft(){
+    try{
+      const session=JSON.parse(localStorage.getItem("noonSlpUserSession")||"null");
+      if(!session||!session.loginTime||Date.now()-session.loginTime>=43200000)return;
+      const raw=sessionStorage.getItem(getDraftKey());
+      if(!raw)return;
+      const draft=JSON.parse(raw);
+      if(!draft.photos)draft.photos=JSON.parse(sessionStorage.getItem(getPhotoDraftKey())||"null");
+      if(restoreDraft(draft))alert(currentLang==="ar"?"تمت استعادة تسجيل الشاحنة غير المحفوظ. يرجى مراجعة التفاصيل وإرسالها مرة أخرى.":"Your unsaved truck registration has been restored. Please review the details and submit again.");
+      else sessionStorage.removeItem(getDraftKey());
+    }catch(error){
+      console.error("Could not restore the pending truck registration draft.",error);
+    }
+  }
+
+  function failCheckIn(payload,error){
+    console.error("Truck registration was not confirmed by the server.",error);
+    window.checkInRequestPending=false;
+    const checkInTime=payload&&payload.checkInTime,plate=payload&&payload.plateNumber;
+    if(checkInTime&&plate){
+      globalLogsCache=globalLogsCache.filter(row=>!(row.checkInTime===checkInTime&&row.plateNumber===plate));
+      if(window.handleLogsResponse)window.handleLogsResponse({logs:globalLogsCache});
+    }
+    try{
+      const raw=sessionStorage.getItem(getDraftKey());
+      if(window.checkInPendingDraft)restoreDraft(window.checkInPendingDraft);
+      else if(raw){
+        const draft=JSON.parse(raw);
+        draft.photos=draft.photos||JSON.parse(sessionStorage.getItem(getPhotoDraftKey())||"null");
+        restoreDraft(draft);
+      }
+      else if(payload)restoreDraft({version:1,mode:"new",fields:{
+        driverName:payload.driverName,iqamaNumber:payload.iqamaNumber,
+        plateNumberDigits:String(payload.plateNumber||"").split(/\s+/)[0],
+        plateNumberLetters:String(payload.plateNumber||"").split(/\s+/).slice(1).join(" "),
+        mobileNumber:payload.mobileNumber,securityNameField:payload.securityName,
+        securityNameId:payload.securityId,dockNumber:payload.dockNumber,
+        direction:payload.direction,dispatchSelect:payload.dispatchType,
+        noonEmployeeId:payload.noonEmployeeId,sealNumber:payload.sealNumber
+      },photos:{truck:payload.truckPhoto,item:payload.itemPhoto,iqama:payload.iqamaPhoto}});
+    }catch(restoreError){
+      console.error("Could not restore the failed truck registration.",restoreError);
+    }
+    const checkInNav=document.getElementById("nav-checkin");
+    if(window.switchView)window.switchView("checkin",checkInNav);
+    window.isCheckInLocked=false;
+    window.checkInPendingDraft=null;
+    const button=document.querySelector("#entryForm .submit-btn-global");
+    if(button){button.disabled=false;button.innerText=tr("Check In Truck");}
+    alert(currentLang==="ar"?"تعذر حفظ تسجيل الشاحنة. تم الاحتفاظ بالتفاصيل في النموذج؛ تحقق من الاتصال وحاول مرة أخرى.":"Truck registration could not be saved. Your details have been kept in the form; check the connection and try again.");
+  }
+
+  document.addEventListener("DOMContentLoaded",()=>{
+    const form=document.getElementById("entryForm");
+    if(form){
+      form.addEventListener("input",()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveDraft(false),250);});
+      form.addEventListener("change",()=>saveDraft(false));
+      form.addEventListener("submit",event=>{
+        if(window.checkInRequestPending){
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        }
+        window.checkInPendingDraft=createDraft(true);
+        saveDraft(true);
+      },true);
+    }
+    showRecoveredDraft();
+  });
+
+  const originalHandleFileSelected=window.handleFileSelected;
+  if(originalHandleFileSelected){
+    window.handleFileSelected=async function(){
+      const result=await originalHandleFileSelected.apply(this,arguments);
+      saveDraft(true);
+      return result;
+    };
+  }
+  const originalCaptureCameraFrame=window.captureCameraFrame;
+  if(originalCaptureCameraFrame){
+    window.captureCameraFrame=function(){
+      const result=originalCaptureCameraFrame.apply(this,arguments);
+      setTimeout(()=>saveDraft(true),1000);
+      return result;
+    };
+  }
+
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=function(input,init){
+    let payload;
+    try{
+      const body=init&&init.body;
+      if(typeof body==="string")payload=JSON.parse(body);
+    }catch(error){
+      return originalFetch(input,init);
+    }
+    if(!payload||payload.action!=="checkin")return originalFetch(input,init);
+    window.checkInRequestPending=true;
+    let failureHandled=false;
+    const handleFailure=error=>{
+      if(failureHandled)return;
+      failureHandled=true;
+      failCheckIn(payload,error);
+    };
+    return originalFetch(input,init).then(async response=>{
+      let result;
+      try{
+        result=await response.clone().json();
+      }catch(error){
+        const responseError=new Error("The server response for truck registration could not be read.");
+        handleFailure(responseError);
+        throw responseError;
+      }
+      if(!response.ok||!result||result.status!=="success"){
+        const error=new Error(result&&result.message||"The server rejected the truck registration.");
+        handleFailure(error);
+        throw error;
+      }
+      window.checkInRequestPending=false;
+      window.checkInPendingDraft=null;
+      try{
+        sessionStorage.removeItem(getPhotoDraftKey());
+        sessionStorage.removeItem(getDraftKey());
+      }catch(error){console.error("Could not clear the saved truck registration draft.",error);}
+      return response;
+    }).catch(error=>{
+      handleFailure(error);
+      throw error;
+    });
+  };
+})();
+</script>
 </body>
 </html>
