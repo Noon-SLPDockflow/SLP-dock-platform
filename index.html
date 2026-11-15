@@ -654,7 +654,7 @@ html[dir="rtl"] #introOverlay .login-form-panel::before{direction:rtl}
 <div id="loginDocksGrid" class="dock-select-grid" style="display:none;margin-top:0.5rem"></div>
 </div>
 <div id="adminPasswordContainer" style="display:none;width:100%"><input type="password" id="adminPassword" class="input-box-styled" placeholder="Enter Admin Password" style="text-align:center;border-color:rgba(248,81,73,0.4)"></div>
-<button id="customSignInBtn" class="submit-btn-global" style="margin-top:0.25rem" data-i18n="AUTHORIZE ACCESS">AUTHORIZE ACCESS</button>
+<button type="button" id="customSignInBtn" class="submit-btn-global" style="margin-top:0.25rem" data-i18n="AUTHORIZE ACCESS">AUTHORIZE ACCESS</button>
 </div>
 <div id="authStatus" class="auth-status"><p id="authText" class="pulsing">AUTHENTICATING...</p></div>
 </div>
@@ -2268,6 +2268,131 @@ translations["Brightness"]="السطوع";
     grid.style.display=shouldOpen?"grid":"none";
     if(arrow)arrow.textContent=shouldOpen?"▲":"▼";
   };
+})();
+</script>
+<script>
+(function(){
+  function getLoginGuardRecords(){
+    var records=[];
+    try{
+      var saved=JSON.parse(localStorage.getItem("noonSlpLocalGuards")||"[]");
+      if(Array.isArray(saved))records=saved.slice(0);
+    }catch(error){
+      console.warn("Could not read saved guard suggestions.",error);
+    }
+    if(typeof securityRegistryList!=="undefined"&&securityRegistryList){
+      for(var i=0;i<securityRegistryList.length;i++){
+        var guard=securityRegistryList[i];
+        var exists=false;
+        for(var j=0;j<records.length;j++){
+          if(records[j].securityId===guard.securityId&&records[j].securityName===guard.securityName){exists=true;break;}
+        }
+        if(!exists)records.push(guard);
+      }
+    }
+    return records;
+  }
+
+  window.renderLoginGuardSuggestions=function(value,type){
+    var nameList=document.getElementById("loginNameSuggestions");
+    var idList=document.getElementById("loginIdSuggestions");
+    if(nameList){nameList.innerHTML="";nameList.classList.remove("open");}
+    if(idList){idList.innerHTML="";idList.classList.remove("open");}
+    if(typeof currentLoginMode!=="undefined"&&currentLoginMode==="admin")return;
+    var query=String(value||"").replace(/^\s+|\s+$/g,"").toUpperCase();
+    if(!query)return;
+    var list=type==="name"?nameList:idList;
+    if(!list)return;
+    var records=getLoginGuardRecords();
+    var matches=[];
+    for(var i=0;i<records.length&&matches.length<5;i++){
+      var field=type==="name"?records[i].securityName:records[i].securityId;
+      if(String(field||"").toUpperCase().indexOf(query)!==-1)matches.push(records[i]);
+    }
+    for(var j=0;j<matches.length;j++){
+      (function(guard){
+        var item=document.createElement("div");
+        item.className="suggestion-item";
+        var name=document.createElement("strong");
+        name.textContent=String(guard.securityName||"");
+        var details=document.createElement("small");
+        details.textContent="ID: "+String(guard.securityId||"");
+        item.appendChild(name);
+        item.appendChild(document.createElement("br"));
+        item.appendChild(details);
+        item.addEventListener("click",function(){
+          var nameInput=document.getElementById("loginName");
+          var idInput=document.getElementById("loginNoonId");
+          if(nameInput)nameInput.value=guard.securityName||"";
+          if(idInput)idInput.value=guard.securityId||"";
+          list.classList.remove("open");
+        });
+        list.appendChild(item);
+      })(matches[j]);
+    }
+    if(matches.length)list.classList.add("open");
+  };
+
+  function handleLoginButtonClick(event){
+    var target=event.target;
+    while(target&&target.id!=="customSignInBtn")target=target.parentNode;
+    if(!target)return;
+    event.preventDefault();
+    event.stopPropagation();
+    if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+    var nameInput=document.getElementById("loginName");
+    var emailInput=document.getElementById("loginEmail");
+    var idInput=document.getElementById("loginNoonId");
+    var passwordInput=document.getElementById("adminPassword");
+    var name=nameInput?nameInput.value.replace(/^\s+|\s+$/g,""):"";
+    var email=emailInput?emailInput.value.replace(/^\s+|\s+$/g,""):"";
+    var noonId=idInput?idInput.value.replace(/^\s+|\s+$/g,""):"";
+    if(currentLoginMode==="admin"){
+      if(passwordInput&&passwordInput.value==="NoonCCTVSLP#2026"){
+        executeLogin(name,email,"","admin",false,[]);
+      }else{
+        alert("Incorrect Password");
+      }
+      return;
+    }
+    if(!name||!email||!noonId){
+      alert("Please enter your Name, Noon ID, and Authorized Noon Email.");
+      return;
+    }
+    if(!loginSelectedDocks||loginSelectedDocks.length===0){
+      alert(currentLang==="ar"?"يرجى تحديد رصيف واحد على الأقل.":"Please select at least one assigned dock.");
+      return;
+    }
+    try{
+      var saved=JSON.parse(localStorage.getItem("noonSlpLocalGuards")||"[]");
+      if(!Array.isArray(saved))saved=[];
+      var exists=false;
+      for(var i=0;i<saved.length;i++){
+        if(saved[i].securityId===noonId&&saved[i].securityName===name){exists=true;break;}
+      }
+      if(!exists){
+        saved.push({securityName:name,securityId:noonId});
+        localStorage.setItem("noonSlpLocalGuards",JSON.stringify(saved));
+        fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"addGuard",securityName:name,securityId:noonId})}).catch(function(error){console.error(error);});
+      }
+    }catch(error){
+      console.warn("Could not save this guard to the local suggestions list.",error);
+    }
+    executeLogin(name,email,noonId,"guard",false,loginSelectedDocks);
+  }
+
+  document.addEventListener("click",handleLoginButtonClick,true);
+
+  var dispatchSelect=document.getElementById("dispatchSelect");
+  var sealContainer=document.getElementById("sealNumberContainer");
+  function syncSealVisibility(){
+    if(!dispatchSelect||!sealContainer)return;
+    sealContainer.style.display=dispatchSelect.value==="Dispatching"?"block":"none";
+  }
+  if(dispatchSelect){
+    dispatchSelect.addEventListener("change",syncSealVisibility);
+    syncSealVisibility();
+  }
 })();
 </script>
 </body>
