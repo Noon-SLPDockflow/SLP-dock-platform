@@ -669,7 +669,7 @@ html[dir="rtl"] #introOverlay .login-form-panel::before{direction:rtl}
 <div class="brand-text"><h2><span data-i18n="Noon">Noon</span> <span style="color:var(--accent-color)">SLP</span></h2><p data-i18n="Dock Security Platform">Dock Security Platform</p></div>
 <button class="sidebar-close-btn" onclick="toggleSidebar()">✕</button>
 </div>
-<button type="button" class="sidebar-refresh-btn" onclick="location.reload();">🔄 <span data-i18n="Refresh">Refresh</span></button>
+<button type="button" class="sidebar-refresh-btn" onclick="window.location.replace(window.location.pathname+'?v='+Date.now());">🔄 <span data-i18n="Refresh">Refresh</span></button>
 <ul class="nav-links">
 <li class="nav-item active" id="nav-dashboard" onclick="switchView('dashboard',this)"><span class="nav-icon">📊</span><span class="nav-text" data-i18n="Dashboard">Dashboard</span></li>
 <li class="nav-item" id="nav-analytics" onclick="switchView('analytics',this)"><span class="nav-icon">📈</span><span class="nav-text" data-i18n="Analytics">Analytics</span></li>
@@ -1196,17 +1196,36 @@ function removeStoredValue(key){
   }
   return removed;
 }
-function readSavedUserSession(){
-  const raw=readStoredValue(USER_SESSION_STORAGE_KEY);
+function readSavedUserSessionFrom(storageName){
+  let storage,raw;
+  try{
+    storage=storageName==="tab"?window.sessionStorage:window.localStorage;
+    raw=storage.getItem(USER_SESSION_STORAGE_KEY);
+  }catch(error){
+    console.warn("Could not read the saved login session from "+storageName+" storage.",error);
+    return null;
+  }
   if(!raw)return null;
   try{
     const session=JSON.parse(raw);
-    return session&&typeof session==="object"?session:null;
+    if(session&&typeof session==="object"&&!Array.isArray(session)&&session.name&&session.role&&isFinite(Number(session.loginTime)))return session;
+    console.error("The saved login session in "+storageName+" storage is invalid.");
   }catch(error){
-    console.error("The saved login session could not be read.",error);
-    removeStoredValue(USER_SESSION_STORAGE_KEY);
-    return null;
+    console.error("The saved login session in "+storageName+" storage could not be parsed.",error);
   }
+  try{
+    storage.removeItem(USER_SESSION_STORAGE_KEY);
+  }catch(error){
+    console.warn("Could not clear the invalid login session from "+storageName+" storage.",error);
+  }
+  return null;
+}
+function readSavedUserSession(){
+  const tabSession=readSavedUserSessionFrom("tab");
+  const deviceSession=readSavedUserSessionFrom("device");
+  if(!tabSession)return deviceSession;
+  if(!deviceSession)return tabSession;
+  return Number(tabSession.loginTime)>=Number(deviceSession.loginTime)?tabSession:deviceSession;
 }
 function saveUserSession(session){
   return writeStoredValue(USER_SESSION_STORAGE_KEY,JSON.stringify(session));
@@ -2175,34 +2194,11 @@ translations["Brightness"]="السطوع";
     return getDraftKey()+":photos";
   }
 
-  function getDraftNoticeKey(){
-    return getDraftKey()+":restore-notice";
-  }
-
   function hasUserEnteredDraftData(draft){
     const fields=draft&&draft.fields||{};
     const hasFieldData=["driverName","iqamaNumber","plateNumberDigits","plateNumberLetters","mobileNumber","driverSearchBox","dockNumber","dockNumberCustom","directionCustom","noonEmployeeId","sealNumber"].some(id=>String(fields[id]||"").trim()!=="");
     const photos=draft&&draft.photos||{};
     return hasFieldData||!!(draft&&draft.selectedDriverProfile)||!!(photos.truck||photos.item||photos.iqama);
-  }
-
-  function showDraftRecoveryNotice(){
-    const form=document.getElementById("entryForm");
-    if(!form||document.getElementById("checkinDraftNotice"))return;
-    const notice=document.createElement("div");
-    notice.id="checkinDraftNotice";
-    notice.setAttribute("role","status");
-    notice.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:12px;border:1px solid rgba(46,160,67,.45);border-radius:8px;background:rgba(46,160,67,.12);color:var(--text-color,#fff);";
-    const message=document.createElement("span");
-    message.textContent=currentLang==="ar"?"تمت استعادة تسجيل الشاحنة غير المحفوظ. يرجى مراجعة التفاصيل قبل الإرسال.":"Unsaved truck details were restored. Please review them before submitting.";
-    const dismiss=document.createElement("button");
-    dismiss.type="button";
-    dismiss.textContent="×";
-    dismiss.setAttribute("aria-label",currentLang==="ar"?"إغلاق":"Dismiss");
-    dismiss.style.cssText="border:0;background:transparent;color:inherit;font-size:1.2rem;cursor:pointer;";
-    dismiss.addEventListener("click",()=>notice.remove());
-    notice.append(message,dismiss);
-    form.insertBefore(notice,form.firstChild);
   }
 
   function createDraft(includePhotos){
@@ -2261,7 +2257,6 @@ translations["Brightness"]="السطوع";
       if(!session||!session.loginTime||Date.now()-session.loginTime>=43200000)return;
       const draftKey=getDraftKey();
       const photoKey=draftKey+":photos";
-      const noticeKey=draftKey+":restore-notice";
       const raw=sessionStorage.getItem(draftKey);
       if(!raw)return;
       const draft=JSON.parse(raw);
@@ -2269,19 +2264,11 @@ translations["Brightness"]="السطوع";
       if(!hasUserEnteredDraftData(draft)){
         sessionStorage.removeItem(draftKey);
         sessionStorage.removeItem(photoKey);
-        sessionStorage.removeItem(noticeKey);
         return;
       }
-      if(restoreDraft(draft)){
-        const signature=String(draft.updatedAt||JSON.stringify({mode:draft.mode,fields:draft.fields,photos:!!draft.photos}));
-        if(sessionStorage.getItem(noticeKey)!==signature){
-          showDraftRecoveryNotice();
-          sessionStorage.setItem(noticeKey,signature);
-        }
-      }else{
+      if(!restoreDraft(draft)){
         sessionStorage.removeItem(draftKey);
         sessionStorage.removeItem(photoKey);
-        sessionStorage.removeItem(noticeKey);
       }
     }catch(error){
       console.error("Could not restore the pending truck registration draft.",error);
