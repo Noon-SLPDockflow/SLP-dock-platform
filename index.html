@@ -1147,6 +1147,76 @@ You have <strong id="handoverTruckCount" style="color:#fff;font-size:1.1rem">0</
 </div>
 <script>
 let currentLang='en';
+const USER_SESSION_STORAGE_KEY="noonSlpUserSession";
+function readStoredValue(key){
+  try{
+    const value=sessionStorage.getItem(key);
+    if(value!==null)return value;
+  }catch(error){
+    console.warn("Could not read the tab storage value.",error);
+  }
+  try{
+    const value=localStorage.getItem(key);
+    if(value!==null)return value;
+  }catch(error){
+    console.warn("Could not read the device storage value.",error);
+  }
+  return null;
+}
+function writeStoredValue(key,value){
+  let saved=false;
+  try{
+    sessionStorage.setItem(key,value);
+    saved=true;
+  }catch(error){
+    console.warn("Could not save the tab storage value.",error);
+  }
+  try{
+    localStorage.setItem(key,value);
+    saved=true;
+  }catch(error){
+    console.warn("Could not save the device storage value.",error);
+  }
+  if(!saved)console.error("The browser could not persist app state.");
+  return saved;
+}
+function removeStoredValue(key){
+  let removed=false;
+  try{
+    sessionStorage.removeItem(key);
+    removed=true;
+  }catch(error){
+    console.warn("Could not clear the tab storage value.",error);
+  }
+  try{
+    localStorage.removeItem(key);
+    removed=true;
+  }catch(error){
+    console.warn("Could not clear the device storage value.",error);
+  }
+  return removed;
+}
+function readSavedUserSession(){
+  const raw=readStoredValue(USER_SESSION_STORAGE_KEY);
+  if(!raw)return null;
+  try{
+    const session=JSON.parse(raw);
+    return session&&typeof session==="object"?session:null;
+  }catch(error){
+    console.error("The saved login session could not be read.",error);
+    removeStoredValue(USER_SESSION_STORAGE_KEY);
+    return null;
+  }
+}
+function saveUserSession(session){
+  return writeStoredValue(USER_SESSION_STORAGE_KEY,JSON.stringify(session));
+}
+function clearSavedUserSession(){
+  return removeStoredValue(USER_SESSION_STORAGE_KEY);
+}
+window.readSavedUserSession=readSavedUserSession;
+window.saveUserSession=saveUserSession;
+window.clearSavedUserSession=clearSavedUserSession;
 const API_URL="https://script.google.com/macros/s/AKfycbx-l5ZtDurtnxEqZ-gDgBAwydA7LmMJVRdHkKvuV9eagmMDqj9YwOxz-1cbGELrK5bn8Q/exec";
 const OCR_API_URL="https://script.google.com/macros/s/AKfycby9lTuAoee2ZUHUPtV7i0lmcmHT9L4xU0jenC-EhJpxoXSQNckRwWNInjiv6mLc7REc/exec";
 let globalLogsCache=[];
@@ -1160,7 +1230,14 @@ window.isCheckInLocked=false;
 window.currentDriverMode='new';
 window.selectedDriverProfile=null;
 window.tempOcrSmartPlate = { digits: '', letters: '' };
-window.truckExtensions=JSON.parse(localStorage.getItem('noonSlpExtensions')||'{}');
+let savedTruckExtensions={};
+try{
+  const parsedTruckExtensions=JSON.parse(readStoredValue("noonSlpExtensions")||"{}");
+  if(parsedTruckExtensions&&typeof parsedTruckExtensions==="object"&&!Array.isArray(parsedTruckExtensions))savedTruckExtensions=parsedTruckExtensions;
+}catch(error){
+  console.error("The saved truck extension cache could not be read.",error);
+}
+window.truckExtensions=savedTruckExtensions;
 window.truckAlerting={};
 window.alertQueue=[];
 window.isAlertModalOpen=false;
@@ -1187,7 +1264,7 @@ translations["NOON SLP"]="\u0646\u0648\u0646 SLP";
 translations["DOCK PLATFORM"]="\u0645\u0646\u0635\u0629 \u0627\u0644\u0623\u0631\u0635\u0641\u0629";
 translations["Total Drivers"]="\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646";
 translations["Total Guards"]="\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u062d\u0631\u0627\u0633";
-window.toggleLang=function(forceLang){if(forceLang)currentLang=forceLang;else currentLang=currentLang==='en'?'ar':'en';localStorage.setItem('noonSlpLang',currentLang);document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';document.documentElement.lang=currentLang;document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.getAttribute('data-i18n');if(el.tagName==='INPUT'&&(el.type==='text'||el.type==='date'))el.placeholder=tr(key);else el.innerText=tr(key);});if(window.handleLogsResponse&&globalLogsCache)window.handleLogsResponse({logs:globalLogsCache});};
+window.toggleLang=function(forceLang){if(forceLang)currentLang=forceLang;else currentLang=currentLang==='en'?'ar':'en';writeStoredValue('noonSlpLang',currentLang);document.documentElement.dir=currentLang==='ar'?'rtl':'ltr';document.documentElement.lang=currentLang;document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.getAttribute('data-i18n');if(el.tagName==='INPUT'&&(el.type==='text'||el.type==='date'))el.placeholder=tr(key);else el.innerText=tr(key);});if(window.handleLogsResponse&&globalLogsCache)window.handleLogsResponse({logs:globalLogsCache});};
 function toggleLoginLanguage(){window.toggleLang();}
 window.toggleLoginLanguage=toggleLoginLanguage;
 function switchView(viewId,element){document.querySelectorAll('.app-view').forEach(v=>v.classList.remove('active-view'));const targetView=document.getElementById('view-'+viewId);if(targetView)targetView.classList.add('active-view');if(element){document.querySelectorAll('.nav-item').forEach(item=>item.classList.remove('active'));element.classList.add('active');}if(window.innerWidth<=1200){const sidebar=document.getElementById('appSidebar');if(sidebar)sidebar.classList.remove('mobile-open');}}
@@ -1206,10 +1283,20 @@ function switchLoginMode(mode,btn){currentLoginMode=mode;document.querySelectorA
 window.switchLoginMode=switchLoginMode;
 function populateCheckInDocks(role,docksArray){const dockSelect=document.getElementById('dockNumber');if(!dockSelect)return;dockSelect.innerHTML=`<option value="" disabled selected>${tr('Select Dock...')}</option>`;let docksToRender=[];if(role==='admin'||!docksArray||docksArray.length===0){for(let i=15;i<=90;i++)docksToRender.push(i);}else{docksToRender=docksArray.sort((a,b)=>a-b);}docksToRender.forEach(d=>{dockSelect.innerHTML+=`<option value="${d}">${d}</option>`;});dockSelect.innerHTML+=`<option value="Others">${tr('Others / آخر')}</option>`;const customInput=document.getElementById('dockNumberCustom');if(customInput)customInput.style.display='none';}
 function executeLogin(name,email,noonId,role,isInitialLoad=false,assignedDocks=[]){loggedInUser={name,email,noonId};userRole=role;if(!isInitialLoad){localStorage.setItem('noonSlpUserSession',JSON.stringify({name,email,noonId,role,assignedDocks,loginTime:Date.now()}));}populateCheckInDocks(role,assignedDocks);const setDisp=(id,display)=>{const el=document.getElementById(id);if(el)el.style.display=display;};setDisp('nav-dashboard',(role==='admin')?'flex':'none');setDisp('nav-analytics',(role==='admin')?'flex':'none');setDisp('nav-checkin',(role==='admin'||role==='guard')?'flex':'none');setDisp('nav-active-trucks',(role==='admin'||role==='guard')?'flex':'none');setDisp('nav-history',(role==='admin')?'flex':'none');setDisp('nav-drivers',(role==='admin')?'flex':'none');setDisp('nav-security',(role==='admin')?'flex':'none');setDisp('nav-handover',(role==='guard')?'flex':'none');setDisp('btnExportExcel',(role==='admin')?'block':'none');if(role==='guard'){const secName=document.getElementById('securityNameField');const secId=document.getElementById('securityNameId');if(secName)secName.value=name;if(secId)secId.value=noonId;}const overlay=document.getElementById('introOverlay');const defaultViewId=(role==='admin')?'dashboard':'checkin';let navItems=Array.from(document.querySelectorAll('.nav-item'));const defaultNavId=navItems.find(el=>el.getAttribute('onclick')&&el.getAttribute('onclick').includes(defaultViewId));if(isInitialLoad){if(window.hasFetchedLogs&&globalLogsCache)window.handleLogsResponse({logs:globalLogsCache});if(overlay){overlay.style.display='none';overlay.classList.add('hidden');}switchView(defaultViewId,defaultNavId);}else{setDisp('customLoginBox','none');const tabs=document.querySelector('.login-tabs');if(tabs)tabs.style.display='none';setDisp('authStatus','block');setTimeout(()=>{const authText=document.getElementById('authText');if(authText){authText.innerText="SYSTEM AUTHENTICATION COMPLETE";authText.style.color="var(--success-color)";authText.classList.remove('pulsing');}setTimeout(()=>{if(window.hasFetchedLogs&&globalLogsCache)window.handleLogsResponse({logs:globalLogsCache});switchView(defaultViewId,defaultNavId);if(overlay)overlay.classList.add('hidden');setTimeout(()=>{if(overlay)overlay.style.display='none';},1000);},1200);},1200);}}
-window.logoutUser=function(){if(userRole==='guard'&&loginSelectedDocks&&loginSelectedDocks.length>0){let myActiveTrucks=globalLogsCache.filter(r=>!r.checkOutTime&&loginSelectedDocks.some(d=>String(d)===String(r.dockNumber).trim()));if(myActiveTrucks.length>0){alert(tr("You cannot log out. You must check out your active trucks at your assigned docks first."));return;}}localStorage.removeItem('noonSlpUserSession');location.reload();};
+window.logoutUser=function(){
+  if(userRole==='guard'&&loginSelectedDocks&&loginSelectedDocks.length>0){
+    let myActiveTrucks=globalLogsCache.filter(r=>!r.checkOutTime&&loginSelectedDocks.some(d=>String(d)===String(r.dockNumber).trim()));
+    if(myActiveTrucks.length>0){
+      alert(tr("You cannot log out. You must check out your active trucks at your assigned docks first."));
+      return;
+    }
+  }
+  window.clearSavedUserSession();
+  location.reload();
+};
 window.openHandoverModal=function(){if(userRole!=='guard'||!loginSelectedDocks||loginSelectedDocks.length===0){alert(tr("Only guards with assigned docks can perform a shift handover."));return;}let myActiveTrucks=globalLogsCache.filter(r=>!r.checkOutTime&&loginSelectedDocks.some(d=>String(d)===String(r.dockNumber).trim()));if(myActiveTrucks.length===0){alert(tr("Your assigned docks are completely clear. No handover required. You may sign out."));return;}const countEl=document.getElementById('handoverTruckCount');if(countEl)countEl.innerText=myActiveTrucks.length;document.getElementById('handoverModal').classList.add('modal-active');};
 window.closeHandoverModal=function(){document.getElementById('handoverModal').classList.remove('modal-active');};
-window.confirmHandover=function(){const newName=document.getElementById('handoverNewName').value.trim();const newId=document.getElementById('handoverNewId').value.trim();if(!newName||!newId){alert(tr("Please enter the incoming guard's Name and ID."));return;}const btn=document.getElementById('btnConfirmHandover');btn.innerText="⏳...";btn.disabled=true;const payload={action:'handover',assignedDocks:loginSelectedDocks,newGuardName:newName,newGuardId:newId};let localGuards=JSON.parse(localStorage.getItem('noonSlpLocalGuards')||'[]');if(!localGuards.some(g=>g.securityId===newId&&g.securityName===newName)){localGuards.push({securityName:newName,securityId:newId});localStorage.setItem('noonSlpLocalGuards',JSON.stringify(localGuards));fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'addGuard',securityName:newName,securityId:newId})}).catch(e=>console.error(e));}let myActiveTrucks=globalLogsCache.filter(r=>!r.checkOutTime&&loginSelectedDocks.some(d=>String(d)===String(r.dockNumber).trim()));myActiveTrucks.forEach(t=>{t.securityName=t.securityName+" / "+newName;t.securityId=newId;});window.handleLogsResponse({logs:globalLogsCache});fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).catch(e=>console.error(e));loggedInUser.name=newName;loggedInUser.noonId=newId;localStorage.setItem('noonSlpUserSession',JSON.stringify({name:newName,email:loggedInUser.email,noonId:newId,role:userRole,assignedDocks:loginSelectedDocks,loginTime:Date.now()}));const secNameField=document.getElementById('securityNameField');const secIdField=document.getElementById('securityNameId');if(secNameField)secNameField.value=newName;if(secIdField)secIdField.value=newId;document.getElementById('handoverModal').classList.remove('modal-active');btn.innerText="CONFIRM TRANSFER";btn.disabled=false;document.getElementById('handoverNewName').value='';document.getElementById('handoverNewId').value='';alert(currentLang==='ar'?`تم نقل المناوبة بنجاح! أنت الآن مسجل الدخول باسم ${newName}.`:`Shift transferred successfully! You are now logged in as ${newName}.`);};
+window.confirmHandover=function(){const newName=document.getElementById('handoverNewName').value.trim();const newId=document.getElementById('handoverNewId').value.trim();if(!newName||!newId){alert(tr("Please enter the incoming guard's Name and ID."));return;}const btn=document.getElementById('btnConfirmHandover');btn.innerText="⏳...";btn.disabled=true;const payload={action:'handover',assignedDocks:loginSelectedDocks,newGuardName:newName,newGuardId:newId};let localGuards=JSON.parse(localStorage.getItem('noonSlpLocalGuards')||'[]');if(!localGuards.some(g=>g.securityId===newId&&g.securityName===newName)){localGuards.push({securityName:newName,securityId:newId});localStorage.setItem('noonSlpLocalGuards',JSON.stringify(localGuards));fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'addGuard',securityName:newName,securityId:newId})}).catch(e=>console.error(e));}let myActiveTrucks=globalLogsCache.filter(r=>!r.checkOutTime&&loginSelectedDocks.some(d=>String(d)===String(r.dockNumber).trim()));myActiveTrucks.forEach(t=>{t.securityName=t.securityName+" / "+newName;t.securityId=newId;});window.handleLogsResponse({logs:globalLogsCache});fetch(API_URL,{method:'POST',body:JSON.stringify(payload)}).catch(e=>console.error(e));loggedInUser.name=newName;loggedInUser.noonId=newId;window.saveUserSession({name:newName,email:loggedInUser.email,noonId:newId,role:userRole,assignedDocks:loginSelectedDocks,loginTime:Date.now()});const secNameField=document.getElementById('securityNameField');const secIdField=document.getElementById('securityNameId');if(secNameField)secNameField.value=newName;if(secIdField)secIdField.value=newId;document.getElementById('handoverModal').classList.remove('modal-active');btn.innerText="CONFIRM TRANSFER";btn.disabled=false;document.getElementById('handoverNewName').value='';document.getElementById('handoverNewId').value='';alert(currentLang==='ar'?`تم نقل المناوبة بنجاح! أنت الآن مسجل الدخول باسم ${newName}.`:`Shift transferred successfully! You are now logged in as ${newName}.`);};
 function resumeAlarmAudio(){if(!window.audioCtx){const AudioContextClass=window.AudioContext||window.webkitAudioContext;if(!AudioContextClass){console.error('Web Audio is not supported by this browser.');return;}window.audioCtx=new AudioContextClass();}if(window.audioCtx.state==='suspended')window.audioCtx.resume().catch(err=>console.warn('Could not resume alert audio:',err));}
 document.addEventListener('pointerdown',resumeAlarmAudio,{once:true});
 function playAlarm(){if(window.alarmSource)return;const startLoop=()=>{if(window.alarmSource)return;const context=window.audioCtx;if(!context||context.state!=='running'){console.error('Alert audio is not running; interact with the page to enable sound.');return;}const sampleRate=context.sampleRate,duration=1,beepDuration=0.38,buffer=context.createBuffer(1,sampleRate*duration,sampleRate),samples=buffer.getChannelData(0);for(let i=0;i<samples.length;i++){const t=i/sampleRate;if(t<beepDuration){const envelope=Math.min(1,t/0.012,(beepDuration-t)/0.045);samples[i]=Math.sin(2*Math.PI*880*t)*Math.max(0,envelope)*0.95;}}const source=context.createBufferSource(),gain=context.createGain();source.buffer=buffer;source.loop=true;gain.gain.setValueAtTime(1,context.currentTime);source.connect(gain);gain.connect(context.destination);source.start();window.alarmSource=source;window.alarmGain=gain;};if(!window.audioCtx)resumeAlarmAudio();if(!window.audioCtx)return;if(window.audioCtx.state==='running')startLoop();else window.audioCtx.resume().then(startLoop).catch(err=>console.error('Could not start alert audio:',err));}
@@ -1222,7 +1309,7 @@ function triggerAutoCheckout(truck){if(window.isAlertModalOpen&&window.currentAl
 
 setInterval(()=>{if(userRole!=='guard'||!loginSelectedDocks||loginSelectedDocks.length===0)return;const now=Date.now();const activeTrucks=globalLogsCache.filter(r=>!r.checkOutTime);for(let t of activeTrucks){if(!loginSelectedDocks.some(d=>String(d)===String(t.dockNumber).trim()))continue;let checkInMs=parseFlexibleDate(t.checkInTime).getTime();if(isNaN(checkInMs))continue;let elapsedMins=(now-checkInMs)/60000;let extCount=Number(t.extensions) || window.truckExtensions[t.plateNumber] || 0;let currentLimit=30+(extCount*30);if(elapsedMins>=currentLimit+30){if(window.truckAlerting[t.plateNumber]!=='auto'){window.truckAlerting[t.plateNumber]='auto';triggerAutoCheckout(t);}continue;}if(elapsedMins>=currentLimit+5){let notifyKey='notified_'+currentLimit;if(window.truckAlerting[t.plateNumber]!==notifyKey&&window.truckAlerting[t.plateNumber]!=='auto'){window.truckAlerting[t.plateNumber]=notifyKey;fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'notifyInactiveGuard',guardName:loggedInUser.name,dockNumber:t.dockNumber,plateNumber:t.plateNumber})}).catch(e=>console.error(e));}}if(elapsedMins>=currentLimit&&elapsedMins<currentLimit+30){let alertKey='alert_'+currentLimit;if(window.truckAlerting[t.plateNumber]!==alertKey&&window.truckAlerting[t.plateNumber]!==('notified_'+currentLimit)&&window.truckAlerting[t.plateNumber]!=='auto'){window.truckAlerting[t.plateNumber]=alertKey;window.alertQueue.push({type:'30min',truck:t,mins:currentLimit});processAlertQueue();}}}},5000);
 
-document.addEventListener("DOMContentLoaded",()=>{Chart.register(ChartDataLabels);let savedLang=localStorage.getItem('noonSlpLang')||'en';toggleLang(savedLang);const gridEl=document.getElementById('loginDocksGrid');if(gridEl){let gHtml='';for(let i=15;i<=90;i++){gHtml+=`<button type="button" class="dock-select-btn" onclick="toggleLoginDock(${i}, this)">${i}</button>`;}gridEl.innerHTML=gHtml;}const sessionStr=localStorage.getItem('noonSlpUserSession');if(sessionStr){const sd=JSON.parse(sessionStr);if(Date.now()-sd.loginTime<43200000){loginSelectedDocks=sd.assignedDocks||[];executeLogin(sd.name,sd.email,sd.noonId,sd.role,true,loginSelectedDocks);}else localStorage.removeItem('noonSlpUserSession');}const btnSignIn=document.getElementById('customSignInBtn');if(btnSignIn){btnSignIn.addEventListener('click',(e)=>{e.preventDefault();const name=document.getElementById('loginName').value.trim();const email=document.getElementById('loginEmail').value.trim();const noonId=document.getElementById('loginNoonId').value.trim();const pass=document.getElementById('adminPassword').value;if(currentLoginMode==='admin'){if(pass==='NoonCCTVSLP#2026')executeLogin(name,email,'','admin',false,[]);else alert("Incorrect Password");}else{if(loginSelectedDocks.length===0){alert(currentLang==='ar'?"يرجى تحديد رصيف واحد على الأقل.":"Please select at least one assigned dock.");return;}let localGuards=JSON.parse(localStorage.getItem('noonSlpLocalGuards')||'[]');if(name&&noonId&&!localGuards.some(g=>g.securityId===noonId&&g.securityName===name)){localGuards.push({securityName:name,securityId:noonId});localStorage.setItem('noonSlpLocalGuards',JSON.stringify(localGuards));}fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'addGuard',securityName:name,securityId:noonId})}).catch(e=>console.error(e));executeLogin(name,email,noonId,'guard',false,loginSelectedDocks);}});}const iqNum=document.getElementById('iqamaNumber');if(iqNum){iqNum.addEventListener('input',runInstantConflictCheck);iqNum.addEventListener('change',runInstantConflictCheck);}const plNumD=document.getElementById('plateNumberDigits');if(plNumD){plNumD.addEventListener('input',runInstantConflictCheck);plNumD.addEventListener('change',runInstantConflictCheck);}const plNumL=document.getElementById('plateNumberLetters');if(plNumL){plNumL.addEventListener('input',runInstantConflictCheck);plNumL.addEventListener('change',runInstantConflictCheck);}const secField=document.getElementById('securityNameField');if(secField)secField.addEventListener('input',function(){renderSecuritySuggestions(this.value);});document.addEventListener('click',function(e){const driverList=document.getElementById('driverSuggestionsList');const secList=document.getElementById('securitySuggestionsList');const loginNameList=document.getElementById('loginNameSuggestions');const loginIdList=document.getElementById('loginIdSuggestions');if(driverList&&!e.target.closest('.search-input-wrapper'))driverList.classList.remove('open');if(secList&&!e.target.closest('.form-group'))secList.classList.remove('open');if(loginNameList&&!e.target.closest('#loginNameWrapper'))loginNameList.classList.remove('open');if(loginIdList&&!e.target.closest('#loginIdWrapper'))loginIdList.classList.remove('open');const handoverNameList=document.getElementById('handoverNameSuggestions');const handoverIdList=document.getElementById('handoverIdSuggestions');if(handoverNameList&&!e.target.closest('#handoverModal'))handoverNameList.classList.remove('open');if(handoverIdList&&!e.target.closest('#handoverModal'))handoverIdList.classList.remove('open');});setInterval(()=>{const d=new Date(),monthsEn=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];const dateStr=String(d.getDate()).padStart(2,'0')+" "+monthsEn[d.getMonth()]+" "+d.getFullYear();const badgeD=document.getElementById('heroDateBadge');if(badgeD)badgeD.innerText=dateStr;const ampm=d.getHours()>=12?'PM':'AM',hr=d.getHours()%12||12,min=String(d.getMinutes()).padStart(2,'0'),sec=String(d.getSeconds()).padStart(2,'0');const badgeT=document.getElementById('heroTimeBadge');if(badgeT)badgeT.innerText=`${hr}:${min}:${sec} ${ampm}`;},1000);setInterval(()=>{document.querySelectorAll('.live-duration').forEach(el=>{const checkInTime=el.getAttribute('data-timein');if(checkInTime)el.innerText=calculateDurationStr(checkInTime,null);});},1000);fetchLogs();setInterval(fetchLogs,20000);setTimeout(checkForNewCode,5000);setInterval(checkForNewCode,120000);});
+document.addEventListener("DOMContentLoaded",()=>{Chart.register(ChartDataLabels);let savedLang=readStoredValue('noonSlpLang')||'en';toggleLang(savedLang);const gridEl=document.getElementById('loginDocksGrid');if(gridEl){let gHtml='';for(let i=15;i<=90;i++){gHtml+=`<button type="button" class="dock-select-btn" onclick="toggleLoginDock(${i}, this)">${i}</button>`;}gridEl.innerHTML=gHtml;}const sd=readSavedUserSession();if(sd){if(Date.now()-Number(sd.loginTime)<43200000&&sd.name&&sd.role){loginSelectedDocks=Array.isArray(sd.assignedDocks)?sd.assignedDocks:[];executeLogin(sd.name,sd.email,sd.noonId,sd.role,true,loginSelectedDocks);}else clearSavedUserSession();}const btnSignIn=document.getElementById('customSignInBtn');if(btnSignIn){btnSignIn.addEventListener('click',(e)=>{e.preventDefault();const name=document.getElementById('loginName').value.trim();const email=document.getElementById('loginEmail').value.trim();const noonId=document.getElementById('loginNoonId').value.trim();const pass=document.getElementById('adminPassword').value;if(currentLoginMode==='admin'){if(pass==='NoonCCTVSLP#2026')executeLogin(name,email,'','admin',false,[]);else alert("Incorrect Password");}else{if(loginSelectedDocks.length===0){alert(currentLang==='ar'?"يرجى تحديد رصيف واحد على الأقل.":"Please select at least one assigned dock.");return;}let localGuards=JSON.parse(localStorage.getItem('noonSlpLocalGuards')||'[]');if(name&&noonId&&!localGuards.some(g=>g.securityId===noonId&&g.securityName===name)){localGuards.push({securityName:name,securityId:noonId});localStorage.setItem('noonSlpLocalGuards',JSON.stringify(localGuards));}fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'addGuard',securityName:name,securityId:noonId})}).catch(e=>console.error(e));executeLogin(name,email,noonId,'guard',false,loginSelectedDocks);}});}const iqNum=document.getElementById('iqamaNumber');if(iqNum){iqNum.addEventListener('input',runInstantConflictCheck);iqNum.addEventListener('change',runInstantConflictCheck);}const plNumD=document.getElementById('plateNumberDigits');if(plNumD){plNumD.addEventListener('input',runInstantConflictCheck);plNumD.addEventListener('change',runInstantConflictCheck);}const plNumL=document.getElementById('plateNumberLetters');if(plNumL){plNumL.addEventListener('input',runInstantConflictCheck);plNumL.addEventListener('change',runInstantConflictCheck);}const secField=document.getElementById('securityNameField');if(secField)secField.addEventListener('input',function(){renderSecuritySuggestions(this.value);});document.addEventListener('click',function(e){const driverList=document.getElementById('driverSuggestionsList');const secList=document.getElementById('securitySuggestionsList');const loginNameList=document.getElementById('loginNameSuggestions');const loginIdList=document.getElementById('loginIdSuggestions');if(driverList&&!e.target.closest('.search-input-wrapper'))driverList.classList.remove('open');if(secList&&!e.target.closest('.form-group'))secList.classList.remove('open');if(loginNameList&&!e.target.closest('#loginNameWrapper'))loginNameList.classList.remove('open');if(loginIdList&&!e.target.closest('#loginIdWrapper'))loginIdList.classList.remove('open');const handoverNameList=document.getElementById('handoverNameSuggestions');const handoverIdList=document.getElementById('handoverIdSuggestions');if(handoverNameList&&!e.target.closest('#handoverModal'))handoverNameList.classList.remove('open');if(handoverIdList&&!e.target.closest('#handoverModal'))handoverIdList.classList.remove('open');});setInterval(()=>{const d=new Date(),monthsEn=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];const dateStr=String(d.getDate()).padStart(2,'0')+" "+monthsEn[d.getMonth()]+" "+d.getFullYear();const badgeD=document.getElementById('heroDateBadge');if(badgeD)badgeD.innerText=dateStr;const ampm=d.getHours()>=12?'PM':'AM',hr=d.getHours()%12||12,min=String(d.getMinutes()).padStart(2,'0'),sec=String(d.getSeconds()).padStart(2,'0');const badgeT=document.getElementById('heroTimeBadge');if(badgeT)badgeT.innerText=`${hr}:${min}:${sec} ${ampm}`;},1000);setInterval(()=>{document.querySelectorAll('.live-duration').forEach(el=>{const checkInTime=el.getAttribute('data-timein');if(checkInTime)el.innerText=calculateDurationStr(checkInTime,null);});},1000);fetchLogs();setInterval(fetchLogs,20000);setTimeout(checkForNewCode,5000);setInterval(checkForNewCode,120000);});
 function toggleCustomDockInput(val){const dCust=document.getElementById('dockNumberCustom');if(dCust)dCust.style.display=(val==='Others')?'block':'none';}
 window.toggleCustomDockInput=toggleCustomDockInput;
 function checkDockAvailabilityInstant(val){if(!val||val==='Others')return;let cleanVal=String(val).replace(/[^0-9]/g,'').trim();if(!cleanVal)return;const isDockOccupied=globalLogsCache.some(r=>!r.checkOutTime&&String(r.dockNumber).trim()===cleanVal);const selectEl=document.getElementById('dockNumber');const customEl=document.getElementById('dockNumberCustom');if(isDockOccupied){alert(currentLang==='ar'?`⚠️ تنبيه: الرصيف رقم (${cleanVal}) مستخدم حالياً من قبل شاحنة أخرى بالداخل. يرجى اختيار رصيف آخر.`:`⚠️ Dock Occupied: Dock ${cleanVal} is currently occupied by an active truck inside the facility. Please pick an open dock.`);if(selectEl){selectEl.value="";if(selectEl.setCustomValidity)selectEl.setCustomValidity(currentLang==='ar'?'الرصيف مستخدم حالياً':'Dock Occupied');}if(customEl){customEl.value="";if(customEl.setCustomValidity)customEl.setCustomValidity(currentLang==='ar'?'الرصيف مستخدم حالياً':'Dock Occupied');}}else{if(selectEl&&selectEl.setCustomValidity)selectEl.setCustomValidity('');if(customEl&&customEl.setCustomValidity)customEl.setCustomValidity('');}}
@@ -2076,7 +2163,7 @@ translations["Brightness"]="السطوع";
   function getDraftKey(){
     let identity="guest";
     try{
-      const session=JSON.parse(localStorage.getItem("noonSlpUserSession")||"null");
+      const session=window.readSavedUserSession();
       if(session)identity=session.email||session.noonId||session.name||identity;
     }catch(error){
       console.error("Could not identify the active user for the truck registration draft.",error);
@@ -2170,7 +2257,7 @@ translations["Brightness"]="السطوع";
 
   function showRecoveredDraft(){
     try{
-      const session=JSON.parse(localStorage.getItem("noonSlpUserSession")||"null");
+      const session=window.readSavedUserSession();
       if(!session||!session.loginTime||Date.now()-session.loginTime>=43200000)return;
       const draftKey=getDraftKey();
       const photoKey=draftKey+":photos";
@@ -2647,14 +2734,10 @@ translations["Brightness"]="السطوع";
     userRole=role;
     loginSelectedDocks=assignedDocks;
     if(!isInitialLoad){
-      try{
-        localStorage.setItem("noonSlpUserSession",JSON.stringify({
-          name:name,email:email,noonId:noonId,role:role,
-          assignedDocks:assignedDocks,loginTime:Date.now()
-        }));
-      }catch(storageError){
-        console.warn("Could not save the login session on this device.",storageError);
-      }
+      window.saveUserSession({
+        name:name,email:email,noonId:noonId,role:role,
+        assignedDocks:assignedDocks,loginTime:Date.now()
+      });
     }
     populateCheckInDocks(role,assignedDocks);
     var setDisplay=function(id,value){
@@ -2706,6 +2789,18 @@ translations["Brightness"]="السطوع";
   };
 
   document.addEventListener("DOMContentLoaded",function(){
+    var savedSession=window.readSavedUserSession();
+    if(savedSession){
+      var savedLoginTime=Number(savedSession.loginTime);
+      if(savedSession.name&&savedSession.role&&isFinite(savedLoginTime)&&Date.now()-savedLoginTime<43200000){
+        if(loggedInUser.email!==savedSession.email||loggedInUser.name!==savedSession.name||userRole!==savedSession.role){
+          loginSelectedDocks=Array.isArray(savedSession.assignedDocks)?savedSession.assignedDocks:[];
+          window.executeLogin(savedSession.name,savedSession.email,savedSession.noonId,savedSession.role,true,loginSelectedDocks);
+        }
+      }else{
+        window.clearSavedUserSession();
+      }
+    }
     var grid=document.getElementById("loginDocksGrid");
     if(grid&&!grid.childElementCount){
       for(var dock=15;dock<=90;dock++){
