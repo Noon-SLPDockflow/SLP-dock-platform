@@ -1703,25 +1703,33 @@ window.renderDriverSuggestions=function(value){
   const list=document.getElementById("driverSuggestionsList");
   if(!list)return;
   list.replaceChildren();
-  if(!value){list.classList.remove("open");return;}
-  const query=String(value).toLowerCase();
-  const matches=driversRegistryList.filter(driver=>{
-    return String(driver.name||"").toLowerCase().includes(query)||
-      String(driver.id||"").toLowerCase().includes(query)||
-      getDriverPlates(driver).some(plate=>plate.toLowerCase().includes(query));
-  }).slice(0,8);
+  const query=String(value||"").trim().toLowerCase();
+  if(!query){list.classList.remove("open");return;}
+  const matches=[];
+  for(let i=0;i<driversRegistryList.length&&matches.length<8;i++){
+    const driver=driversRegistryList[i];
+    const name=String(driver.name||"").toLowerCase();
+    const id=String(driver.id||"").toLowerCase();
+    const plates=Array.isArray(driver.plates)?driver.plates:[driver.plate||""];
+    let plateMatch=false;
+    for(let j=0;j<plates.length;j++){
+      if(String(plates[j]||"").toLowerCase().includes(query)){plateMatch=true;break;}
+    }
+    if(name.includes(query)||id.includes(query)||plateMatch)matches.push(driver);
+  }
   matches.forEach(profile=>{
+    const plates=getDriverPlates(profile);
     const item=document.createElement("div");
     item.className="suggestion-item";
     const name=document.createElement("strong");
     name.textContent=profile.name;
     const details=document.createElement("small");
-    details.textContent=`Vehicles: ${getDriverPlates(profile).join(", ")||"--"} | ID: ${profile.id}`;
+    details.textContent=`Vehicles: ${plates.join(", ")||"--"} | ID: ${profile.id}`;
     item.append(name,document.createElement("br"),details);
     item.addEventListener("click",()=>{
       list.classList.remove("open");
-      if(getDriverPlates(profile).length>1)openVehicleChooser(profile,"checkin");
-      else selectExistingDriverProfile(profile,getDriverPlates(profile)[0],"checkin");
+      if(plates.length>1)openVehicleChooser(profile,"checkin");
+      else selectExistingDriverProfile(profile,plates[0],"checkin");
     });
     list.appendChild(item);
   });
@@ -2080,6 +2088,36 @@ translations["Brightness"]="السطوع";
     return getDraftKey()+":photos";
   }
 
+  function getDraftNoticeKey(){
+    return getDraftKey()+":restore-notice";
+  }
+
+  function hasUserEnteredDraftData(draft){
+    const fields=draft&&draft.fields||{};
+    const hasFieldData=["driverName","iqamaNumber","plateNumberDigits","plateNumberLetters","mobileNumber","driverSearchBox","dockNumber","dockNumberCustom","directionCustom","noonEmployeeId","sealNumber"].some(id=>String(fields[id]||"").trim()!=="");
+    const photos=draft&&draft.photos||{};
+    return hasFieldData||!!(draft&&draft.selectedDriverProfile)||!!(photos.truck||photos.item||photos.iqama);
+  }
+
+  function showDraftRecoveryNotice(){
+    const form=document.getElementById("entryForm");
+    if(!form||document.getElementById("checkinDraftNotice"))return;
+    const notice=document.createElement("div");
+    notice.id="checkinDraftNotice";
+    notice.setAttribute("role","status");
+    notice.style.cssText="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;margin-bottom:12px;border:1px solid rgba(46,160,67,.45);border-radius:8px;background:rgba(46,160,67,.12);color:var(--text-color,#fff);";
+    const message=document.createElement("span");
+    message.textContent=currentLang==="ar"?"تمت استعادة تسجيل الشاحنة غير المحفوظ. يرجى مراجعة التفاصيل قبل الإرسال.":"Unsaved truck details were restored. Please review them before submitting.";
+    const dismiss=document.createElement("button");
+    dismiss.type="button";
+    dismiss.textContent="×";
+    dismiss.setAttribute("aria-label",currentLang==="ar"?"إغلاق":"Dismiss");
+    dismiss.style.cssText="border:0;background:transparent;color:inherit;font-size:1.2rem;cursor:pointer;";
+    dismiss.addEventListener("click",()=>notice.remove());
+    notice.append(message,dismiss);
+    form.insertBefore(notice,form.firstChild);
+  }
+
   function createDraft(includePhotos){
     const fields={};
     fieldIds.forEach(id=>{
@@ -2100,6 +2138,7 @@ translations["Brightness"]="السطوع";
   function saveDraft(includePhotos){
     try{
       const draft=createDraft(includePhotos);
+      draft.updatedAt=Date.now();
       sessionStorage.setItem(getDraftKey(),JSON.stringify(draft));
       if(includePhotos)sessionStorage.setItem(getPhotoDraftKey(),JSON.stringify(draft.photos));
     }catch(error){
@@ -2133,12 +2172,30 @@ translations["Brightness"]="السطوع";
     try{
       const session=JSON.parse(localStorage.getItem("noonSlpUserSession")||"null");
       if(!session||!session.loginTime||Date.now()-session.loginTime>=43200000)return;
-      const raw=sessionStorage.getItem(getDraftKey());
+      const draftKey=getDraftKey();
+      const photoKey=draftKey+":photos";
+      const noticeKey=draftKey+":restore-notice";
+      const raw=sessionStorage.getItem(draftKey);
       if(!raw)return;
       const draft=JSON.parse(raw);
-      if(!draft.photos)draft.photos=JSON.parse(sessionStorage.getItem(getPhotoDraftKey())||"null");
-      if(restoreDraft(draft))alert(currentLang==="ar"?"تمت استعادة تسجيل الشاحنة غير المحفوظ. يرجى مراجعة التفاصيل وإرسالها مرة أخرى.":"Your unsaved truck registration has been restored. Please review the details and submit again.");
-      else sessionStorage.removeItem(getDraftKey());
+      if(!draft.photos)draft.photos=JSON.parse(sessionStorage.getItem(photoKey)||"null");
+      if(!hasUserEnteredDraftData(draft)){
+        sessionStorage.removeItem(draftKey);
+        sessionStorage.removeItem(photoKey);
+        sessionStorage.removeItem(noticeKey);
+        return;
+      }
+      if(restoreDraft(draft)){
+        const signature=String(draft.updatedAt||JSON.stringify({mode:draft.mode,fields:draft.fields,photos:!!draft.photos}));
+        if(sessionStorage.getItem(noticeKey)!==signature){
+          showDraftRecoveryNotice();
+          sessionStorage.setItem(noticeKey,signature);
+        }
+      }else{
+        sessionStorage.removeItem(draftKey);
+        sessionStorage.removeItem(photoKey);
+        sessionStorage.removeItem(noticeKey);
+      }
     }catch(error){
       console.error("Could not restore the pending truck registration draft.",error);
     }
@@ -2252,6 +2309,7 @@ translations["Brightness"]="السطوع";
       try{
         sessionStorage.removeItem(getPhotoDraftKey());
         sessionStorage.removeItem(getDraftKey());
+        sessionStorage.removeItem(getDraftNoticeKey());
       }catch(error){console.error("Could not clear the saved truck registration draft.",error);}
       return response;
     }).catch(error=>{
@@ -2461,6 +2519,46 @@ translations["Brightness"]="السطوع";
     if(nameInput&&nameInput.value&&window.renderLoginGuardSuggestions)window.renderLoginGuardSuggestions(nameInput.value,"name");
     if(idInput&&idInput.value&&window.renderLoginGuardSuggestions)window.renderLoginGuardSuggestions(idInput.value,"id");
   }
+  function renderActiveDriverQuery(){
+    var searchInput=document.getElementById("driverSearchBox");
+    if(searchInput&&searchInput.value&&window.renderDriverSuggestions)window.renderDriverSuggestions(searchInput.value);
+  }
+  function cacheDriverSuggestions(drivers,persist){
+    if(!Array.isArray(drivers))return;
+    if(drivers.length||!driversRegistryList.length)driversRegistryList=groupDriverRecords(drivers);
+    if(persist&&drivers.length){
+      window.driverSuggestionsCacheUpdatedFromServer=true;
+      try{
+        localStorage.setItem("noonSlpLocalDrivers",JSON.stringify(drivers));
+      }catch(storageError){
+        console.warn("Could not cache the driver suggestion list.",storageError);
+      }
+    }
+    renderActiveDriverQuery();
+    if(window.hasFetchedLogs&&window.compileDriversRegistryCards)window.compileDriversRegistryCards();
+  }
+  function loadCachedDriverSuggestions(){
+    try{
+      var saved=JSON.parse(localStorage.getItem("noonSlpLocalDrivers")||"[]");
+      if(Array.isArray(saved)&&saved.length){
+        cacheDriverSuggestions(saved,false);
+      }
+    }catch(storageError){
+      console.warn("Could not read saved driver suggestions.",storageError);
+    }
+  }
+  function fetchDriverSuggestions(){
+    if(window.driverSuggestionsRequestPending)return;
+    window.driverSuggestionsRequestPending=true;
+    fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"getDriverSuggestions"})})
+      .then(function(response){return response.json();})
+      .then(function(data){
+        if(!data||data.status==="error"||!Array.isArray(data.drivers))throw new Error(data&&data.message?data.message:"The driver suggestion list could not be loaded.");
+        cacheDriverSuggestions(data.drivers,true);
+      })
+      .catch(function(error){console.warn("Could not load the fast driver suggestion list.",error);})
+      .then(function(){window.driverSuggestionsRequestPending=false;});
+  }
   function fetchGuardSuggestions(){
     if(window.guardSuggestionsRequestPending)return;
     window.guardSuggestionsRequestPending=true;
@@ -2623,6 +2721,8 @@ translations["Brightness"]="السطوع";
         })(dock);
       }
     }
+    loadCachedDriverSuggestions();
+    fetchDriverSuggestions();
     if(typeof fetchLogs==="function"&&!window.hasFetchedLogs)fetchLogs();
     fetchGuardSuggestions();
   });
@@ -2632,6 +2732,7 @@ translations["Brightness"]="السطوع";
     window.handleLogsResponse=function(payload){
       var responseGuards=payload&&payload.guards;
       if(Array.isArray(responseGuards))cacheGuardSuggestions(responseGuards);
+      var previousDriverRecords=driversRegistryList.slice(0);
       var newlyAutoCheckedOut=[];
       var rows=payload&&payload.logs;
       if(rows&&typeof globalLogsCache!=="undefined"){
@@ -2654,6 +2755,21 @@ translations["Brightness"]="السطوع";
       var logsHandlerError=null;
       try{
         previousLogsHandler(payload);
+        if(payload&&Array.isArray(payload.drivers)){
+          if(!driversRegistryList.length&&previousDriverRecords.length){
+            driversRegistryList=previousDriverRecords;
+            if(window.compileDriversRegistryCards)window.compileDriversRegistryCards();
+          }
+          if(payload.drivers.length&&driversRegistryList.length&&!window.driverSuggestionsCacheUpdatedFromServer){
+            window.driverSuggestionsCacheUpdatedFromServer=true;
+            try{
+              localStorage.setItem("noonSlpLocalDrivers",JSON.stringify(payload.drivers));
+            }catch(storageError){
+              console.warn("Could not cache the driver suggestion list.",storageError);
+            }
+          }
+          renderActiveDriverQuery();
+        }
       }catch(handlerError){
         logsHandlerError=handlerError;
         console.error("Could not finish rendering refreshed logs.",handlerError);
