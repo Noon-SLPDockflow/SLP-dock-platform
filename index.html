@@ -1241,7 +1241,23 @@ window.promptSignOut=promptSignOut;
 function closeSignOutModal(){const modal=document.getElementById('signOutModal');if(modal)modal.classList.remove('modal-active');tempCheckoutTruckPhoto=null;tempCheckoutItemPhoto=null;const ts=document.getElementById('checkoutTruckStatus');if(ts){ts.innerHTML="Truck Picture (with plate) *";ts.style.color="";}const is=document.getElementById('checkoutItemStatus');if(is){is.innerHTML="Item Picture *";is.style.color="";}const seal=document.getElementById('signOutSeal');if(seal)seal.value='';}
 window.closeSignOutModal=closeSignOutModal;
 const btnConfirmSignOut=document.getElementById('btnConfirmSignOut');if(btnConfirmSignOut){btnConfirmSignOut.addEventListener('click',()=>{if(currentSignOutContext&&currentSignOutContext.dispatchType!=='Receiving'){if(!tempCheckoutTruckPhoto||!tempCheckoutItemPhoto){alert(currentLang==='ar'?"يرجى إرفاق صورة الشاحنة وصورة العنصر أولاً.":"Please attach the Truck Picture and Item Picture first.");return;}}btnConfirmSignOut.innerText="⏳...";btnConfirmSignOut.disabled=true;try{const sealInput=document.getElementById('signOutSeal');const seal=sealInput&&currentSignOutContext.dispatchType!=='Dispatching'?sealInput.value.trim():'';const payload={action:"checkout",driverName:currentSignOutContext.driverName,plateNumber:currentSignOutContext.plateNumber,sealNumber:seal,truckPhoto:tempCheckoutTruckPhoto||"",itemPhoto:tempCheckoutItemPhoto||""};window.syncLockUntil=Date.now()+15000;let match=globalLogsCache.find(r=>String(r.plateNumber)===String(currentSignOutContext.plateNumber)&&!r.checkOutTime);if(match){match.checkOutTime=new Date().toISOString();if(seal)match.sealNumber=seal;}window.handleLogsResponse({logs:globalLogsCache});closeSignOutModal();btnConfirmSignOut.innerText=tr("CONFIRM CHECK OUT");btnConfirmSignOut.disabled=false;fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)}).catch(e=>console.error(e));delete window.truckExtensions[currentSignOutContext.plateNumber];localStorage.setItem('noonSlpExtensions',JSON.stringify(window.truckExtensions));}catch(err){console.error("Check-out Error:",err);alert(currentLang==='ar'?"حدث خطأ في النظام. يرجى المحاولة مرة أخرى.":"A system error occurred. Please try again.");btnConfirmSignOut.innerText=tr("CONFIRM CHECK OUT");btnConfirmSignOut.disabled=false;}});}
-let isFetchingLogs=false;function fetchLogs(){if(document.hidden||Date.now()<window.syncLockUntil)return;if(isFetchingLogs||window.isSavingEdit)return;isFetchingLogs=true;fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'getLogs'})}).then(response=>response.json()).then(data=>{isFetchingLogs=false;if(Date.now()<window.syncLockUntil)return;if(data.status==='error'){console.error(data.message);return;}if(typeof window.handleLogsResponse==='function')window.handleLogsResponse(data);}).catch(err=>{isFetchingLogs=false;console.error(err);});}
+let isFetchingLogs=false;
+function fetchLogs(){
+  if(!userRole||document.hidden||Date.now()<window.syncLockUntil)return;
+  if(isFetchingLogs||window.isSavingEdit)return;
+  isFetchingLogs=true;
+  var request={action:'getLogs'};
+  if(userRole==="guard")request.userRole="guard";
+  fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(request)})
+    .then(response=>response.json())
+    .then(data=>{
+      isFetchingLogs=false;
+      if(Date.now()<window.syncLockUntil)return;
+      if(data.status==='error'){console.error(data.message);return;}
+      if(typeof window.handleLogsResponse==='function')window.handleLogsResponse(data);
+    })
+    .catch(error=>{isFetchingLogs=false;console.error(error);});
+}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetchLogs();});
 function calculateDurationStr(t1,t2){if(!t1)return "--";let start=parseFlexibleDate(t1).getTime();let end=t2?parseFlexibleDate(t2).getTime():Date.now();let diff=end-start;if(diff<0||isNaN(diff))return "0h 0m";let mins=Math.floor(diff/60000);let h=Math.floor(mins/60);let m=mins%60;return `${h}h ${m}m`;}
 function generatePlateBumperUI(plateStr){plateStr=String(plateStr||"").trim();if(!plateStr||plateStr==="--"||plateStr==="N/A"){return `<span style="color:#a0a0a0;">N/A</span>`;}const parts=plateStr.split(' '),numbers=parts[0]||'',letters=parts.slice(1).join(' ')||'';return `<div class="plate-bumper notranslate" translate="no"><span class="plate-num">${numbers}</span><span class="plate-let">${letters}</span></div>`;}
@@ -2333,8 +2349,23 @@ translations["Brightness"]="السطوع";
     if(matches.length)list.classList.add("open");
   };
 
+  function showLoginFeedback(message){
+    var feedback=document.getElementById("loginInlineMessage");
+    if(!feedback){
+      feedback=document.createElement("div");
+      feedback.id="loginInlineMessage";
+      feedback.setAttribute("role","alert");
+      feedback.style.cssText="display:none;color:#ffb4a9;font-size:0.8rem;text-align:center;margin:0.4rem 0";
+      var button=document.getElementById("customSignInBtn");
+      if(button&&button.parentNode)button.parentNode.insertBefore(feedback,button);
+    }
+    feedback.textContent=message||"";
+    feedback.style.display=message?"block":"none";
+  }
+
   function handleLoginButtonClick(event){
     var target=event.target;
+    while(target&&target.nodeType!==1)target=target.parentNode;
     while(target&&target.id!=="customSignInBtn")target=target.parentNode;
     if(!target)return;
     event.preventDefault();
@@ -2347,20 +2378,21 @@ translations["Brightness"]="السطوع";
     var name=nameInput?nameInput.value.replace(/^\s+|\s+$/g,""):"";
     var email=emailInput?emailInput.value.replace(/^\s+|\s+$/g,""):"";
     var noonId=idInput?idInput.value.replace(/^\s+|\s+$/g,""):"";
+    showLoginFeedback("");
     if(currentLoginMode==="admin"){
       if(passwordInput&&passwordInput.value==="NoonCCTVSLP#2026"){
         executeLogin(name,email,"","admin",false,[]);
       }else{
-        alert("Incorrect Password");
+        showLoginFeedback("Incorrect password.");
       }
       return;
     }
     if(!name||!email||!noonId){
-      alert("Please enter your Name, Noon ID, and Authorized Noon Email.");
+      showLoginFeedback("Enter your name, Noon ID, and authorized Noon email. Suggestions are optional.");
       return;
     }
     if(!loginSelectedDocks||loginSelectedDocks.length===0){
-      alert(currentLang==="ar"?"يرجى تحديد رصيف واحد على الأقل.":"Please select at least one assigned dock.");
+      showLoginFeedback(currentLang==="ar"?"يرجى تحديد رصيف واحد على الأقل.":"Select at least one assigned dock.");
       return;
     }
     try{
@@ -2392,6 +2424,248 @@ translations["Brightness"]="السطوع";
   if(dispatchSelect){
     dispatchSelect.addEventListener("change",syncSealVisibility);
     syncSealVisibility();
+  }
+})();
+</script>
+<script>
+(function(){
+  var BASE_AUTO_CHECKOUT_MINUTES=60;
+  var EXTENSION_MINUTES=30;
+  var MAX_TRUCK_STAY_MINUTES=240;
+  var MAX_TRUCK_EXTENSIONS=(MAX_TRUCK_STAY_MINUTES-BASE_AUTO_CHECKOUT_MINUTES)/EXTENSION_MINUTES;
+  function cacheGuardSuggestions(guards){
+    if(!Array.isArray(guards))return;
+    securityRegistryList=guards;
+    try{
+      var savedGuards=JSON.parse(localStorage.getItem("noonSlpLocalGuards")||"[]");
+      if(!Array.isArray(savedGuards))savedGuards=[];
+      for(var guardIndex=0;guardIndex<guards.length;guardIndex++){
+        var responseGuard=guards[guardIndex];
+        var guardExists=false;
+        for(var savedIndex=0;savedIndex<savedGuards.length;savedIndex++){
+          if(savedGuards[savedIndex].securityId===responseGuard.securityId&&savedGuards[savedIndex].securityName===responseGuard.securityName){
+            guardExists=true;
+            break;
+          }
+        }
+        if(!guardExists)savedGuards.push(responseGuard);
+      }
+      localStorage.setItem("noonSlpLocalGuards",JSON.stringify(savedGuards));
+    }catch(storageError){
+      console.warn("Could not cache the guard suggestion list.",storageError);
+    }
+  }
+  function renderActiveLoginQueries(){
+    var nameInput=document.getElementById("loginName");
+    var idInput=document.getElementById("loginNoonId");
+    if(nameInput&&nameInput.value&&window.renderLoginGuardSuggestions)window.renderLoginGuardSuggestions(nameInput.value,"name");
+    if(idInput&&idInput.value&&window.renderLoginGuardSuggestions)window.renderLoginGuardSuggestions(idInput.value,"id");
+  }
+  function fetchGuardSuggestions(){
+    if(window.guardSuggestionsRequestPending)return;
+    window.guardSuggestionsRequestPending=true;
+    fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"getGuardSuggestions"})})
+      .then(function(response){return response.json();})
+      .then(function(data){
+        if(!data||data.status==="error"||!Array.isArray(data.guards))throw new Error(data&&data.message?data.message:"The guard suggestion list could not be loaded.");
+        cacheGuardSuggestions(data.guards);
+        renderActiveLoginQueries();
+      })
+      .catch(function(error){
+        console.error("Could not load the fast guard suggestion list:",error);
+        return fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"getLogs"})})
+          .then(function(response){return response.json();})
+          .then(function(data){
+            if(!data||!Array.isArray(data.guards))throw new Error(data&&data.message?data.message:"The fallback guard list was not returned.");
+            cacheGuardSuggestions(data.guards);
+            renderActiveLoginQueries();
+          })
+          .catch(function(fallbackError){console.error("Could not load fallback guard suggestions:",fallbackError);});
+      })
+      .then(function(){window.guardSuggestionsRequestPending=false;});
+  }
+  var originalProcessAlertQueue=window.processAlertQueue;
+  if(originalProcessAlertQueue){
+    window.processAlertQueue=function(){
+      originalProcessAlertQueue();
+      var current=window.currentAlert;
+      if(!current||current.type!=="30min")return;
+      var extendButton=document.getElementById("btnExtendTimer");
+      if(!extendButton)return;
+      extendButton.style.display="";
+      var currentExtensions=Number(current.truck.extensions);
+      if(!isFinite(currentExtensions)||currentExtensions===0){
+        currentExtensions=Number(window.truckExtensions[current.truck.plateNumber])||0;
+      }
+      if(currentExtensions>=MAX_TRUCK_EXTENSIONS){
+        extendButton.style.display="none";
+        extendButton.onclick=null;
+        var maxStayMessage=document.getElementById("timerAlertMessage");
+        if(maxStayMessage)maxStayMessage.innerText="Maximum extensions reached. This truck will auto-check out at "+(MAX_TRUCK_STAY_MINUTES/60)+" hours after check-in.";
+        return;
+      }
+      extendButton.onclick=function(){
+        var alertData=window.currentAlert;
+        if(!alertData||alertData.type!=="30min"||extendButton.disabled)return;
+        var plate=alertData.truck.plateNumber;
+        extendButton.disabled=true;
+        fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"extend",plateNumber:plate})})
+          .then(function(response){
+            return response.json().then(function(data){
+              if(!response.ok||!data||data.status!=="success"||!isFinite(Number(data.extensions)))throw new Error(data&&data.message?data.message:"The extension was not confirmed by the server.");
+              return data;
+            });
+          })
+          .then(function(data){
+            window.truckExtensions[plate]=Number(data.extensions);
+            try{
+              localStorage.setItem("noonSlpExtensions",JSON.stringify(window.truckExtensions));
+            }catch(storageError){
+              console.warn("Could not save the local extension cache.",storageError);
+            }
+            if(typeof globalLogsCache!=="undefined"){
+              for(var i=0;i<globalLogsCache.length;i++){
+                if(String(globalLogsCache[i].plateNumber)===String(plate)&&!globalLogsCache[i].checkOutTime){
+                  globalLogsCache[i].extensions=Number(data.extensions);
+                }
+              }
+            }
+            closeAlertModal(true);
+          })
+          .catch(function(error){
+            console.error("Could not confirm truck extension:",error);
+            extendButton.disabled=false;
+            var message=document.getElementById("timerAlertMessage");
+            if(message)message.innerText=error&&error.message?error.message:"Could not save the extension. Please check the connection and try again.";
+          });
+      };
+    };
+  }
+
+  window.executeLogin=function(name,email,noonId,role,isInitialLoad,assignedDocks){
+    role=role||"guard";
+    assignedDocks=Array.isArray(assignedDocks)?assignedDocks.slice(0):[];
+    loggedInUser={name:name,email:email,noonId:noonId};
+    userRole=role;
+    loginSelectedDocks=assignedDocks;
+    if(!isInitialLoad){
+      try{
+        localStorage.setItem("noonSlpUserSession",JSON.stringify({
+          name:name,email:email,noonId:noonId,role:role,
+          assignedDocks:assignedDocks,loginTime:Date.now()
+        }));
+      }catch(storageError){
+        console.warn("Could not save the login session on this device.",storageError);
+      }
+    }
+    populateCheckInDocks(role,assignedDocks);
+    var setDisplay=function(id,value){
+      var element=document.getElementById(id);
+      if(element)element.style.display=value;
+    };
+    setDisplay("nav-dashboard",role==="admin"?"flex":"none");
+    setDisplay("nav-analytics",role==="admin"?"flex":"none");
+    setDisplay("nav-checkin",role==="admin"||role==="guard"?"flex":"none");
+    setDisplay("nav-active-trucks",role==="admin"||role==="guard"?"flex":"none");
+    setDisplay("nav-history",role==="admin"?"flex":"none");
+    setDisplay("nav-drivers",role==="admin"?"flex":"none");
+    setDisplay("nav-security",role==="admin"?"flex":"none");
+    setDisplay("nav-handover",role==="guard"?"flex":"none");
+    setDisplay("btnExportExcel",role==="admin"?"block":"none");
+    if(role==="guard"){
+      var securityName=document.getElementById("securityNameField");
+      var securityId=document.getElementById("securityNameId");
+      if(securityName)securityName.value=name;
+      if(securityId)securityId.value=noonId;
+    }
+    var viewId=role==="admin"?"dashboard":"checkin";
+    var views=document.querySelectorAll(".app-view");
+    for(var i=0;i<views.length;i++)views[i].classList.remove("active-view");
+    var targetView=document.getElementById("view-"+viewId);
+    if(targetView)targetView.classList.add("active-view");
+    var navigation=document.querySelectorAll(".nav-item");
+    var activeNavigation=null;
+    for(var j=0;j<navigation.length;j++){
+      navigation[j].classList.remove("active");
+      var clickAction=navigation[j].getAttribute("onclick")||"";
+      if(clickAction.indexOf(viewId)>-1)activeNavigation=navigation[j];
+    }
+    if(activeNavigation)activeNavigation.classList.add("active");
+    if(window.innerWidth<=1200){
+      var sidebar=document.getElementById("appSidebar");
+      if(sidebar)sidebar.classList.remove("mobile-open");
+    }
+    setDisplay("customLoginBox","none");
+    var tabs=document.querySelector(".login-tabs");
+    if(tabs)tabs.style.display="none";
+    setDisplay("authStatus","none");
+    var overlay=document.getElementById("introOverlay");
+    if(overlay){
+      overlay.classList.add("hidden");
+      overlay.style.display="none";
+    }
+    if(typeof fetchLogs==="function")fetchLogs();
+  };
+
+  document.addEventListener("DOMContentLoaded",function(){
+    var grid=document.getElementById("loginDocksGrid");
+    if(grid&&!grid.childElementCount){
+      for(var dock=15;dock<=90;dock++){
+        (function(dockNumber){
+          var button=document.createElement("button");
+          button.type="button";
+          button.className="dock-select-btn";
+          button.textContent=String(dockNumber);
+          button.addEventListener("click",function(){
+            if(window.toggleLoginDock)window.toggleLoginDock(dockNumber,button);
+          });
+          grid.appendChild(button);
+        })(dock);
+      }
+    }
+    if(typeof fetchLogs==="function"&&!window.hasFetchedLogs)fetchLogs();
+    fetchGuardSuggestions();
+  });
+
+  var previousLogsHandler=window.handleLogsResponse;
+  if(previousLogsHandler){
+    window.handleLogsResponse=function(payload){
+      var responseGuards=payload&&payload.guards;
+      if(Array.isArray(responseGuards))cacheGuardSuggestions(responseGuards);
+      var newlyAutoCheckedOut=[];
+      var rows=payload&&payload.logs;
+      if(rows&&typeof globalLogsCache!=="undefined"){
+        for(var i=0;i<rows.length;i++){
+          var row=rows[i];
+          if(!row.checkOutTime||String(row.sealNumber||"")!=="AUTO-CHECKOUT")continue;
+          var wasActive=false;
+          for(var j=0;j<globalLogsCache.length;j++){
+            if(String(globalLogsCache[j].plateNumber)===String(row.plateNumber)&&!globalLogsCache[j].checkOutTime){
+              wasActive=true;
+              break;
+            }
+          }
+          if(wasActive&&window.truckAlerting[row.plateNumber]!=="auto"){
+            window.truckAlerting[row.plateNumber]="auto";
+            newlyAutoCheckedOut.push(row);
+          }
+        }
+      }
+      var logsHandlerError=null;
+      try{
+        previousLogsHandler(payload);
+      }catch(handlerError){
+        logsHandlerError=handlerError;
+        console.error("Could not finish rendering refreshed logs.",handlerError);
+      }finally{
+        renderActiveLoginQueries();
+      }
+      for(var k=0;k<newlyAutoCheckedOut.length;k++){
+        window.alertQueue.push({type:"auto",truck:newlyAutoCheckedOut[k]});
+      }
+      if(newlyAutoCheckedOut.length)window.processAlertQueue();
+      if(logsHandlerError)throw logsHandlerError;
+    };
   }
 })();
 </script>
