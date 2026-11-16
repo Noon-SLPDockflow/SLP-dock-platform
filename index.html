@@ -3,6 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<script>
+(function(){
+  var key="noonSlpUserSession",stores=[];
+  try{stores.push(window.sessionStorage);}catch(error){}
+  try{stores.push(window.localStorage);}catch(error){}
+  for(var i=0;i<stores.length;i++){
+    try{
+      var session=JSON.parse(stores[i].getItem(key)||"null");
+      var loginTime=session&&Number(session.loginTime);
+      var age=Date.now()-loginTime;
+      var role=session&&String(session.role||"").toLowerCase();
+      if(session&&session.name&&(role==="admin"||role==="guard")&&isFinite(loginTime)&&age>=0&&age<43200000){
+        document.documentElement.className+=" has-saved-user-session";
+        break;
+      }
+    }catch(error){
+      if(window.console&&console.warn)console.warn("Could not check the saved login session before page render.",error);
+    }
+  }
+})();
+</script>
 <title>Noon SLP Dock Security Platform</title>
 <link rel="icon" type="image/png" sizes="128x128" href="./Truck-logo.png?v=5" />
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -38,6 +59,7 @@ input[type=number]{-moz-appearance:textfield}
 .login-tab.active{background:var(--accent-color);color:#000}
 .intro-overlay{position:fixed!important;inset:0!important;width:100vw;height:100vh;height:100dvh;padding:0;overflow-y:auto;background:linear-gradient(135deg,#090909,#1c1a15 58%,#080807);z-index:2147483000}
 .intro-overlay.hidden{display:none!important}
+html.has-saved-user-session #introOverlay{display:none!important}
 body:has(> #introOverlay:not(.hidden)) > #floatingOpenBtn{display:none!important}
 #introOverlay:not(.hidden)~.sidebar,#introOverlay:not(.hidden)~.main-content{display:none!important}
 .login-container{width:100%;max-width:none;flex:1 0 100%;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;padding:0;flex-direction:row;align-items:stretch;text-align:left;overflow:hidden;border:0;border-radius:0;background:#0b0b0a;box-shadow:none}
@@ -2858,10 +2880,12 @@ translations["Brightness"]="السطوع";
       }finally{
         renderActiveLoginQueries();
       }
-      for(var k=0;k<newlyAutoCheckedOut.length;k++){
-        window.alertQueue.push({type:"auto",truck:newlyAutoCheckedOut[k]});
+      if(userRole==="guard"){
+        for(var k=0;k<newlyAutoCheckedOut.length;k++){
+          window.alertQueue.push({type:"auto",truck:newlyAutoCheckedOut[k]});
+        }
+        if(newlyAutoCheckedOut.length)window.processAlertQueue();
       }
-      if(newlyAutoCheckedOut.length)window.processAlertQueue();
       if(logsHandlerError)throw logsHandlerError;
     };
   }
